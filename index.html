@@ -471,7 +471,7 @@ var e,a,n="function"==typeof Symbol?Symbol:{},t=n.iterator||"@@iterator",r=n.toS
   @media print{.print-overlay .no-print{display:none !important}}
   </style>
 
-<style id="roadtrip-readonly-style">html[data-roadtrip-readonly] body.read-only-mode button:not(nav button):not([data-readonly-allow]){display:none!important}html[data-roadtrip-readonly] body.read-only-mode input,html[data-roadtrip-readonly] body.read-only-mode select,html[data-roadtrip-readonly] body.read-only-mode textarea{display:none!important}body.read-only-mode{--readonly-banner:1}</style>
+<style id="roadtrip-readonly-style">html[data-roadtrip-readonly] body.read-only-mode button:not(nav button):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}html[data-roadtrip-readonly] body.read-only-mode :is(input,select,textarea):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}body.read-only-mode{--readonly-banner:1}</style>
 <style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-auto{pointer-events:auto}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.bottom-0{bottom:0px}.left-0{left:0px}.right-0{right:0px}.top-0{top:0px}.top-3{top:0.75rem}.bottom-20{bottom:5rem}.right-4{right:1rem}.z-10{z-index:10}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-1\.5{margin-top:0.375rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-2{height:0.5rem}.h-7{height:1.75rem}.min-h-screen{min-height:100vh}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-2{width:0.5rem}.w-7{width:1.75rem}.w-full{width:100%}.min-w-0{min-width:0px}.min-w-\[145px\]{min-width:145px}.min-w-\[230px\]{min-width:230px}.min-w-max{min-width:max-content}.max-w-7xl{max-width:80rem}.max-w-full{max-width:100%}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-8 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-pre-line{white-space:pre-line}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-4{border-width:4px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138 / var(--tw-border-opacity, 1))}.border-amber-200\/80{border-color:rgb(253 230 138 / 0.8)}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77 / var(--tw-border-opacity, 1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254 / var(--tw-border-opacity, 1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250 / var(--tw-border-opacity, 1))}.border-blue-400\/30{border-color:rgb(96 165 250 / 0.3)}.border-blue-400\/40{border-color:rgb(96 165 250 / 0.4)}.border-blue-400\/50{border-color:rgb(96 165 250 / 0.5)}.border-blue-500{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208 / var(--tw-border-opacity, 1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183 / var(--tw-border-opacity, 1))}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153 / var(--tw-border-opacity, 1))}.border-emerald-500\/40{border-color:rgb(16 185 129 / 0.4)}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133 / var(--tw-border-opacity, 1))}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-amber-100\/80{background-color:rgb(254 243 199 / 0.8)}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.bg-amber-50\/40{background-color:rgb(255 251 235 / 0.4)}.bg-amber-50\/50{background-color:rgb(255 251 235 / 0.5)}.bg-amber-600{--tw-bg-opacity:1;background-color:rgb(217 119 6 / var(--tw-bg-opacity, 1))}.bg-blue-400{--tw-bg-opacity:1;background-color:rgb(96 165 250 / var(--tw-bg-opacity, 1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-blue-50\/80{background-color:rgb(239 246 255 / 0.8)}.bg-blue-50\/90{background-color:rgb(239 246 255 / 0.9)}.bg-blue-500\/20{background-color:rgb(59 130 246 / 0.2)}.bg-blue-500\/30{background-color:rgb(59 130 246 / 0.3)}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-blue-600\/30{background-color:rgb(37 99 235 / 0.3)}.bg-blue-800{--tw-bg-opacity:1;background-color:rgb(30 64 175 / var(--tw-bg-opacity, 1))}.bg-blue-950\/90{background-color:rgb(23 37 84 / 0.9)}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-emerald-100\/80{background-color:rgb(209 250 229 / 0.8)}.bg-emerald-200{--tw-bg-opacity:1;background-color:rgb(167 243 208 / var(--tw-bg-opacity, 1))}.bg-emerald-50\/40{background-color:rgb(236 253 245 / 0.4)}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-emerald-950\/90{background-color:rgb(2 44 34 / 0.9)}.bg-purple-600{--tw-bg-opacity:1;background-color:rgb(147 51 234 / var(--tw-bg-opacity, 1))}.bg-rose-200{--tw-bg-opacity:1;background-color:rgb(254 205 211 / var(--tw-bg-opacity, 1))}.bg-sky-700{--tw-bg-opacity:1;background-color:rgb(3 105 161 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-800\/90{background-color:rgb(30 41 59 / 0.9)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/90{background-color:rgb(255 255 255 / 0.9)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-slate-900{--tw-gradient-from:#0f172a var(--tw-gradient-from-position);--tw-gradient-to:rgb(15 23 42 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-blue-950{--tw-gradient-to:rgb(23 37 84 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #172554 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-slate-900{--tw-gradient-to:#0f172a var(--tw-gradient-to-position)}.p-1{padding:0.25rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.px-0\.5{padding-left:0.125rem;padding-right:0.125rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.pb-1{padding-bottom:0.25rem}.pb-24{padding-bottom:6rem}.pt-2{padding-top:0.5rem}.text-left{text-align:left}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14 / var(--tw-text-opacity, 1))}.text-amber-900{--tw-text-opacity:1;color:rgb(120 53 15 / var(--tw-text-opacity, 1))}.text-amber-950{--tw-text-opacity:1;color:rgb(69 26 3 / var(--tw-text-opacity, 1))}.text-blue-200{--tw-text-opacity:1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}.text-blue-300{--tw-text-opacity:1;color:rgb(147 197 253 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}.text-blue-950{--tw-text-opacity:1;color:rgb(23 37 84 / var(--tw-text-opacity, 1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-emerald-900{--tw-text-opacity:1;color:rgb(6 78 59 / var(--tw-text-opacity, 1))}.text-emerald-950{--tw-text-opacity:1;color:rgb(2 44 34 / var(--tw-text-opacity, 1))}.text-rose-900{--tw-text-opacity:1;color:rgb(136 19 55 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-slate-950{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.line-through{-webkit-text-decoration-line:line-through;text-decoration-line:line-through}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.ring-1{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-blue-200{--tw-ring-opacity:1;--tw-ring-color:rgb(191 219 254 / var(--tw-ring-opacity, 1))}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.before\:absolute::before{content:var(--tw-content);position:absolute}.before\:bottom-8::before{content:var(--tw-content);bottom:2rem}.before\:left-5::before{content:var(--tw-content);left:1.25rem}.before\:top-8::before{content:var(--tw-content);top:2rem}.before\:hidden::before{content:var(--tw-content);display:none}.before\:w-1::before{content:var(--tw-content);width:0.25rem}.before\:rounded-full::before{content:var(--tw-content);border-radius:9999px}.before\:bg-gradient-to-b::before{content:var(--tw-content);background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.before\:from-blue-600::before{content:var(--tw-content);--tw-gradient-from:#2563eb var(--tw-gradient-from-position);--tw-gradient-to:rgb(37 99 235 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.before\:via-emerald-500::before{content:var(--tw-content);--tw-gradient-to:rgb(16 185 129 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #10b981 var(--tw-gradient-via-position), var(--tw-gradient-to)}.before\:to-amber-500::before{content:var(--tw-content);--tw-gradient-to:#f59e0b var(--tw-gradient-to-position)}.hover\:bg-amber-700:hover{--tw-bg-opacity:1;background-color:rgb(180 83 9 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-500\/30:hover{background-color:rgb(59 130 246 / 0.3)}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-100:hover{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-700:hover{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-500:hover{--tw-bg-opacity:1;background-color:rgb(168 85 247 / var(--tw-bg-opacity, 1))}.hover\:bg-rose-700:hover{--tw-bg-opacity:1;background-color:rgb(190 18 60 / var(--tw-bg-opacity, 1))}.hover\:bg-sky-600:hover{--tw-bg-opacity:1;background-color:rgb(2 132 199 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/10:hover{background-color:rgb(255 255 255 / 0.1)}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}.hover\:text-slate-900:hover{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.disabled\:opacity-30:disabled{opacity:0.3}.group:hover .group-hover\:text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:w-auto{width:auto}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:p-4{padding:1rem}.sm\:p-5{padding:1.25rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 768px){.md\:bottom-6{bottom:1.5rem}.md\:col-span-2{grid-column:span 2 / span 2}.md\:flex{display:flex}.md\:hidden{display:none}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-center{align-items:center}.md\:pb-12{padding-bottom:3rem}.md\:pl-14{padding-left:3.5rem}.md\:before\:block::before{content:var(--tw-content);display:block}}@media (min-width: 1024px){.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.lg\:flex-row{flex-direction:row}.lg\:items-center{align-items:center}.lg\:justify-end{justify-content:flex-end}.lg\:justify-between{justify-content:space-between}.lg\:border-t-0{border-top-width:0px}.lg\:pt-0{padding-top:0px}}</style><script>var _excluded = ["hotel"];
 function _objectWithoutProperties(t, r) { if (null == t) return {}; var o, n, i = _objectWithoutPropertiesLoose(t, r); if (Object.getOwnPropertySymbols) { var l = Object.getOwnPropertySymbols(t); for (n = 0; n < l.length; n++) o = l[n], -1 === r.indexOf(o) && {}.propertyIsEnumerable.call(t, o) && (i[o] = t[o]); } return i; }
 function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (-1 !== e.indexOf(n)) continue; t[n] = r[n]; } return t; }
@@ -15750,7 +15750,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
             </label>
           </section>
           {list.length === 0 && <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">Für diese Etappe ist kein gültiges Datum eingetragen. Trage unter „Etappen“ ein Datum ein, dann erscheint der Tagesplan.</div>}
-          {list.map((d) => <DayCard key={d.iso} trip={trip} day={d} onSave={onSave} editable isToday={d.iso === todayIso} nowMin={-1} />)}
+          {list.map((d) => <DayCard key={d.iso} trip={trip} day={d} onSave={onSave} editable={!IS_READ_ONLY_COPY} isToday={d.iso === todayIso} nowMin={-1} />)}
           {co && <DayCard key={co.iso} trip={trip} day={co} onSave={onSave} editable={false} isToday={co.iso === todayIso} nowMin={-1} />}
         </div>
       );
@@ -15889,34 +15889,35 @@ svg.leaflet-image-layer.leaflet-interactive path {
       img.onerror = () => { URL.revokeObjectURL(url); res(file); }; img.src = url;
     });
     const DOC_CATS = ['Flug', 'Hotel', 'Mietwagen', 'Versicherung', 'Tickets', 'Sonstiges'];
-    function DocsView() {
+    function DocsView({ trip, onSave }) {
       const [docs, setDocs] = useState([]); const [err, setErr] = useState(''); const [cat, setCat] = useState('Flug'); const [busy, setBusy] = useState(false);
       const load = async () => { try { const all = await docsTx('readonly', (s) => s.getAll()); setDocs((all || []).sort((a, b) => b.added - a.added)); } catch (e) { setErr('Dokumentenablage in diesem Browser nicht verfügbar: ' + (e && e.message ? e.message : e)); } };
       useEffect(() => { load(); try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {} }, []);
       const onFiles = async (e) => {
         const files = [...e.target.files]; e.target.value = ''; if (!files.length) return; setBusy(true); setErr('');
-        try { for (const f of files) { const blob = await downscaleImage(f); await docsTx('readwrite', (s) => s.put({ id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: f.name, type: blob.type || f.type, size: blob.size, cat, added: Date.now(), blob })); } await load(); }
+        try { for (const f of files) { const blob = await downscaleImage(f); await docsTx('readwrite', (s) => s.put({ id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: f.name, type: blob.type || f.type, size: blob.size, cat, added: Date.now(), blob })); } await load(); docsChanged(); onSave({ ...trip }, ''); }
         catch (x) { setErr('Speichern fehlgeschlagen: ' + (x && x.message ? x.message : x)); } setBusy(false);
       };
       const open = (d) => { const u = URL.createObjectURL(d.blob); const w = window.open(u, '_blank'); if (!w) { const a = document.createElement('a'); a.href = u; a.download = d.name; a.click(); } setTimeout(() => URL.revokeObjectURL(u), 60000); };
-      const del = async (d) => { if (!window.confirm(`„${d.name}“ löschen?`)) return; try { await docsTx('readwrite', (s) => s.delete(d.id)); await load(); } catch (e) { setErr('Löschen fehlgeschlagen.'); } };
+      const del = async (d) => { if (!window.confirm(`„${d.name}“ löschen?`)) return; try { await docsTx('readwrite', (s) => s.delete(d.id)); await load(); docsChanged(); onSave({ ...trip }, ''); } catch (e) { setErr('Löschen fehlgeschlagen.'); } };
       return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-base font-bold text-slate-900">📎 Dokumente</h3>
-          <p className="text-xs text-slate-500">PDFs und Fotos (Tickets, Voucher, Versicherung) liegen nur in diesem Browser auf diesem Gerät. Sie sind <b>nicht</b> in HTML- oder JSON-Export enthalten. Löschst du die Browserdaten, sind sie weg.</p>
-          <div className="flex flex-wrap items-end gap-2">
+          <p className="text-xs text-slate-500">PDFs und Fotos (Tickets, Voucher, Versicherung) werden zusammen mit den Reisedaten in der Datendatei gespeichert (zum Beispiel in Google Drive) und auf jedem Gerät offline vorgehalten. Je größer die Dokumente, desto größer die Datei: am besten PDFs unter 3 MB, Fotos werden automatisch verkleinert.</p>
+          {!IS_READ_ONLY_COPY && <div className="flex flex-wrap items-end gap-2">
             <label className="text-xs font-semibold text-slate-700">Kategorie
               <select value={cat} onChange={(e) => setCat(e.target.value)} className="mt-1 block min-h-[44px] px-2 rounded-lg border border-slate-300 bg-white text-sm">{DOC_CATS.map((c) => <option key={c}>{c}</option>)}</select>
             </label>
             <label className="min-h-[44px] inline-flex items-center px-4 rounded-lg bg-blue-600 text-white text-sm font-bold cursor-pointer">{busy ? 'Speichere …' : '+ Dateien wählen'}<input type="file" multiple accept="application/pdf,image/*" onChange={onFiles} className="hidden" /></label>
-          </div>
+          </div>}
+          {docs.length > 0 && <div className={`text-xs rounded-lg p-2 border ${docs.reduce((a, d) => a + d.size, 0) > 25 * 1024 * 1024 ? 'bg-amber-50 border-amber-300 text-amber-950' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>Gesamtgröße: {(docs.reduce((a, d) => a + d.size, 0) / 1048576).toFixed(1)} MB{docs.reduce((a, d) => a + d.size, 0) > 25 * 1024 * 1024 ? '. Das ist viel: Laden und Speichern der Datei werden langsam, besonders auf dem Handy.' : ''}</div>}
           {err && <div className="text-xs rounded-lg bg-red-50 border border-red-200 text-red-900 p-2">{err}</div>}
           {docs.length === 0 && !err && <div className="text-sm text-slate-500">Noch keine Dokumente.</div>}
           {DOC_CATS.map((c) => { const l = docs.filter((d) => d.cat === c); if (!l.length) return null; return (
             <div key={c} className="space-y-1.5"><div className="text-xs font-bold text-slate-700">{c}</div>
               {l.map((d) => <div key={d.id} className="flex items-center gap-2 rounded-lg border border-slate-200 p-2"><span className="text-lg">{/pdf/.test(d.type) ? '📄' : '🖼'}</span><div className="min-w-0 flex-1"><div className="text-sm font-semibold text-slate-900 break-all">{d.name}</div><div className="text-[11px] text-slate-500">{(d.size / 1024).toFixed(0)} KB</div></div>
-                <button type="button" onClick={() => open(d)} className="min-h-[36px] px-3 rounded-lg bg-slate-800 text-white text-xs font-bold">Öffnen</button>
-                <button type="button" aria-label="Löschen" onClick={() => del(d)} className="min-h-[36px] w-9 rounded-lg text-slate-400 hover:text-red-600">✕</button></div>)}
+                <button data-readonly-allow type="button" onClick={() => open(d)} className="min-h-[36px] px-3 rounded-lg bg-slate-800 text-white text-xs font-bold">Öffnen</button>
+                {!IS_READ_ONLY_COPY && <button type="button" aria-label="Löschen" onClick={() => del(d)} className="min-h-[36px] w-9 rounded-lg text-slate-400 hover:text-red-600">✕</button>}</div>)}
             </div>); })}
         </section>
       );
@@ -16004,7 +16005,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div className="space-y-4">
           <div className="flex flex-wrap gap-1.5">{tabs.map(([id, l]) => <button key={id} type="button" onClick={() => setSub(id)} className={`min-h-[44px] px-3 rounded-lg text-sm font-semibold border ${sub === id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'}`}>{l}</button>)}</div>
           {sub === 'pack' && <PackView trip={trip} onSave={onSave} />}
-          {sub === 'docs' && <DocsView />}
+          {sub === 'docs' && <DocsView trip={trip} onSave={onSave} />}
           {sub === 'cmp' && <CompareView trip={trip} onSave={onSave} />}
           {sub === 'print' && (
             <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
@@ -16021,21 +16022,82 @@ svg.leaflet-image-layer.leaflet-interactive path {
     // ===== Programm/Daten getrennt: Datendatei laden, mit Datei verbinden, Gerätemodus =====
     const MODE_KEY = 'roadtrip_device_mode_v1';
     const readTripFile = (file) => new Promise((res, rej) => {
-      if (file.size > 20 * 1024 * 1024) return rej(new Error('Datei zu groß (max. 20 MB).'));
+      if (file.size > 120 * 1024 * 1024) return rej(new Error('Datei zu groß (max. 120 MB).'));
       const r = new FileReader(); r.onerror = () => rej(new Error('Datei konnte nicht gelesen werden.'));
       r.onload = () => { try { res(normalizeTrip(JSON.parse(r.result))); } catch (e) { rej(new Error('Keine gültige Reisedatei: ' + e.message)); } };
       r.readAsText(file);
     });
-    const installTripData = (data) => {
-      try { const prev = localStorage.getItem(LOCAL_STORAGE_KEY); if (prev) { const b = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]'); b.unshift({ savedAt: new Date().toISOString(), data: JSON.parse(prev) }); localStorage.setItem(BACKUP_KEY, JSON.stringify(b.slice(0, 5))); } } catch (e) {}
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-    };
     const setDeviceMode = (m) => { try { localStorage.setItem(MODE_KEY, m); } catch (e) {} };
     const getDeviceMode = () => { try { return localStorage.getItem(MODE_KEY) || 'edit'; } catch (e) { return 'edit'; } };
     const FS_SUPPORTED = typeof window !== 'undefined' && !!window.showOpenFilePicker;
     const fsIdb = () => new Promise((res, rej) => { try { const r = indexedDB.open('roadtrip_fs_v1', 1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } });
     const fsIdbGet = async () => { const db = await fsIdb(); return new Promise((res) => { const rq = db.transaction('h').objectStore('h').get('handle'); rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null); }); };
     const fsIdbPut = async (h) => { try { const db = await fsIdb(); return await new Promise((res) => { try { const tx = db.transaction('h', 'readwrite'); tx.objectStore('h').put(h, 'handle'); tx.oncomplete = () => res(); tx.onerror = () => res(); tx.onabort = () => res(); } catch (e) { res(); } }); } catch (e) {} };
+
+    // ----- Dokumente in der Datendatei (Base64) -----
+    const blobToB64 = (blob) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+    const b64ToBlob = (b64, type) => { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new Blob([u], { type: type || 'application/octet-stream' }); };
+    let docsPayloadCache = null;
+    const docsChanged = () => { docsPayloadCache = null; };
+    const getRawDocs = async () => { try { return (await docsTx('readonly', (s) => s.getAll())) || []; } catch (e) { return []; } };
+    const buildDocsPayload = async () => {
+      if (docsPayloadCache) return docsPayloadCache; const out = [];
+      for (const d of await getRawDocs()) out.push({ id: d.id, name: d.name, type: d.type, size: d.size, cat: d.cat, added: d.added, data: await blobToB64(d.blob) });
+      docsPayloadCache = out; return out;
+    };
+    const withDocs = async (trip) => ({ ...trip, documents: await buildDocsPayload() });
+    const replaceDocs = async (arr) => {
+      const db = await docsDb();
+      await new Promise((res, rej) => { const tx = db.transaction('docs', 'readwrite'); const st = tx.objectStore('docs'); st.clear(); (arr || []).forEach((d) => st.put({ id: d.id, name: d.name, type: d.type, size: d.size, cat: d.cat, added: d.added, blob: d.blob || b64ToBlob(d.data, d.type) })); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); });
+      docsChanged();
+    };
+    const downloadTripFile = async (trip, name) => { const full = await withDocs(trip); const b = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 1500); };
+    window.__pendingDocs = null;
+    const stripPendingDocs = (d) => { const { documents, ...rest } = d; window.__pendingDocs = Array.isArray(documents) && documents.length ? documents : null; return rest; };
+
+    // ----- Reisen-Bibliothek (inaktive Reisen im Browser) -----
+    const ACTIVE_ID_KEY = 'roadtrip_active_trip_v1';
+    const libDb = () => new Promise((res, rej) => { try { const r = indexedDB.open('roadtrip_lib_v1', 1); r.onupgradeneeded = () => r.result.createObjectStore('trips', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } });
+    const libTx = async (mode, fn) => { const db = await libDb(); return new Promise((res, rej) => { const tx = db.transaction('trips', mode); const rq = fn(tx.objectStore('trips')); tx.oncomplete = () => res(rq && rq.result); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); }); };
+    const libAll = async () => { try { return (await libTx('readonly', (s) => s.getAll())) || []; } catch (e) { return []; } };
+    const libGet = (id) => libTx('readonly', (s) => s.get(id));
+    const libPut = (e) => libTx('readwrite', (s) => s.put(e));
+    const libDel = (id) => libTx('readwrite', (s) => s.delete(id));
+    const getActiveTrip = () => { try { const p = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)); return hasTripData(p) ? p : null; } catch (e) { return null; } };
+    const ensureActiveTripId = () => { try { const t = getActiveTrip(); if (t && !t.meta.tripId) { t.meta.tripId = freshId(); localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(t)); } if (t) localStorage.setItem(ACTIVE_ID_KEY, t.meta.tripId); } catch (e) {} };
+    ensureActiveTripId();
+    const sameTrip = (a, b) => !!(a && b && ((a.meta.tripId && b.meta.tripId) ? a.meta.tripId === b.meta.tripId : (a.meta.title && a.meta.title === b.meta.title && (a.meta.startDate || '') === (b.meta.startDate || ''))));
+    const tripLabel = (t) => `${t.meta.title || 'Ohne Titel'}${t.meta.startDate ? ' · ' + t.meta.startDate.split('-').reverse().join('.') : ''}`;
+    const fsIdbDel = async () => { try { const db = await fsIdb(); await new Promise((res) => { const tx = db.transaction('h', 'readwrite'); tx.objectStore('h').delete('handle'); tx.oncomplete = () => res(); tx.onerror = () => res(); }); } catch (e) {} };
+    const stashActive = async () => {
+      const t = getActiveTrip(); if (!t) return null; t.meta.tripId = t.meta.tripId || freshId();
+      const h = await fsIdbGet().catch(() => null);
+      await libPut({ id: t.meta.tripId, title: t.meta.title, start: t.meta.startDate, end: t.meta.endDate, stages: (t.stages || []).length, savedAt: Date.now(), trip: t, docs: await getRawDocs(), handle: h || null });
+      return t.meta.tripId;
+    };
+    const installTripData = async (data, handle) => {
+      const { documents, ...trip } = data; trip.meta = { ...trip.meta, tripId: trip.meta.tripId || freshId() };
+      try { const prev = localStorage.getItem(LOCAL_STORAGE_KEY); if (prev) { const b = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]'); b.unshift({ savedAt: new Date().toISOString(), data: JSON.parse(prev) }); localStorage.setItem(BACKUP_KEY, JSON.stringify(b.slice(0, 5))); } } catch (e) {}
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(trip)); localStorage.setItem(ACTIVE_ID_KEY, trip.meta.tripId);
+      await replaceDocs(documents || []);
+      if (handle) await fsIdbPut(handle);
+    };
+    // Datei als aktive Reise laden: gleiche Reise wird ersetzt, andere Reise: aktuelle wird in die Bibliothek gelegt
+    const loadTripFileAsActive = async (data, handle) => {
+      const active = getActiveTrip();
+      if (active && sameTrip(active, data)) { data.meta.tripId = active.meta.tripId; await installTripData(data, handle); return; }
+      const lib = await libAll(); const hit = lib.find((e) => sameTrip(e.trip, data));
+      if (hit) { data.meta.tripId = hit.id; await libDel(hit.id); }
+      await stashActive(); await installTripData(data, handle);
+      if (!handle) await fsIdbDel();
+    };
+    const switchTrip = async (id) => {
+      const e = await libGet(id); if (!e) throw new Error('Reise nicht gefunden.');
+      await stashActive(); await libDel(id);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(e.trip)); localStorage.setItem(ACTIVE_ID_KEY, e.id);
+      await replaceDocs(e.docs || []); if (e.handle) await fsIdbPut(e.handle); else await fsIdbDel();
+    };
+    const startBlankTrip = async () => { await stashActive(); localStorage.removeItem(LOCAL_STORAGE_KEY); localStorage.removeItem(ACTIVE_ID_KEY); await replaceDocs([]); await fsIdbDel(); };
     const fsSync = {
       handle: null, name: '', status: 'none', lastWrite: null, error: '', listeners: new Set(), timer: null,
       set(p) { Object.assign(this, p); this.listeners.forEach((f) => f()); },
@@ -16050,6 +16112,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
         if (create) { await this.write(data, true); }
         return h;
       },
+      async pickRaw() { return (await window.showOpenFilePicker({ types: [{ description: 'Reisedaten', accept: { 'application/json': ['.json'] } }] }))[0]; },
+      async readHandle(h) {
+        if ((await h.queryPermission({ mode: 'readwrite' })) !== 'granted' && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') throw new Error('Zugriff auf die Datei wurde nicht erlaubt.');
+        const txt = await (await h.getFile()).text(); if (!txt.trim()) return null;
+        try { return normalizeTrip(JSON.parse(txt)); } catch (e) { throw new Error('Keine gültige Reisedatei: ' + e.message); }
+      },
+      async adopt(h) { await fsIdbPut(h); this.set({ handle: h, name: h.name, status: 'connected', error: '' }); },
       async activate() { // Berechtigung holen, Datei lesen
         const h = this.handle; if (!h) throw new Error('Keine Datei verbunden.');
         if ((await h.queryPermission({ mode: 'readwrite' })) !== 'granted' && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') throw new Error('Zugriff auf die Datei wurde nicht erlaubt.');
@@ -16058,7 +16127,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       },
       async write(data, force) {
         if (!this.handle || (this.status !== 'connected' && !force)) return;
-        try { const w = await this.handle.createWritable(); await w.write(JSON.stringify(data, null, 2)); await w.close(); this.set({ lastWrite: new Date(), error: '' }); }
+        try { const full = await withDocs(data); const w = await this.handle.createWritable(); await w.write(JSON.stringify(full, null, 2)); await w.close(); this.set({ lastWrite: new Date(), error: '' }); }
         catch (e) { this.set({ error: 'Schreiben in die Datei fehlgeschlagen: ' + (e && e.message ? e.message : e), status: 'needs-permission' }); }
       },
       queueWrite(data) { if (this.status !== 'connected') return; clearTimeout(this.timer); this.timer = setTimeout(() => this.write(data), 800); },
@@ -16067,58 +16136,92 @@ svg.leaflet-image-layer.leaflet-interactive path {
     function useFsSync() { const [, f] = useState(0); useEffect(() => { const fn = () => f((x) => x + 1); fsSync.listeners.add(fn); fsSync.init().then(fn); return () => fsSync.listeners.delete(fn); }, []); return fsSync; }
 
     function DataGate({ onSkip }) {
-      const fs = useFsSync(); const [err, setErr] = useState(''); const [ro, setRo] = useState(() => { try { return navigator.maxTouchPoints > 0 && window.innerWidth < 900; } catch (e) { return false; } });
-      const finish = (data) => { installTripData(data); setDeviceMode(ro ? 'readonly' : 'edit'); location.reload(); };
-      const onFile = async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; try { finish(await readTripFile(f)); } catch (x) { setErr(x.message); } };
-      const onConnect = async () => { try { await fsSync.pick(false); const d = await fsSync.activate(); if (!d) throw new Error('Die Datei ist leer.'); setRo(false); installTripData(d); setDeviceMode('edit'); location.reload(); } catch (x) { if (x && x.name !== 'AbortError') setErr(x.message || String(x)); } };
+      const fs = useFsSync(); const [err, setErr] = useState(''); const [lib, setLib] = useState([]); const [busy, setBusy] = useState(false);
+      const [ro, setRo] = useState(() => { try { return navigator.maxTouchPoints > 0 && window.innerWidth < 900; } catch (e) { return false; } });
+      useEffect(() => { libAll().then(setLib); }, []);
+      const run = async (fn) => { setErr(''); setBusy(true); try { await fn(); } catch (x) { if (!x || x.name !== 'AbortError') setErr(x && x.message ? x.message : String(x)); } setBusy(false); };
+      const onFile = (e) => run(async () => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; const d = await readTripFile(f); await loadTripFileAsActive(d); setDeviceMode(ro ? 'readonly' : 'edit'); location.reload(); });
+      const onConnect = () => run(async () => { const h = await fsSync.pickRaw(); const d = await fsSync.readHandle(h); if (!d) throw new Error('Die Datei ist leer.'); await loadTripFileAsActive(d, h); setDeviceMode('edit'); location.reload(); });
+      const onSwitch = (id) => run(async () => { await switchTrip(id); location.reload(); });
       return (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-100 p-4" data-readonly-allow>
           <div className="mx-auto max-w-xl space-y-4 py-6">
             <h1 className="text-2xl font-extrabold text-slate-900">🧭 Roadtrip-Planer</h1>
-            <p className="text-sm text-slate-600">Auf diesem Gerät sind noch keine Reisedaten gespeichert. Die Daten liegen getrennt vom Programm in einer Datei (<code>roadtrip-daten.json</code>, zum Beispiel in Google Drive).</p>
+            <p className="text-sm text-slate-600">Auf diesem Gerät ist keine Reise geöffnet. Die Daten liegen getrennt vom Programm in einer Datei (<code>roadtrip-daten.json</code>, zum Beispiel in Google Drive).</p>
+            {lib.length > 0 && (
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+                <h2 className="text-base font-bold">🧳 Gespeicherte Reisen auf diesem Gerät</h2>
+                {lib.map((e) => <div key={e.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 p-2"><div className="min-w-0"><div className="text-sm font-semibold break-words">{e.title || 'Ohne Titel'}</div><div className="text-[11px] text-slate-500">{e.start ? e.start.split('-').reverse().join('.') : ''} · {e.stages} Etappen · {(e.docs || []).length} Dokumente</div></div><button type="button" disabled={busy} onClick={() => onSwitch(e.id)} className="min-h-[44px] px-4 rounded-xl bg-slate-900 text-white text-sm font-bold">Öffnen</button></div>)}
+              </section>
+            )}
             <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
               <h2 className="text-base font-bold">📂 Reisedaten-Datei laden</h2>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={ro} onChange={(e) => setRo(e.target.checked)} className="w-5 h-5" /> Nur lesen (empfohlen für Handys)</label>
               <label className="min-h-[48px] inline-flex items-center px-5 rounded-xl bg-blue-600 text-white text-sm font-bold cursor-pointer">Datei auswählen<input type="file" accept=".json,application/json" onChange={onFile} className="hidden" /></label>
-              <p className="text-xs text-slate-500">Im Dateiauswahl-Dialog Google Drive wählen und die Datei <b>roadtrip-daten.json</b> antippen. Danach liegt eine Kopie offline auf dem Gerät.</p>
+              <p className="text-xs text-slate-500">Im Dateiauswahl-Dialog Google Drive wählen und die Reise-Datei antippen. Danach liegt eine Kopie samt Dokumenten offline auf dem Gerät.</p>
             </section>
             {FS_SUPPORTED && (
               <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
                 <h2 className="text-base font-bold">💻 Laptop: mit Datei verbinden</h2>
-                <p className="text-xs text-slate-500">Änderungen werden automatisch in die Datei zurückgeschrieben (Chrome oder Edge). Liegt die Datei im Drive-Ordner auf deinem Laptop, landet sie so in Google Drive.</p>
-                <button type="button" onClick={onConnect} className="min-h-[48px] px-5 rounded-xl bg-emerald-600 text-white text-sm font-bold">Datei verbinden</button>
+                <p className="text-xs text-slate-500">Änderungen werden automatisch in die Datei zurückgeschrieben (Chrome oder Edge).</p>
+                <button type="button" disabled={busy} onClick={onConnect} className="min-h-[48px] px-5 rounded-xl bg-emerald-600 text-white text-sm font-bold">Datei verbinden</button>
               </section>
             )}
             <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
               <h2 className="text-base font-bold">✨ Neue Reise</h2>
               <button type="button" onClick={onSkip} className="min-h-[48px] px-5 rounded-xl border border-slate-300 bg-white text-sm font-bold">Neue Reise mit Assistent anlegen</button>
             </section>
+            {busy && <div className="text-sm text-slate-600">Bitte warten …</div>}
             {err && <div role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-950">{err}</div>}
           </div>
         </div>
       );
     }
 
+    function TripsCard({ trip }) {
+      const [lib, setLib] = useState([]); const [msg, setMsg] = useState(''); const [busy, setBusy] = useState(false); const mode = getDeviceMode();
+      const reload = () => libAll().then(setLib); useEffect(() => { reload(); }, []);
+      const run = async (fn) => { setMsg(''); setBusy(true); try { await fn(); } catch (x) { if (!x || x.name !== 'AbortError') setMsg(x && x.message ? x.message : String(x)); } setBusy(false); };
+      const onSwitch = (e) => run(async () => { await switchTrip(e.id); location.reload(); });
+      const onRemove = (e) => run(async () => { if (!window.confirm(`Reise „${e.title || 'Ohne Titel'}“ von diesem Gerät entfernen? Die Datei in Drive bleibt unberührt.`)) return; await libDel(e.id); await reload(); });
+      const onFile = (ev) => run(async () => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return; const d = await readTripFile(f); const same = sameTrip(getActiveTrip(), d);
+        if (!window.confirm(same ? `Datei „${f.name}“ ersetzt die aktuelle Reise auf diesem Gerät. Fortfahren?` : `Reise „${d.meta.title || 'Ohne Titel'}“ laden? Die aktuelle Reise wird gesichert und bleibt in der Liste.`)) return;
+        await loadTripFileAsActive(d); location.reload(); });
+      const onConnect = () => run(async () => { const h = await fsSync.pickRaw(); const d = await fsSync.readHandle(h); if (!d) throw new Error('Die Datei ist leer.'); const same = sameTrip(getActiveTrip(), d);
+        if (same) { const fl = (d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (fl > lo && window.confirm('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?')) { await loadTripFileAsActive(d, h); location.reload(); return; } await fsSync.adopt(h); await fsSync.write(trip); setMsg('Verbunden. Der Gerätestand wurde in die Datei geschrieben.'); return; }
+        if (!window.confirm(`Die Datei gehört zur Reise „${d.meta.title || 'Ohne Titel'}“. Aktuelle Reise sichern und zu dieser wechseln?`)) return; await loadTripFileAsActive(d, h); location.reload(); });
+      const onBlank = () => run(async () => { if (!window.confirm('Die aktuelle Reise wird gesichert und bleibt in der Liste. Danach kannst du eine andere Datei laden oder eine neue Reise anlegen. Fortfahren?')) return; await startBlankTrip(); location.reload(); });
+      return (
+        <section data-readonly-allow className="rounded-2xl border border-indigo-200 bg-indigo-50 p-5 space-y-3">
+          <h2 className="text-base sm:text-lg font-bold text-indigo-950">🧳 Meine Reisen</h2>
+          <div className="rounded-xl border-2 border-indigo-400 bg-white p-3"><div className="text-[11px] font-bold text-indigo-700">AKTUELL GEÖFFNET</div><div className="text-sm font-bold break-words">{tripLabel(trip)}</div></div>
+          {lib.map((e) => <div key={e.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3"><div className="min-w-0"><div className="text-sm font-semibold break-words">{e.title || 'Ohne Titel'}</div><div className="text-[11px] text-slate-500">{e.start ? e.start.split('-').reverse().join('.') : ''} · {e.stages} Etappen · {(e.docs || []).length} Dokumente</div></div>
+            <div className="flex gap-1.5 shrink-0"><button data-readonly-allow type="button" disabled={busy} onClick={() => onSwitch(e)} className="min-h-[44px] px-3 rounded-xl bg-indigo-700 text-white text-sm font-bold">Wechseln</button><button data-readonly-allow type="button" aria-label="Entfernen" disabled={busy} onClick={() => onRemove(e)} className="min-h-[44px] w-10 rounded-xl text-slate-400 hover:text-red-600">✕</button></div></div>)}
+          <div className="flex flex-wrap gap-2">
+            <label data-readonly-allow className="min-h-[44px] inline-flex items-center px-4 rounded-xl bg-blue-700 text-white text-sm font-bold cursor-pointer">📂 Reise aus Datei laden<input type="file" accept=".json,application/json" onChange={onFile} className="hidden" /></label>
+            {mode !== 'readonly' && FS_SUPPORTED && <button data-readonly-allow type="button" disabled={busy} onClick={onConnect} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">💻 Reise per Datei verbinden</button>}
+            {mode !== 'readonly' && <button data-readonly-allow type="button" disabled={busy} onClick={onBlank} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">➕ Neue / andere Reise</button>}
+          </div>
+          <p className="text-xs text-indigo-900">Beim Wechsel wird die aktuelle Reise samt Dokumenten auf diesem Gerät gesichert. Eine Datei, die zur selben Reise gehört, ersetzt deren Stand (so holst du Planänderungen aufs Handy).</p>
+          {msg && <div role="status" className="text-sm rounded-lg bg-white border border-indigo-300 p-2">{msg}</div>}
+        </section>
+      );
+    }
+
     function DeviceDataCard({ trip }) {
       const fs = useFsSync(); const [msg, setMsg] = useState(''); const mode = getDeviceMode();
       const run = async (fn) => { setMsg(''); try { await fn(); } catch (x) { if (!x || x.name !== 'AbortError') setMsg(x && x.message ? x.message : String(x)); } };
-      const onFile = (e) => run(async () => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; const d = await readTripFile(f); if (!window.confirm(`Datei „${f.name}“ (${d.meta.title || 'ohne Titel'}, ${d.stages.length} Etappen) laden? Die aktuellen Daten auf diesem Gerät werden ersetzt (ein Backup bleibt).`)) return; installTripData(d); location.reload(); });
-      const connect = (create) => run(async () => { await fsSync.pick(create, trip); const d = create ? trip : await fsSync.activate(); if (create) { await fsSync.activate(); setMsg('Datei angelegt und verbunden.'); return; } if (!d) { await fsSync.write(trip); return; }
-        const fl = (d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || '';
-        if (fl > lo && window.confirm('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?')) { installTripData(d); location.reload(); } else { await fsSync.write(trip); setMsg('Verbunden. Der Gerätestand wurde in die Datei geschrieben.'); } });
-      const reactivate = () => run(async () => { const d = await fsSync.activate(); const fl = (d && d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (d && fl > lo && window.confirm('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?')) { installTripData(d); location.reload(); } else { await fsSync.write(trip); } });
-      const exportNow = () => { const b = new Blob([JSON.stringify(normalizeTrip(trip), null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'roadtrip-daten.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); };
+      const reactivate = () => run(async () => { const d = await fsSync.activate(); const fl = (d && d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (d && sameTrip(getActiveTrip(), d) && fl > lo && window.confirm('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?')) { await installTripData(d); location.reload(); } else { await fsSync.write(trip); } });
+      const createFile = () => run(async () => { await fsSync.pick(true, trip); await fsSync.activate(); setMsg('Datei angelegt und verbunden.'); });
+      const exportNow = () => run(async () => { await downloadTripFile(normalizeTrip(trip), 'roadtrip-daten.json'); });
       return (
         <section data-readonly-allow className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 space-y-3">
           <h2 className="text-base sm:text-lg font-bold text-emerald-950">📁 Datendatei & Gerätemodus</h2>
-          <p className="text-sm text-emerald-950">Programm und Reisedaten sind getrennt. Die Daten stammen aus einer JSON-Datei (zum Beispiel in Google Drive) und werden auf diesem Gerät zwischengespeichert.</p>
+          <p className="text-sm text-emerald-950">Programm und Reisedaten sind getrennt. Die Datei enthält Reisedaten <b>und Dokumente</b> und liegt zum Beispiel in Google Drive. Auf diesem Gerät wird eine Kopie zwischengespeichert.</p>
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-sm font-semibold">Dieses Gerät: {mode === 'readonly' ? '🔒 Nur lesen' : '✏️ Planung (bearbeiten)'}</span>
             <button data-readonly-allow type="button" onClick={() => { setDeviceMode(mode === 'readonly' ? 'edit' : 'readonly'); location.reload(); }} className="min-h-[44px] px-4 rounded-xl border border-emerald-400 bg-white text-sm font-bold">{mode === 'readonly' ? 'Auf Bearbeiten umstellen' : 'Auf Nur lesen umstellen'}</button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <label data-readonly-allow className="min-h-[44px] inline-flex items-center px-4 rounded-xl bg-blue-700 text-white text-sm font-bold cursor-pointer">📂 Datendatei neu laden<input type="file" accept=".json,application/json" onChange={onFile} className="hidden" /></label>
-            <button data-readonly-allow type="button" onClick={exportNow} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">⬇ Daten als JSON speichern</button>
+            <button data-readonly-allow type="button" onClick={exportNow} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">⬇ Daten + Dokumente als JSON speichern</button>
           </div>
           {mode !== 'readonly' && FS_SUPPORTED && (
             <div className="rounded-xl border border-emerald-300 bg-white p-3 space-y-2">
@@ -16127,15 +16230,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
               {fs.error && <div className="text-xs text-rose-800">{fs.error}</div>}
               <div className="flex flex-wrap gap-2">
                 {fs.status === 'needs-permission' && <button type="button" onClick={reactivate} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">Verbindung erneuern</button>}
-                {fs.status === 'none' && <button type="button" onClick={() => connect(false)} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">Vorhandene Datei verbinden</button>}
-                {fs.status === 'none' && <button type="button" onClick={() => connect(true)} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">Neue Datei anlegen</button>}
+                {fs.status === 'none' && <button type="button" onClick={createFile} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">Neue Datei für diese Reise anlegen</button>}
                 {fs.status === 'connected' && <button type="button" onClick={() => run(() => fsSync.write(trip))} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">Jetzt speichern</button>}
                 {fs.status !== 'none' && <button type="button" onClick={() => fsSync.disconnect()} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm">Trennen</button>}
               </div>
-              <p className="text-[11px] text-slate-500">Nach dem Neustart des Browsers fragt Chrome einmal nach, ob die App wieder auf die Datei zugreifen darf („Verbindung erneuern“).</p>
+              <p className="text-[11px] text-slate-500">Eine bestehende Datei verbindest du oben unter „Meine Reisen“. Nach dem Neustart des Browsers fragt Chrome einmal nach („Verbindung erneuern“).</p>
             </div>
           )}
-          {mode !== 'readonly' && !FS_SUPPORTED && <p className="text-xs text-slate-600">Dieser Browser kann Dateien nicht direkt zurückschreiben. Nutze „Daten als JSON speichern“ und lege die Datei in Drive ab. Für automatisches Speichern am Laptop wird Chrome oder Edge benötigt.</p>}
+          {mode !== 'readonly' && !FS_SUPPORTED && <p className="text-xs text-slate-600">Dieser Browser kann Dateien nicht direkt zurückschreiben. Nutze „Daten + Dokumente als JSON speichern“ und lege die Datei in Drive ab. Für automatisches Speichern am Laptop wird Chrome oder Edge benötigt.</p>}
           {msg && <div role="status" className="text-sm rounded-lg bg-white border border-emerald-300 p-2">{msg}</div>}
         </section>
       );
@@ -16531,17 +16633,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
       // JSON-Austauschdatei ist der verlässlichste Geräte-zu-Geräte-Workflow.
       const handleExportJson = () => {
-        try { const blob=new Blob([JSON.stringify(normalizeTrip(tripData),null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`roadtrip-backup-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); showToast('JSON-Backup heruntergeladen'); }
+        try { downloadTripFile(normalizeTrip(tripData), `roadtrip-backup-${new Date().toISOString().slice(0,10)}.json`).then(()=>showToast('JSON-Backup heruntergeladen')).catch(e=>setStorageError('Export fehlgeschlagen: '+e.message)); }
         catch(e) { setStorageError('Export fehlgeschlagen: '+e.message); showToast('JSON-Export fehlgeschlagen'); }
       };
       const handleImportJson = (e) => {
         const file=e.target.files?.[0]; if(!file) return; setImportError('');
         if(file.size>20*1024*1024) { setImportError('Datei zu groß (max. 20 MB).'); return; }
         const reader=new FileReader(); reader.onerror=()=>setImportError('Datei konnte nicht gelesen werden.');
-        reader.onload=event=>{ try { const imported=normalizeTrip(JSON.parse(event.target.result)); setImportPreview({data:imported, filename:file.name}); } catch(err) { setImportError('Import abgebrochen: '+err.message); } };
+        reader.onload=event=>{ try { const imported=stripPendingDocs(normalizeTrip(JSON.parse(event.target.result))); setImportPreview({data:imported, filename:file.name}); } catch(err) { setImportError('Import abgebrochen: '+err.message); } };
         reader.readAsText(file); e.target.value='';
       };
-      const confirmImport = () => { if(!importPreview) return; try { const backups=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'); backups.unshift({savedAt:new Date().toISOString(),data:tripData}); localStorage.setItem(BACKUP_KEY,JSON.stringify(backups.slice(0,5))); tripDataRef.current=importPreview.data; saveTripData(importPreview.data,'Import abgeschlossen; vorherige Version gesichert.'); setImportPreview(null); } catch(e) { setImportError('Sicherungsbackup fehlgeschlagen, Import nicht ausgeführt: '+e.message); } };
+      const confirmImport = () => { if(!importPreview) return; try { const backups=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'); backups.unshift({savedAt:new Date().toISOString(),data:tripData}); localStorage.setItem(BACKUP_KEY,JSON.stringify(backups.slice(0,5))); tripDataRef.current=importPreview.data; saveTripData(importPreview.data,'Import abgeschlossen; vorherige Version gesichert.'); if(window.__pendingDocs){ replaceDocs(window.__pendingDocs); window.__pendingDocs=null; } setImportPreview(null); } catch(e) { setImportError('Sicherungsbackup fehlgeschlagen, Import nicht ausgeführt: '+e.message); } };
       const restoreRollingBackup = () => { try { const backups=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'); if(!backups.length) { setImportError('Kein lokales Rolling-Backup vorhanden.'); return; } const b=backups[0]; setImportPreview({data:normalizeTrip(b.data),filename:'Lokales Rolling-Backup ('+new Date(b.savedAt).toLocaleString('de-DE')+')'}); } catch(e) { setImportError('Rolling-Backup kann nicht gelesen werden: '+e.message); } };
 
       // Available Credit Card Names for Dropdowns
@@ -17798,10 +17900,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
             {/* ===============================================================
                 TAB 2: FLUG & MIETWAGEN (MIT 1-KLICK STATUS-BUTTONS)
             =============================================================== */}
-            {activeTab === 'map' && (<RoadtripMap trip={tripData} onSave={saveTripData} />)}
-            {activeTab === 'today' && (<TodayView trip={tripData} onSave={saveTripData} todayIso={todayIso} goTab={setActiveTab} />)}
-            {activeTab === 'plan' && (<PlanView trip={tripData} onSave={saveTripData} todayIso={todayIso} />)}
-            {activeTab === 'org' && (<OrgView trip={tripData} onSave={saveTripData} />)}
+            {activeTab === 'map' && (<div data-ro-ok><RoadtripMap trip={tripData} onSave={saveTripData} /></div>)}
+            {activeTab === 'today' && (<div data-ro-ok><TodayView trip={tripData} onSave={saveTripData} todayIso={todayIso} goTab={setActiveTab} /></div>)}
+            {activeTab === 'plan' && (<div data-ro-ok><PlanView trip={tripData} onSave={saveTripData} todayIso={todayIso} /></div>)}
+            {activeTab === 'org' && (<div data-ro-ok><OrgView trip={tripData} onSave={saveTripData} /></div>)}
 
             {activeTab === 'basics' && (
               <div className="space-y-8">
@@ -19194,6 +19296,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
                   </div>
                   <p className="text-xs text-blue-800">Die exportierte Kopie enthält den aktuellen Datenstand und blendet Bearbeitungs-/Lösch-/Anlegen-Steuerelemente aus. Sie bleibt eine HTML-Datei; zum Verteilen in Drive zusätzlich Betrachterrechte setzen. Der Schalter hier ist nur eine Anzeige-Sperre, kein Zugriffsschutz.</p>
                 </section>
+                <TripsCard trip={tripData} />
                 <DeviceDataCard trip={tripData} />
                 {/* 1. OFFLINE-LINK-TRESOR & APP-CACHE */}
                 <details className="rounded-2xl border border-teal-200 bg-teal-50 p-4" open>
