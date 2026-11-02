@@ -59,3 +59,14 @@ Die Handys holen sich die neue Version automatisch, sobald sie online sind.
    Auf einem leeren Gerät oder nach „Neue / andere Reise“ erscheint der Startbildschirm mit der Liste der gespeicherten Reisen.
 3. Update
    Programm-Update wie gehabt: index.html (und sw.js) im GitHub-Repository ersetzen. Reisen und Dokumente auf den Geräten bleiben erhalten.
+
+## Neu in v17 (Online-Funktionen)
+1. Wetter: Vorhersage pro Etappenort und Tag (Open-Meteo, bis 16 Tage voraus), mit Regenwahrscheinlichkeit, Wind, UV. An der Küste zusätzlich Wassertemperatur und Wellenhöhe (bis 8 Tage voraus). Das        Wetter steht auch in Tagesplan und Heute. Zuletzt geladene Daten bleiben offline gespeichert. Liegt die Reise weiter als 16 Tage entfernt, zeigt die App eine Vorschau der nächsten Tage am Ort.
+2. Unterwegs:
+   Wo bin ich: Standort per GPS (funktioniert auch offline), Entfernung und grobe Fahrzeit zum Hotel und zu den nächsten Zielen, Navi-Button. „Genaue Fahrzeit“ rechnet online.
+   In der Nähe: Tankstelle, Supermarkt, Apotheke, Toilette, Essen, Geldautomat um deinen Standort oder ein Hotel (OpenStreetMap).
+3. Wechselkurs: aktueller EUR/USD-Kurs (EZB), Umrechner, Übernahme als Budget-Kurs (nur am Laptop).
+4. Organisation → Teilen: erzeugt einen Link mit einem Kompaktplan (ohne Preise, Kreditkarten, Notizen, Dokumente), optional mit Notfallnummern und Buchungscodes. Wer den Link öffnet, kann den Plan als     Reise übernehmen (nur lesen). Zusätzlich ein QR-Code zur App. Der Link ist etwa 8.000–9.000 Zeichen lang, ein QR-Code für den ganzen Plan ist zu klein dafür.
+   Die Tab-Nummern haben sich verschoben (jetzt 12 Tabs).
+5. Entfernt: ein fremdes Statistik-Skript von Cloudflare, das in der Originaldatei steckte und bei jedem Start eine Verbindung aufbaute.
+Hinweis: Die Server von OpenStreetMap, Open-Meteo, Frankfurter und OSRM sind kostenlose Dienste ohne Zusage. Fallen sie aus, zeigt die App eine Meldung und läuft sonst normal weiter.
