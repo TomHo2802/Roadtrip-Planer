@@ -99,3 +99,7 @@ Unten in der Seitenleiste steht jetzt „Version 22“, damit du siehst, welche 
 
 ## v23
 Ortssuche im Etappen-Finder nutzt jetzt zwei Quellen parallel: Wikidata (Städte mit Einwohnerzahl, schnell) und OpenStreetMap/Overpass (leichtere Abfrage). Ergebnisse werden zusammengeführt; es genügt, wenn eine der beiden Quellen antwortet.
+
+## v24
+Etappen-Finder: Bereichs-Regler mit zwei Punkten (0–750 km bzw. 0–10 Std.): linker Punkt = Mindestabstand, rechter Punkt = Höchstabstand.
+Kompassrose: Himmelsrichtung antippen (N, NO, O, SO, S, SW, W, NW); „alle“ in der Mitte hebt die Auswahl auf. Gesucht wird grob in diese Richtung (±35°).
