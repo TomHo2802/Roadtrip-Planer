@@ -536,6 +536,11 @@ html body .border-indigo-400{border-color:#1F4E8C}html body .text-indigo-700{col
 html body .text-emerald-950,html body .text-emerald-900{color:#111827}
 html body .border-emerald-300,html body .border-emerald-400{border-color:#BCCDE6}
 html body .text-emerald-700,html body .text-emerald-800{color:#173B6B}
+html body .bg-teal-50{background-color:#E8EEF7}
+html body .border-teal-200,html body .border-teal-300{border-color:#BCCDE6}
+html body .text-teal-950,html body .text-teal-900{color:#173B6B}
+html body .bg-emerald-400{background-color:#6C93C9}
+html body .from-slate-900.to-blue-950{background-image:none;background-color:#173B6B}
 </style>
 
 <style id="roadtrip-readonly-style">html[data-roadtrip-readonly] body.read-only-mode button:not(nav button):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}html[data-roadtrip-readonly] body.read-only-mode :is(input,select,textarea):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}body.read-only-mode{--readonly-banner:1}</style>
@@ -18994,6 +18999,101 @@ var qrcode = function() {
       );
     }
 
+        /* ===== v20: Etappen-Finder (Entfernung / Fahrzeit) ===== */
+    const sfFmtH = (min) => { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`; };
+    async function sfGeocode(q) {
+      const j = await fetchJsonT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`, 12000);
+      return j && j[0] ? [Number(j[0].lat), Number(j[0].lon)] : null;
+    }
+    async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin) {
+      const maxStraight = mode === 'km' ? limitKm : (limitMin / 60) * 110; // Luftlinie <= Fahrstrecke, 110 km/h als obere Schranke
+      const R = Math.min(380, Math.max(15, maxStraight)) * 1000;
+      const q = `[out:json][timeout:25];(node["place"~"^(city|town)$"](around:${Math.round(R)},${origin[0]},${origin[1]}););out tags center 250;`;
+      const j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 18000)));
+      let cand = (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null).map((e) => ({ name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, air: haversineM(origin, [e.lat, e.lon]) / 1000 }));
+      const minStraight = mode === 'km' ? minKm * 0.5 : 0;
+      cand = cand.filter((c) => c.air >= Math.min(minStraight, 1e9) && c.air > 2).sort((a, b) => (b.pop - a.pop) || (a.air - b.air)).slice(0, 80);
+      if (!cand.length) return { items: [], estimated: false };
+      let estimated = false; const out = [];
+      for (let i = 0; i < cand.length; i += 40) {
+        const chunk = cand.slice(i, i + 40);
+        try {
+          const coords = [origin, ...chunk.map((c) => [c.lat, c.lon])].map((p) => `${p[1]},${p[0]}`).join(';');
+          const t = await fetchJsonT(`https://router.project-osrm.org/table/v1/driving/${coords}?sources=0&annotations=distance,duration`, 20000);
+          if (!t.distances || !t.durations) throw new Error('osrm');
+          chunk.forEach((c, k) => { const d = t.distances[0][k + 1], s = t.durations[0][k + 1]; if (d != null && s != null) out.push({ ...c, km: d / 1000, min: s / 60 }); });
+        } catch (e) { estimated = true; chunk.forEach((c) => out.push({ ...c, km: c.air * 1.3, min: (c.air * 1.3) / 80 * 60 })); }
+      }
+      const items = out.filter((c) => (mode === 'km' ? c.km <= limitKm && c.km >= minKm : c.min <= limitMin && c.min >= minMin)).sort((a, b) => (b.pop - a.pop) || (a.km - b.km)).slice(0, 15);
+      return { items, estimated };
+    }
+    function StageFinder({ trip, onPick }) {
+      const stages = trip.stages || [];
+      const [from, setFrom] = useState(Math.max(0, stages.length - 1));
+      const [mode, setMode] = useState('km');
+      const [maxV, setMaxV] = useState('300');
+      const [minV, setMinV] = useState('');
+      const [st, setSt] = useState({ busy: false, err: '', items: null, estimated: false, origin: null });
+      useEffect(() => { if (from >= stages.length) setFrom(Math.max(0, stages.length - 1)); }, [stages.length]);
+      if (!stages.length) return null;
+      const o = stages[Math.min(from, stages.length - 1)]; const next = stages[from + 1];
+      const label = (s) => (s.toCity || s.fromCity || '–');
+      const run = async () => {
+        setSt({ busy: true, err: '', items: null, estimated: false, origin: null });
+        try {
+          let g = parseGps(o.hotel && o.hotel.gps);
+          if (!g && o.toCity) g = await sfGeocode(o.toCity);
+          if (!g) throw new Error('Startpunkt nicht gefunden. Bitte GPS im Hotel der Etappe oder einen eindeutigen Ortsnamen eintragen.');
+          const mx = Number(String(maxV).replace(',', '.')), mn = Number(String(minV).replace(',', '.')) || 0;
+          if (!(mx > 0)) throw new Error('Bitte einen Wert größer 0 eingeben.');
+          const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60);
+          setSt({ busy: false, err: '', items: r.items, estimated: r.estimated, origin: g });
+        } catch (e) { setSt({ busy: false, err: /Startpunkt|Wert/.test(e.message) ? e.message : 'Orte konnten nicht geladen werden. Internet nötig (OpenStreetMap-Dienste).', items: null, estimated: false, origin: null }); }
+      };
+      const unit = mode === 'km' ? 'km' : 'Stunden';
+      return (
+        <details data-finder className="v18-edit-only v20-finder rounded-2xl border border-slate-200 bg-white no-print">
+          <summary className="cursor-pointer px-4 py-3"><span className="font-bold text-slate-900">Nächste Etappe finden</span><span className="block text-xs text-slate-500">Orte vorschlagen, die höchstens X km oder Y Stunden entfernt sind</span></summary>
+          <div className="p-4 pt-0 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="text-sm font-semibold">Ausgehend von
+                <select data-readonly-allow value={from} onChange={(e) => setFrom(Number(e.target.value))} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">{stages.map((s, i) => <option key={s.id} value={i}>Etappe {i + 1}: {label(s)}</option>)}</select>
+              </label>
+              <div className="text-sm font-semibold">Begrenzung
+                <div className="mt-1 inline-flex rounded-lg border border-slate-300 overflow-hidden w-full">
+                  {[['km', 'Entfernung (km)'], ['h', 'Fahrzeit (Std.)']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={mode === k} onClick={() => { setMode(k); setMaxV(k === 'km' ? '300' : '3'); setMinV(''); }} className={`flex-1 px-3 py-2 text-sm font-semibold ${mode === k ? 'bg-[#1F4E8C] text-white' : 'bg-white text-slate-700'}`}>{l}</button>)}
+                </div>
+              </div>
+              <label className="text-sm font-semibold">Höchstens ({unit})<input data-readonly-allow type="number" min="1" step={mode === 'km' ? 10 : 0.5} value={maxV} onChange={(e) => setMaxV(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label>
+              <label className="text-sm font-semibold">Mindestens ({unit}, optional)<input data-readonly-allow type="number" min="0" step={mode === 'km' ? 10 : 0.5} value={minV} onChange={(e) => setMinV(e.target.value)} placeholder="keine" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="button" data-readonly-allow onClick={run} disabled={st.busy} className="v18-btn pri disabled:opacity-50">{st.busy ? 'Suche läuft …' : 'Orte suchen'}</button>
+              <span className="text-xs text-slate-500">{next ? `Das Ergebnis ersetzt das Ziel von Etappe ${from + 2} (${label(next)}).` : `Das Ergebnis wird als neue Etappe ${from + 2} angehängt.`}</span>
+            </div>
+            {st.err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{st.err}</div>}
+            {st.items && st.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Keine Orte gefunden. Erhöhe die Obergrenze oder senke die Untergrenze.</div>}
+            {st.items && st.items.length > 0 && (
+              <div className="space-y-2">
+                {st.estimated && <div className="text-xs text-amber-900">Routing-Dienst nicht erreichbar: Werte sind geschätzt (Luftlinie × 1,3).</div>}
+                <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+                  {st.items.map((c) => (
+                    <li key={`${c.name}-${c.lat}`} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+                      <div className="min-w-0"><div className="font-semibold text-slate-900 break-words">{c.name}</div><div className="text-xs text-slate-500">{Math.round(c.km)} km · {sfFmtH(c.min)}{c.pop ? ` · ${c.pop.toLocaleString('de-DE')} Einwohner` : ''}{c.type === 'city' ? ' · Stadt' : ''}</div></div>
+                      <div className="flex gap-2 shrink-0">
+                        <a data-readonly-allow href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}`} target="_blank" rel="noopener noreferrer" className="v18-btn sm">Karte</a>
+                        <button type="button" data-readonly-allow onClick={() => onPick(from, c)} className="v18-btn sm pri">Übernehmen</button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </details>
+      );
+    }
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
@@ -19063,7 +19163,11 @@ var qrcode = function() {
       const [wizardStep, setWizardStep] = useState(0);
       const [gateSkipped, setGateSkipped] = useState(false);
       const [linkClosed, setLinkClosed] = useState(false);
-      const [wizardData, setWizardData] = useState({ title: '', startDate: '', endDate: '', startLocation: '', destination: '', people: '1', vehicle: '', budget: '', currency: 'EUR' });
+      const [wizardData, setWizardData] = useState({ title: '', startDate: '', endDate: '', days: '', startLocation: '', destination: '', people: '1', names: [], vehicle: '', budget: '', currency: 'EUR' });
+      const wzSet = (patch) => setWizardData((w) => ({ ...w, ...patch }));
+      const wzStart = (v) => setWizardData((w) => { const n = { ...w, startDate: v }; const d = parseInt(w.days, 10); if (v && d >= 1) n.endDate = isoDay(v, Math.min(d, 120) - 1); else if (v && w.endDate && w.endDate < v) { n.endDate = v; n.days = '1'; } else if (v && w.endDate) n.days = String(tripDayCount(v, w.endDate) || ''); return n; });
+      const wzEnd = (v) => setWizardData((w) => ({ ...w, endDate: v, days: w.startDate && v ? String(tripDayCount(w.startDate, v) || '') : w.days }));
+      const wzDays = (v) => setWizardData((w) => { const n = { ...w, days: v }; const d = parseInt(v, 10); if (w.startDate && d >= 1) n.endDate = isoDay(w.startDate, Math.min(d, 120) - 1); return n; });
 
       // Participants & Expenses State
       const [newParticipantName, setNewParticipantName] = useState('');
@@ -19729,7 +19833,7 @@ var qrcode = function() {
         if(dayCount>120){ showToast('Eine Reise darf höchstens 120 Tage umfassen.'); return; }
         if(dayCount>0 && !window.confirm(`Es werden ${dayCount} Etappen (eine pro Reisetag) angelegt. Fortfahren?`)) return;
         const title = wizardData.title.trim() || wizardData.destination.trim() || 'Neue Reise';
-        const names = Array.from({ length: Math.max(1, Math.min(20, parseInt(wizardData.people, 10) || 1)) }, (_, i) => `Reisende ${i + 1}`);
+        const names = Array.from({ length: Math.max(1, Math.min(20, parseInt(wizardData.people, 10) || 1)) }, (_, i) => ((wizardData.names || [])[i] || '').trim() || `Reisende ${i + 1}`);
         const start = wizardData.startLocation.trim() || 'Startort';
         const destination = wizardData.destination.trim();
         const stages = dayCount ? makeDailyStages(wizardData.startDate,wizardData.endDate,start,destination,1.09) : [];
@@ -19809,6 +19913,23 @@ var qrcode = function() {
         setExpandedStages((prev) => ({ ...prev, [newId]: true }));
         saveTripData({ ...tripData, stages: updated }, 'Neue Etappe angelegt');
         setEditingStageModal(JSON.parse(JSON.stringify(newStage)));
+      };
+
+      const handleAddSuggestedStage = (fromIdx, c) => {
+        const stages = tripData.stages || []; const o = stages[fromIdx]; if (!o) return;
+        const km = Math.round(c.km), hrs = (c.min / 60).toFixed(1).replace('.', ',');
+        const route = { distanceKm: `${km} km (${Math.round(km * 0.621)} mi)`, duration: `${hrs} h`, routeDescription: '', stopsOnWay: [] };
+        const gps = `${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}`;
+        const next = stages[fromIdx + 1];
+        if (next) {
+          const upd = stages.map((s, i) => i === fromIdx + 1 ? { ...s, fromCity: o.toCity || s.fromCity, toCity: c.name, routeToHotel: { ...(s.routeToHotel || {}), ...route }, hotel: { ...(s.hotel || {}), gps: (s.hotel && s.hotel.gps) ? s.hotel.gps : gps } } : s);
+          saveTripData({ ...tripData, stages: upd }, `Etappe ${fromIdx + 2}: ${c.name}`);
+        } else {
+          const id = `stage-${Date.now()}`;
+          const ns = { id, fromCity: o.toCity || '', toCity: c.name, dateRange: '', nights: '', routeToHotel: route, hotel: { ...emptyHotel(), gps }, localAttractions: [] };
+          saveTripData({ ...tripData, stages: [...stages, ns] }, `Etappe ${fromIdx + 2}: ${c.name}`);
+          setEditingStageModal(JSON.parse(JSON.stringify(ns)));
+        }
       };
 
       const handleMoveStage = (index, direction) => {
@@ -19981,6 +20102,8 @@ var qrcode = function() {
                     </button>
                   </div>
                 </div>
+
+                <StageFinder trip={tripData} onPick={handleAddSuggestedStage} />
 
                 {/* Stages List with Vertical Timeline Connector */}
                 <div className="relative space-y-8 before:hidden md:before:block before:absolute before:top-8 before:bottom-8 before:left-5 before:w-0.5 before:bg-slate-200 before:rounded-full">
@@ -23752,9 +23875,9 @@ var qrcode = function() {
                   <div className="mt-4 h-2 rounded-full bg-white/20"><div className="h-2 rounded-full bg-emerald-400 transition-all" style={{ width: `${((wizardStep + 1) / 3) * 100}%` }} /></div>
                 </div>
                 <div className="p-5 sm:p-6 space-y-4">
-                  {wizardStep === 0 && <><label className="block text-sm font-semibold">Reisename<input autoFocus type="text" value={wizardData.title} onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })} placeholder="z. B. Sommer-Roadtrip" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-sm font-semibold">Startdatum<input type="date" value={wizardData.startDate} onChange={(e) => setWizardData({ ...wizardData, startDate: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Enddatum<input type="date" value={wizardData.endDate} onChange={(e) => setWizardData({ ...wizardData, endDate: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label></div><div aria-live="polite" className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950">{tripDayCount(wizardData.startDate,wizardData.endDate)>0 ? `Vorschau: ${tripDayCount(wizardData.startDate,wizardData.endDate)} Etappen – je eine pro Kalendertag, Start- und Endtag inklusive.` : 'Bitte Start- und Enddatum eingeben, um die Etappenanzahl zu sehen.'}{tripDayCount(wizardData.startDate,wizardData.endDate)>120 && <span className="block text-rose-800">Maximal 120 Tage pro Reise.</span>}</div></>}
+                  {wizardStep === 0 && <><label className="block text-sm font-semibold">Reisename<input autoFocus type="text" value={wizardData.title} onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })} placeholder="z. B. Sommer-Roadtrip" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><label className="text-sm font-semibold">Startdatum<input type="date" value={wizardData.startDate} onChange={(e) => wzStart(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Reisetage<input type="number" min="1" max="120" value={wizardData.days} onChange={(e) => wzDays(e.target.value)} placeholder="z. B. 14" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Enddatum<input type="date" min={wizardData.startDate || undefined} value={wizardData.endDate} onChange={(e) => wzEnd(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label></div><p className="text-xs text-slate-500">Gib entweder das Enddatum oder die Anzahl der Reisetage ein, das jeweils andere wird berechnet (Start- und Endtag zählen mit).</p><div aria-live="polite" className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950">{tripDayCount(wizardData.startDate,wizardData.endDate)>0 ? `Vorschau: ${tripDayCount(wizardData.startDate,wizardData.endDate)} Etappen – je eine pro Kalendertag, Start- und Endtag inklusive.` : 'Bitte Start- und Enddatum eingeben, um die Etappenanzahl zu sehen.'}{tripDayCount(wizardData.startDate,wizardData.endDate)>120 && <span className="block text-rose-800">Maximal 120 Tage pro Reise.</span>}</div></>}
                   {wizardStep === 1 && <><label className="block text-sm font-semibold">Startort / Abflughafen<input type="text" value={wizardData.startLocation} onChange={(e) => setWizardData({ ...wizardData, startLocation: e.target.value })} placeholder="z. B. München (MUC)" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Zielregion / Land oder erste Etappe<input type="text" value={wizardData.destination} onChange={(e) => setWizardData({ ...wizardData, destination: e.target.value })} placeholder="z. B. Florida / Miami" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Fahrzeug / Mietwagen (optional)<input type="text" value={wizardData.vehicle} onChange={(e) => setWizardData({ ...wizardData, vehicle: e.target.value })} placeholder="z. B. Mietwagen / SUV" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><p className="text-xs text-slate-500">Bei Angabe eines Ziels wird eine erste Etappe ohne Hotel angelegt. Weitere Details können später ergänzt werden.</p></>}
-                  {wizardStep === 2 && <><label className="block text-sm font-semibold">Anzahl Reisende<input type="number" min="1" max="20" value={wizardData.people} onChange={(e) => setWizardData({ ...wizardData, people: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Anzahl Reisende, z.B. 2" /></label><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-sm font-semibold">Budget (optional)<input type="number" min="0" step="0.01" value={wizardData.budget} onChange={(e) => setWizardData({ ...wizardData, budget: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Budget, z.B. 5000" /></label><label className="text-sm font-semibold">Währung<select value={wizardData.currency} onChange={(e) => setWizardData({ ...wizardData, currency: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"><option value="EUR">EUR (€)</option><option value="USD">USD ($)</option><option value="GBP">GBP (£)</option><option value="CHF">CHF</option></select></label></div><div className="rounded-xl bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">Die Eingaben werden in den Reisedaten gespeichert. Teilnehmer erhalten zunächst automatisch benannte Einträge, die du anschließend anpassen kannst.</div></>}
+                  {wizardStep === 2 && <><label className="block text-sm font-semibold">Anzahl Reisende<input type="number" min="1" max="20" value={wizardData.people} onChange={(e) => setWizardData({ ...wizardData, people: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Anzahl Reisende, z.B. 2" /></label><div className="space-y-2"><div className="text-sm font-semibold">Namen der Reisenden</div><div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{Array.from({ length: Math.max(1, Math.min(20, parseInt(wizardData.people, 10) || 1)) }, (_, i) => <input key={i} type="text" aria-label={`Name Reisende ${i + 1}`} value={(wizardData.names || [])[i] || ''} onChange={(e) => { const nm = [...(wizardData.names || [])]; nm[i] = e.target.value; setWizardData({ ...wizardData, names: nm }); }} placeholder={`Reisende ${i + 1}`} className="w-full px-3 py-2 rounded-lg border border-slate-300" />)}</div></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-sm font-semibold">Budget (optional)<input type="number" min="0" step="0.01" value={wizardData.budget} onChange={(e) => setWizardData({ ...wizardData, budget: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Budget, z.B. 5000" /></label><label className="text-sm font-semibold">Währung<select value={wizardData.currency} onChange={(e) => setWizardData({ ...wizardData, currency: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"><option value="EUR">EUR (€)</option><option value="USD">USD ($)</option><option value="GBP">GBP (£)</option><option value="CHF">CHF</option></select></label></div><div className="rounded-xl bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">Die Eingaben werden in den Reisedaten gespeichert. Namen, die du leer lässt, werden als „Reisende 1, 2 …“ angelegt und lassen sich später ändern.</div></>}
                 </div>
                 <div className="bg-slate-50 border-t border-slate-200 px-5 py-4 flex items-center justify-between gap-2"><button type="button" onClick={() => wizardStep > 0 ? setWizardStep(wizardStep - 1) : setIsNewTripWizardOpen(false)} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm">{wizardStep === 0 ? 'Abbrechen' : 'Zurück'}</button><div className="flex gap-2">{wizardStep < 2 ? <button type="button" onClick={() => { if(wizardStep===0 && wizardData.startDate && wizardData.endDate && wizardData.endDate<wizardData.startDate){showToast('Das Enddatum darf nicht vor dem Startdatum liegen.');return;} if(wizardStep===0 && tripDayCount(wizardData.startDate,wizardData.endDate)>120){showToast('Maximal 120 Tage pro Reise.');return;} setWizardStep(wizardStep + 1); }} className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm">Weiter →</button> : <button type="button" onClick={handleCompleteNewTripWizard} className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm">Reise anlegen ✓</button>}</div></div>
               </div>
