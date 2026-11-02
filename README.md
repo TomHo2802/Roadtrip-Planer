@@ -78,5 +78,12 @@ Hinweis: Die Server von OpenStreetMap, Open-Meteo, Frankfurter und OSRM sind kos
 4. Etappen sind beim Öffnen eingeklappt; ein Klick auf die Übersicht öffnet die Etappe.
 5. Reisen & Daten: Reisen und Datei-Verbindung oben, Sicherungen/Export unter „Erweitert“.
 6. Behoben: leere Leiste und fehlende Etappen-Übersicht im Nur-Lesen-Modus am Handy, mehrzeilige Tagesauswahl.
-7. Die alten Tab-Nummern (1–12) gibt es nicht mehr.
+
+## Neu in v19 – ruhigere Optik
+Einheitliche Farben: weiße Karten, Teal als Akzent; Rot/Gelb/Grün nur noch als Signalfarben.
+Etappen-Köpfe und Zeitstrahl hell statt dunkelblau; Budget-Kacheln neutral, nur die Gesamtsumme hervorgehoben.
+Weniger Emojis in Überschriften und Buttons (Wetter-, Kategorie- und Karten-Symbole bleiben).
+Einheitliche Buttons (Teal), keine Monospace-Schrift, Mindestschrift 11 px, Reisetitel und Datum in der Seitenleiste getrennt.
+Update wie gehabt: index.html und sw.js ersetzen (Cache roadtrip-v19).
+8. Die alten Tab-Nummern (1–12) gibt es nicht mehr.
 Update: index.html und sw.js in GitHub ersetzen (Cache heißt jetzt roadtrip-v18), auf dem Handy die App einmal neu laden.
