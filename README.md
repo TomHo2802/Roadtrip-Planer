@@ -1,4 +1,4 @@
-# Roadtrip-Planer v15: Programm und Daten getrennt
+# Roadtrip-Planer
 
 ## Dateien
 - `index.html`, `sw.js`, `manifest.webmanifest`, `icon-192.png`, `icon-512.png`: das Programm (enthält KEINE Reisedaten)
@@ -85,3 +85,8 @@ Etappen-Köpfe und Zeitstrahl hell statt dunkelblau; Budget-Kacheln neutral, nur
 Weniger Emojis in Überschriften und Buttons (Wetter-, Kategorie- und Karten-Symbole bleiben).
 Einheitliche Buttons (Blau), keine Monospace-Schrift, Mindestschrift 11 px, Reisetitel und Datum in der Seitenleiste getrennt.
 Update wie gehabt: index.html und sw.js ersetzen (Cache roadtrip-v19).
+
+## Neu in v20 – Startassistent und Etappen-Finder
+Startassistent: Das Enddatum kann nicht vor dem Startdatum liegen. Alternativ gibst du die Anzahl der Reisetage ein, das Enddatum wird berechnet (und umgekehrt). Bei der Zahl der Reisenden erscheinen gleich Namensfelder; leere Felder werden „Reisende 1, 2 …“.
+Nächste Etappe finden (Planen → Etappen): Wähle die Etappe, von der du startest, und begrenze nach Entfernung (km) oder Fahrzeit (Std.), optional mit Mindestwert. Die App schlägt Städte vor, die dazu passen (OpenStreetMap, Fahrstrecken über OSRM; Internet nötig). „Übernehmen“ trägt Zielort, Strecke, Fahrzeit und GPS in die folgende Etappe ein, oder legt eine neue an. Danach beliebig oft für die nächste Etappe wiederholen.
+Der GPS-Punkt ist der Ortsmittelpunkt, nicht das Hotel – bitte später durch die Hoteladresse ersetzen.
