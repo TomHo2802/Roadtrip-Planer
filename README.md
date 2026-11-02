@@ -90,3 +90,6 @@ Update wie gehabt: index.html und sw.js ersetzen (Cache roadtrip-v19).
 Startassistent: Das Enddatum kann nicht vor dem Startdatum liegen. Alternativ gibst du die Anzahl der Reisetage ein, das Enddatum wird berechnet (und umgekehrt). Bei der Zahl der Reisenden erscheinen gleich Namensfelder; leere Felder werden „Reisende 1, 2 …“.
 Nächste Etappe finden (Planen → Etappen): Wähle die Etappe, von der du startest, und begrenze nach Entfernung (km) oder Fahrzeit (Std.), optional mit Mindestwert. Die App schlägt Städte vor, die dazu passen (OpenStreetMap, Fahrstrecken über OSRM; Internet nötig). „Übernehmen“ trägt Zielort, Strecke, Fahrzeit und GPS in die folgende Etappe ein, oder legt eine neue an. Danach beliebig oft für die nächste Etappe wiederholen.
 Der GPS-Punkt ist der Ortsmittelpunkt, nicht das Hotel – bitte später durch die Hoteladresse ersetzen.
+
+## v21
+Etappen-Finder robuster: Die Ortssuche fragt zuerst nur Städte mit Einwohnerzahl ab (schnell, auch bei 300 km Radius), dann bei Bedarf alle Großstädte. Bei einem Fehler zeigt die Meldung jetzt die technische Ursache.
