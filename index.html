@@ -541,6 +541,16 @@ html body .border-teal-200,html body .border-teal-300{border-color:#BCCDE6}
 html body .text-teal-950,html body .text-teal-900{color:#173B6B}
 html body .bg-emerald-400{background-color:#6C93C9}
 html body .from-slate-900.to-blue-950{background-image:none;background-color:#173B6B}
+/* Bereichs-Regler */
+.v20-range{position:relative;height:58px;padding-top:6px}
+.v20-track{position:absolute;left:0;right:0;top:14px;height:6px;border-radius:3px;background:#E3E6EB}
+.v20-fill{position:absolute;top:0;bottom:0;left:var(--lo);right:calc(100% - var(--hi));background:#1F4E8C;border-radius:3px}
+.v20-range input[type=range]{position:absolute;left:0;top:4px;width:100%;height:22px;margin:0;background:none;-webkit-appearance:none;appearance:none;pointer-events:none}
+.v20-range input[type=range]::-webkit-slider-runnable-track{background:transparent;height:22px}
+.v20-range input[type=range]::-moz-range-track{background:transparent;height:22px}
+.v20-range input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:24px;height:24px;margin-top:-1px;border-radius:50%;background:#fff;border:3px solid #1F4E8C;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:grab}
+.v20-range input[type=range]::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #1F4E8C;cursor:grab}
+.v20-ticks{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;font-size:11px;color:#596273}
 </style>
 
 <style id="roadtrip-readonly-style">html[data-roadtrip-readonly] body.read-only-mode button:not(nav button):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}html[data-roadtrip-readonly] body.read-only-mode :is(input,select,textarea):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}body.read-only-mode{--readonly-banner:1}</style>
@@ -18940,7 +18950,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 23</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 24</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19024,7 +19034,7 @@ var qrcode = function() {
       catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
       return (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null).map((e) => ({ id: 'o' + e.id, name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place }));
     }
-    async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin) {
+    async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin, dir) {
       const maxStraight = mode === 'km' ? limitKm : (limitMin / 60) * 110; // Luftlinie <= Fahrstrecke, 110 km/h als obere Schranke
       const Rkm = Math.min(380, Math.max(15, maxStraight));
       const [w, o] = await Promise.allSettled([sfWikidata(origin, Rkm, Rkm >= 150 ? 20000 : 5000), sfOverpass(origin, Rkm * 1000)]);
@@ -19032,8 +19042,10 @@ var qrcode = function() {
       const all = [...(w.status === 'fulfilled' ? w.value : []), ...(o.status === 'fulfilled' ? o.value : [])];
       const seen = []; let cand = [];
       all.forEach((c) => { if (seen.some((s) => s.name === c.name && Math.abs(s.lat - c.lat) < 0.15 && Math.abs(s.lon - c.lon) < 0.15)) return; seen.push(c); cand.push({ ...c, air: haversineM(origin, [c.lat, c.lon]) / 1000 }); });
+      const bearing = (c) => { const p1 = origin[0] * Math.PI / 180, p2 = c.lat * Math.PI / 180, dl = (c.lon - origin[1]) * Math.PI / 180; return (Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)) * 180 / Math.PI + 360) % 360; };
+      const inDir = (c) => { if (dir == null) return true; const d = Math.abs(((bearing(c) - dir) + 540) % 360 - 180); return d <= 35; };
       const minStraight = mode === 'km' ? minKm * 0.5 : 0;
-      cand = cand.filter((c) => c.air <= Rkm * 1.02 && c.air >= Math.min(minStraight, 1e9) && c.air > 2).sort((a, b) => (b.pop - a.pop) || (a.air - b.air)).slice(0, 80);
+      cand = cand.filter((c) => c.air <= Rkm * 1.02 && c.air >= Math.min(minStraight, 1e9) && c.air > 2 && inDir(c)).sort((a, b) => (b.pop - a.pop) || (a.air - b.air)).slice(0, 80);
       if (!cand.length) return { items: [], estimated: false };
       let estimated = false; const out = [];
       for (let i = 0; i < cand.length; i += 40) {
@@ -19048,59 +19060,101 @@ var qrcode = function() {
       const items = out.filter((c) => (mode === 'km' ? c.km <= limitKm && c.km >= minKm : c.min <= limitMin && c.min >= minMin)).sort((a, b) => (b.pop - a.pop) || (a.km - b.km)).slice(0, 15);
       return { items, estimated };
     }
+    const SF_DIRS = [['N', 'Norden', 0], ['NO', 'Nordosten', 45], ['O', 'Osten', 90], ['SO', 'Südosten', 135], ['S', 'Süden', 180], ['SW', 'Südwesten', 225], ['W', 'Westen', 270], ['NW', 'Nordwesten', 315]];
+    function SfCompass({ value, onChange }) {
+      const pt = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [60 + r * Math.cos(a), 60 + r * Math.sin(a)]; };
+      const wedge = (deg) => { const [x1, y1] = pt(deg - 22.5, 54), [x2, y2] = pt(deg + 22.5, 54), [x3, y3] = pt(deg + 22.5, 20), [x4, y4] = pt(deg - 22.5, 20); return `M${x1},${y1} A54,54 0 0 1 ${x2},${y2} L${x3},${y3} A20,20 0 0 0 ${x4},${y4} Z`; };
+      return (
+        <svg viewBox="0 0 120 120" width="150" height="150" role="radiogroup" aria-label="Himmelsrichtung" className="shrink-0">
+          {SF_DIRS.map(([k, name, deg]) => { const on = value === deg; const [tx, ty] = pt(deg, 37); return (
+            <g key={k} role="radio" aria-checked={on} aria-label={name} tabIndex={0} style={{ cursor: 'pointer', outline: 'none' }} onClick={() => onChange(on ? null : deg)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange(on ? null : deg); } }}>
+              <path d={wedge(deg)} fill={on ? '#1F4E8C' : '#F0F2F5'} stroke="#fff" strokeWidth="1.5" />
+              <text x={tx} y={ty} textAnchor="middle" dominantBaseline="central" fontSize={k.length > 1 ? 8 : 10} fontWeight="700" fill={on ? '#fff' : '#3A4354'} style={{ pointerEvents: 'none' }}>{k}</text>
+            </g>); })}
+          <g role="radio" aria-checked={value == null} aria-label="Alle Richtungen" tabIndex={0} style={{ cursor: 'pointer', outline: 'none' }} onClick={() => onChange(null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange(null); } }}>
+            <circle cx="60" cy="60" r="17" fill={value == null ? '#1F4E8C' : '#fff'} stroke="#CBD2DC" />
+            <text x="60" y="60" textAnchor="middle" dominantBaseline="central" fontSize="7.5" fontWeight="700" fill={value == null ? '#fff' : '#3A4354'} style={{ pointerEvents: 'none' }}>alle</text>
+          </g>
+        </svg>
+      );
+    }
+    function SfRange({ min, max, step, lo, hi, onChange, unit, ticks }) {
+      const pct = (v) => ((v - min) / (max - min)) * 100;
+      return (
+        <div className="v20-range" style={{ '--lo': pct(lo) + '%', '--hi': pct(hi) + '%' }}>
+          <div className="v20-track" aria-hidden="true"><div className="v20-fill" /></div>
+          <input data-readonly-allow style={{ zIndex: pct(lo) > 50 ? 3 : 2 }} type="range" aria-label={`Mindestabstand (${unit})`} min={min} max={max} step={step} value={lo} onChange={(e) => onChange(Math.min(Number(e.target.value), hi), hi)} />
+          <input data-readonly-allow style={{ zIndex: 2 }} type="range" aria-label={`Höchstabstand (${unit})`} min={min} max={max} step={step} value={hi} onChange={(e) => onChange(lo, Math.max(Number(e.target.value), lo))} />
+          <div className="v20-ticks" aria-hidden="true">{ticks.map((t) => <span key={t}>{t}</span>)}</div>
+        </div>
+      );
+    }
     function StageFinder({ trip, onPick }) {
       const stages = trip.stages || [];
       const [from, setFrom] = useState(Math.max(0, stages.length - 1));
       const [mode, setMode] = useState('km');
-      const [maxV, setMaxV] = useState('300');
-      const [minV, setMinV] = useState('');
+      const [rng, setRng] = useState([0, 300]);
+      const [dir, setDir] = useState(null);
       const [st, setSt] = useState({ busy: false, err: '', items: null, estimated: false, origin: null });
       useEffect(() => { if (from >= stages.length) setFrom(Math.max(0, stages.length - 1)); }, [stages.length]);
       if (!stages.length) return null;
       const o = stages[Math.min(from, stages.length - 1)]; const next = stages[from + 1];
       const label = (s) => (s.toCity || s.fromCity || '–');
+      const unit = mode === 'km' ? 'km' : 'Std.';
+      const fmtV = (v) => (mode === 'km' ? `${v} km` : `${String(v).replace('.', ',')} Std.`);
+      const dirName = dir == null ? 'alle Richtungen' : SF_DIRS.find((d) => d[2] === dir)[1];
       const run = async () => {
         setSt({ busy: true, err: '', items: null, estimated: false, origin: null });
         try {
           let g = parseGps(o.hotel && o.hotel.gps);
           if (!g && o.toCity) g = await sfGeocode(o.toCity);
           if (!g) throw new Error('Startpunkt nicht gefunden. Bitte GPS im Hotel der Etappe oder einen eindeutigen Ortsnamen eintragen.');
-          const mx = Number(String(maxV).replace(',', '.')), mn = Number(String(minV).replace(',', '.')) || 0;
-          if (!(mx > 0)) throw new Error('Bitte einen Wert größer 0 eingeben.');
-          const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60);
+          const [mn, mx] = rng;
+          if (!(mx > 0)) throw new Error('Wert: Der Höchstabstand muss größer als 0 sein.');
+          const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60, dir);
           setSt({ busy: false, err: '', items: r.items, estimated: r.estimated, origin: g });
-        } catch (e) { setSt({ busy: false, err: /Startpunkt|Wert/.test(e.message) ? e.message : `Orte konnten nicht geladen werden (${String(e.message || e).slice(0, 220)}). Internet nötig; bei großem Radius hilft eine kleinere Obergrenze.`, items: null, estimated: false, origin: null }); }
+        } catch (e) { setSt({ busy: false, err: /Startpunkt|^Wert/.test(e.message) ? e.message.replace(/^Wert: /, '') : `Orte konnten nicht geladen werden (${String(e.message || e).slice(0, 260)}). Internet nötig; bei großem Radius hilft eine kleinere Obergrenze.`, items: null, estimated: false, origin: null }); }
       };
-      const unit = mode === 'km' ? 'km' : 'Stunden';
       return (
         <details data-finder className="v18-edit-only v20-finder rounded-2xl border border-slate-200 bg-white no-print">
-          <summary className="cursor-pointer px-4 py-3"><span className="font-bold text-slate-900">Nächste Etappe finden</span><span className="block text-xs text-slate-500">Orte vorschlagen, die höchstens X km oder Y Stunden entfernt sind</span></summary>
-          <div className="p-4 pt-0 space-y-3">
+          <summary className="cursor-pointer px-4 py-3"><span className="font-bold text-slate-900">Nächste Etappe finden</span><span className="block text-xs text-slate-500">Orte in einem Abstands-Bereich und einer Himmelsrichtung vorschlagen</span></summary>
+          <div className="p-4 pt-0 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="text-sm font-semibold">Ausgehend von
                 <select data-readonly-allow value={from} onChange={(e) => setFrom(Number(e.target.value))} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">{stages.map((s, i) => <option key={s.id} value={i}>Etappe {i + 1}: {label(s)}</option>)}</select>
               </label>
-              <div className="text-sm font-semibold">Begrenzung
+              <div className="text-sm font-semibold">Abstand messen in
                 <div className="mt-1 inline-flex rounded-lg border border-slate-300 overflow-hidden w-full">
-                  {[['km', 'Entfernung (km)'], ['h', 'Fahrzeit (Std.)']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={mode === k} onClick={() => { setMode(k); setMaxV(k === 'km' ? '300' : '3'); setMinV(''); }} className={`flex-1 px-3 py-2 text-sm font-semibold ${mode === k ? 'bg-[#1F4E8C] text-white' : 'bg-white text-slate-700'}`}>{l}</button>)}
+                  {[['km', 'Entfernung (km)'], ['h', 'Fahrzeit (Std.)']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={mode === k} onClick={() => { setMode(k); setRng(k === 'km' ? [0, 300] : [0, 3.5]); }} className={`flex-1 px-3 py-2 text-sm font-semibold ${mode === k ? 'bg-[#1F4E8C] text-white' : 'bg-white text-slate-700'}`}>{l}</button>)}
                 </div>
               </div>
-              <label className="text-sm font-semibold">Höchstens ({unit})<input data-readonly-allow type="number" min="1" step={mode === 'km' ? 10 : 0.5} value={maxV} onChange={(e) => setMaxV(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label>
-              <label className="text-sm font-semibold">Mindestens ({unit}, optional)<input data-readonly-allow type="number" min="0" step={mode === 'km' ? 10 : 0.5} value={minV} onChange={(e) => setMinV(e.target.value)} placeholder="keine" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label>
+            </div>
+            <div className="flex flex-wrap items-center gap-6">
+              <div className="flex-1 min-w-[240px] space-y-2">
+                <div className="flex items-baseline justify-between gap-2 text-sm"><span className="font-semibold">Abstand zum Ort</span><span data-sf-range className="font-bold text-[#1F4E8C]">{fmtV(rng[0])} – {fmtV(rng[1])}</span></div>
+                {mode === 'km'
+                  ? <SfRange min={0} max={750} step={10} lo={rng[0]} hi={rng[1]} unit={unit} ticks={[0, 150, 300, 450, 600, 750]} onChange={(a, b) => setRng([a, b])} />
+                  : <SfRange min={0} max={10} step={0.25} lo={rng[0]} hi={rng[1]} unit={unit} ticks={[0, 2, 4, 6, 8, 10]} onChange={(a, b) => setRng([a, b])} />}
+                <div className="text-xs text-slate-500">Linker Punkt: Mindestabstand · rechter Punkt: Höchstabstand</div>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <SfCompass value={dir} onChange={setDir} />
+                <div data-sf-dir className="text-xs font-semibold text-slate-700">Richtung: {dirName}</div>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" data-readonly-allow onClick={run} disabled={st.busy} className="v18-btn pri disabled:opacity-50">{st.busy ? 'Suche läuft …' : 'Orte suchen'}</button>
               <span className="text-xs text-slate-500">{next ? `Das Ergebnis ersetzt das Ziel von Etappe ${from + 2} (${label(next)}).` : `Das Ergebnis wird als neue Etappe ${from + 2} angehängt.`}</span>
             </div>
             {st.err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{st.err}</div>}
-            {st.items && st.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Keine Orte gefunden. Erhöhe die Obergrenze oder senke die Untergrenze.</div>}
+            {st.items && st.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Keine Orte gefunden. Weite den Abstandsbereich aus oder wähle eine andere Richtung.</div>}
             {st.items && st.items.length > 0 && (
               <div className="space-y-2">
                 {st.estimated && <div className="text-xs text-amber-900">Routing-Dienst nicht erreichbar: Werte sind geschätzt (Luftlinie × 1,3).</div>}
                 <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
                   {st.items.map((c) => (
                     <li key={`${c.name}-${c.lat}`} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
-                      <div className="min-w-0"><div className="font-semibold text-slate-900 break-words">{c.name}</div><div className="text-xs text-slate-500">{Math.round(c.km)} km · {sfFmtH(c.min)}{c.pop ? ` · ${c.pop.toLocaleString('de-DE')} Einwohner` : ''}{c.type === 'city' ? ' · Stadt' : ''}</div></div>
+                      <div className="min-w-0"><div className="font-semibold text-slate-900 break-words">{c.name}</div><div className="text-xs text-slate-500">{Math.round(c.km)} km · {sfFmtH(c.min)}{c.pop ? ` · ${c.pop.toLocaleString('de-DE')} Einwohner` : ''}</div></div>
                       <div className="flex gap-2 shrink-0">
                         <a data-readonly-allow href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}`} target="_blank" rel="noopener noreferrer" className="v18-btn sm">Karte</a>
                         <button type="button" data-readonly-allow onClick={() => onPick(from, c)} className="v18-btn sm pri">Übernehmen</button>
