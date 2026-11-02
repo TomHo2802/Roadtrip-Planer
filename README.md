@@ -93,3 +93,6 @@ Der GPS-Punkt ist der Ortsmittelpunkt, nicht das Hotel – bitte später durch d
 
 ## v21
 Etappen-Finder robuster: Die Ortssuche fragt zuerst nur Städte mit Einwohnerzahl ab (schnell, auch bei 300 km Radius), dann bei Bedarf alle Großstädte. Bei einem Fehler zeigt die Meldung jetzt die technische Ursache.
+
+## v22
+Unten in der Seitenleiste steht jetzt „Version 22“, damit du siehst, welche Programmversion läuft. Zeigt die App eine ältere Version, einmal neu laden (am Handy: App schließen und neu öffnen) oder den Browser-Cache der Seite leeren.
