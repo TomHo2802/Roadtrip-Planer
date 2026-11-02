@@ -18940,7 +18940,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 22</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 23</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19005,25 +19005,35 @@ var qrcode = function() {
       const j = await fetchJsonT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`, 12000);
       return j && j[0] ? [Number(j[0].lat), Number(j[0].lon)] : null;
     }
+    async function sfWikidata(origin, Rkm, minPop) {
+      const q = `SELECT ?item ?itemLabel ?loc ?pop WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${origin[1]} ${origin[0]})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Math.round(Rkm)}" . } ?item wdt:P1082 ?pop . FILTER(?pop > ${minPop}) ?item wdt:P31/wdt:P279* wd:Q486972 . SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?pop) LIMIT 200`;
+      const j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 25000);
+      const m = new Map();
+      ((j.results && j.results.bindings) || []).forEach((r) => {
+        const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return;
+        const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
+        const id = r.item.value, pop = Number(r.pop.value) || 0, prev = m.get(id);
+        if (!prev || pop > prev.pop) m.set(id, { id, name, lat: Number(mm[2]), lon: Number(mm[1]), pop, type: 'city' });
+      });
+      return [...m.values()];
+    }
+    async function sfOverpass(origin, Rm) {
+      const q = `[out:json][timeout:20];(node["place"="city"](around:${Math.round(Rm)},${origin[0]},${origin[1]});node["place"="town"](around:${Math.round(Rm)},${origin[0]},${origin[1]}););out center 400;`;
+      let j;
+      try { j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 25000))); }
+      catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
+      return (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null).map((e) => ({ id: 'o' + e.id, name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place }));
+    }
     async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin) {
       const maxStraight = mode === 'km' ? limitKm : (limitMin / 60) * 110; // Luftlinie <= Fahrstrecke, 110 km/h als obere Schranke
-      const R = Math.min(380, Math.max(15, maxStraight)) * 1000;
-      const ovq = (filter) => `[out:json][timeout:25];node${filter}(around:${Math.round(R)},${origin[0]},${origin[1]});out center 300;`;
-      const ovFetch = async (q) => {
-        try { return await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 28000))); }
-        catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
-      };
-      // Stufe 1: nur Städte/Orte mit Einwohnerzahl >= 10.000 (schnell, auch bei großem Radius)
-      let j = null, lastErr = null;
-      try { j = await ovFetch(ovq('["place"~"^(city|town)$"]["population"~"^[0-9]{5,}$"]')); } catch (e) { lastErr = e; }
-      // Stufe 2: alle Städte (ohne Einwohnerangabe), falls Stufe 1 zu wenig liefert
-      if (!j || (j.elements || []).length < 8) {
-        try { const j2 = await ovFetch(ovq('["place"="city"]')); j = { elements: [...((j && j.elements) || []), ...(j2.elements || [])] }; } catch (e) { lastErr = lastErr || e; }
-      }
-      if (!j) throw lastErr || new Error('Overpass: keine Antwort');
-      const seen = new Set(); let cand = (j.elements || []).filter((e) => { const k = e.id != null ? e.id : `${e.lat},${e.lon}`; if (seen.has(k)) return false; seen.add(k); return true; }).filter((e) => e.tags && e.tags.name && e.lat != null).map((e) => ({ name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, air: haversineM(origin, [e.lat, e.lon]) / 1000 }));
+      const Rkm = Math.min(380, Math.max(15, maxStraight));
+      const [w, o] = await Promise.allSettled([sfWikidata(origin, Rkm, Rkm >= 150 ? 20000 : 5000), sfOverpass(origin, Rkm * 1000)]);
+      if (w.status === 'rejected' && o.status === 'rejected') throw new Error(`Wikidata: ${w.reason && w.reason.message} | ${o.reason && o.reason.message}`);
+      const all = [...(w.status === 'fulfilled' ? w.value : []), ...(o.status === 'fulfilled' ? o.value : [])];
+      const seen = []; let cand = [];
+      all.forEach((c) => { if (seen.some((s) => s.name === c.name && Math.abs(s.lat - c.lat) < 0.15 && Math.abs(s.lon - c.lon) < 0.15)) return; seen.push(c); cand.push({ ...c, air: haversineM(origin, [c.lat, c.lon]) / 1000 }); });
       const minStraight = mode === 'km' ? minKm * 0.5 : 0;
-      cand = cand.filter((c) => c.air >= Math.min(minStraight, 1e9) && c.air > 2).sort((a, b) => (b.pop - a.pop) || (a.air - b.air)).slice(0, 80);
+      cand = cand.filter((c) => c.air <= Rkm * 1.02 && c.air >= Math.min(minStraight, 1e9) && c.air > 2).sort((a, b) => (b.pop - a.pop) || (a.air - b.air)).slice(0, 80);
       if (!cand.length) return { items: [], estimated: false };
       let estimated = false; const out = [];
       for (let i = 0; i < cand.length; i += 40) {
