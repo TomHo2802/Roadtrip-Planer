@@ -43,3 +43,19 @@ Die Handys holen sich die neue Version automatisch, sobald sie online sind.
 - Dokumente (PDF/Fotos) bleiben im jeweiligen Browser und sind nicht in der JSON-Datei. Auf den Handys also eigene Kopien der Tickets speichern.
 - Handy-Daten werden nicht automatisch aktualisiert, sondern per „Datendatei neu laden“.
 - Lösche auf einem Handy nicht die Browser-/Website-Daten, sonst muss die Datei neu geladen werden.
+
+## Neu in v16
+1. Dokumente in der Datei
+   Organisation → Dokumente: hochgeladene PDFs/Fotos werden zusammen mit den Reisedaten in roadtrip-daten.json gespeichert (am Laptop automatisch, wenn die Datei verbunden ist).
+   Auf den Handys kommen die Dokumente mit „Datendatei neu laden“ und liegen danach offline vor. Dort kannst du sie nur ansehen.
+   Ohne verbundene Datei: Offline-Tresor & Cloud → „Daten + Dokumente als JSON speichern“.
+   Dokumente aus v15 (nur lokal im Browser) werden beim nächsten Speichern in die Datei übernommen, sobald du am Laptop etwas änderst oder „Jetzt speichern“ klickst.
+2. Mehrere Reisen
+   Offline-Tresor & Cloud → „Meine Reisen“: zeigt die geöffnete Reise und alle weiteren auf diesem Gerät.
+   „Wechseln“ sichert die aktuelle Reise samt Dokumenten und öffnet die andere.
+   „Reise aus Datei laden“: andere Reisedatei aus Drive öffnen. Gehört die Datei zur selben Reise, ersetzt sie deren Stand (so holst du Änderungen aufs Handy); sonst wird eine zweite Reise angelegt.
+   Laptop: „Reise per Datei verbinden“ verbindet die Datei der Reise für automatisches Speichern. Jede Reise merkt sich ihre eigene Datei.
+   Eine Reise = eine JSON-Datei, z. B. roadtrip-florida.json, roadtrip-kanada.json in Drive.
+   Auf einem leeren Gerät oder nach „Neue / andere Reise“ erscheint der Startbildschirm mit der Liste der gespeicherten Reisen.
+3. Update
+   Programm-Update wie gehabt: index.html (und sw.js) im GitHub-Repository ersetzen. Reisen und Dokumente auf den Geräten bleiben erhalten.
