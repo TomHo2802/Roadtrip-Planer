@@ -19008,9 +19008,20 @@ var qrcode = function() {
     async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin) {
       const maxStraight = mode === 'km' ? limitKm : (limitMin / 60) * 110; // Luftlinie <= Fahrstrecke, 110 km/h als obere Schranke
       const R = Math.min(380, Math.max(15, maxStraight)) * 1000;
-      const q = `[out:json][timeout:25];(node["place"~"^(city|town)$"](around:${Math.round(R)},${origin[0]},${origin[1]}););out tags center 250;`;
-      const j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 18000)));
-      let cand = (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null).map((e) => ({ name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, air: haversineM(origin, [e.lat, e.lon]) / 1000 }));
+      const ovq = (filter) => `[out:json][timeout:25];node${filter}(around:${Math.round(R)},${origin[0]},${origin[1]});out center 300;`;
+      const ovFetch = async (q) => {
+        try { return await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 28000))); }
+        catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
+      };
+      // Stufe 1: nur Städte/Orte mit Einwohnerzahl >= 10.000 (schnell, auch bei großem Radius)
+      let j = null, lastErr = null;
+      try { j = await ovFetch(ovq('["place"~"^(city|town)$"]["population"~"^[0-9]{5,}$"]')); } catch (e) { lastErr = e; }
+      // Stufe 2: alle Städte (ohne Einwohnerangabe), falls Stufe 1 zu wenig liefert
+      if (!j || (j.elements || []).length < 8) {
+        try { const j2 = await ovFetch(ovq('["place"="city"]')); j = { elements: [...((j && j.elements) || []), ...(j2.elements || [])] }; } catch (e) { lastErr = lastErr || e; }
+      }
+      if (!j) throw lastErr || new Error('Overpass: keine Antwort');
+      const seen = new Set(); let cand = (j.elements || []).filter((e) => { const k = e.id != null ? e.id : `${e.lat},${e.lon}`; if (seen.has(k)) return false; seen.add(k); return true; }).filter((e) => e.tags && e.tags.name && e.lat != null).map((e) => ({ name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, air: haversineM(origin, [e.lat, e.lon]) / 1000 }));
       const minStraight = mode === 'km' ? minKm * 0.5 : 0;
       cand = cand.filter((c) => c.air >= Math.min(minStraight, 1e9) && c.air > 2).sort((a, b) => (b.pop - a.pop) || (a.air - b.air)).slice(0, 80);
       if (!cand.length) return { items: [], estimated: false };
@@ -19048,7 +19059,7 @@ var qrcode = function() {
           if (!(mx > 0)) throw new Error('Bitte einen Wert größer 0 eingeben.');
           const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60);
           setSt({ busy: false, err: '', items: r.items, estimated: r.estimated, origin: g });
-        } catch (e) { setSt({ busy: false, err: /Startpunkt|Wert/.test(e.message) ? e.message : 'Orte konnten nicht geladen werden. Internet nötig (OpenStreetMap-Dienste).', items: null, estimated: false, origin: null }); }
+        } catch (e) { setSt({ busy: false, err: /Startpunkt|Wert/.test(e.message) ? e.message : `Orte konnten nicht geladen werden (${String(e.message || e).slice(0, 220)}). Internet nötig; bei großem Radius hilft eine kleinere Obergrenze.`, items: null, estimated: false, origin: null }); }
       };
       const unit = mode === 'km' ? 'km' : 'Stunden';
       return (
