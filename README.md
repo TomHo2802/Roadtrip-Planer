@@ -103,3 +103,7 @@ Ortssuche im Etappen-Finder nutzt jetzt zwei Quellen parallel: Wikidata (Städte
 ## v24
 Etappen-Finder: Bereichs-Regler mit zwei Punkten (0–750 km bzw. 0–10 Std.): linker Punkt = Mindestabstand, rechter Punkt = Höchstabstand.
 Kompassrose: Himmelsrichtung antippen (N, NO, O, SO, S, SW, W, NW); „alle“ in der Mitte hebt die Auswahl auf. Gesucht wird grob in diese Richtung (±35°).
+
+## v25
+Etappen-Finder: Regler-Punkte sitzen exakt auf der Linie.
+Nur noch „interessante“ Orte: Wikidata-Treffer brauchen Einwohnerzahl und mehrere Sprachversionen bei Wikipedia (keine Statistik-Orte ohne Bedeutung); OpenStreetMap-Treffer nur Städte, Orte ab 10.000 Einwohnern oder mit Wikipedia-Eintrag. Orte, deren Mittelpunkt mehr als 2,5 km vom Straßennetz entfernt liegt, werden aussortiert (die „Punkte in der Botanik“).
