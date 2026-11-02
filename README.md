@@ -96,3 +96,6 @@ Etappen-Finder robuster: Die Ortssuche fragt zuerst nur Städte mit Einwohnerzah
 
 ## v22
 Unten in der Seitenleiste steht jetzt „Version 22“, damit du siehst, welche Programmversion läuft. Zeigt die App eine ältere Version, einmal neu laden (am Handy: App schließen und neu öffnen) oder den Browser-Cache der Seite leeren.
+
+## v23
+Ortssuche im Etappen-Finder nutzt jetzt zwei Quellen parallel: Wikidata (Städte mit Einwohnerzahl, schnell) und OpenStreetMap/Overpass (leichtere Abfrage). Ergebnisse werden zusammengeführt; es genügt, wenn eine der beiden Quellen antwortet.
