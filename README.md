@@ -70,3 +70,13 @@ Die Handys holen sich die neue Version automatisch, sobald sie online sind.
    Die Tab-Nummern haben sich verschoben (jetzt 12 Tabs).
 5. Entfernt: ein fremdes Statistik-Skript von Cloudflare, das in der Originaldatei steckte und bei jedem Start eine Verbindung aufbaute.
 Hinweis: Die Server von OpenStreetMap, Open-Meteo, Frankfurter und OSRM sind kostenlose Dienste ohne Zusage. Fallen sie aus, zeigt die App eine Meldung und läuft sonst normal weiter.
+
+## Neu in v18 – neues Layout
+1. 5 Bereiche statt 12 Tabs: Heute · Planen (Etappen, Tagesplan, Karte) · Buchungen & Budget (Flug & Mietwagen, Karten & Notfall, Budget) · Unterwegs (Wo bin ich, 1-Klick Navi, Wetter, US-Tools) · Mehr     (Organisation, Reisen & Daten).
+2. Am Laptop: Seitenleiste links mit Reisetitel, Countdown, Speicherstatus und „Reise wechseln“. Am Handy: untere Leiste mit genau 5 Punkten.
+3. Heute: Tageschips zum Wischen, Karte „Als Nächstes“ mit Navigation, darunter der Tagesablauf.
+4. Etappen sind beim Öffnen eingeklappt; ein Klick auf die Übersicht öffnet die Etappe.
+5. Reisen & Daten: Reisen und Datei-Verbindung oben, Sicherungen/Export unter „Erweitert“.
+6. Behoben: leere Leiste und fehlende Etappen-Übersicht im Nur-Lesen-Modus am Handy, mehrzeilige Tagesauswahl.
+7. Die alten Tab-Nummern (1–12) gibt es nicht mehr.
+Update: index.html und sw.js in GitHub ersetzen (Cache heißt jetzt roadtrip-v18), auf dem Handy die App einmal neu laden.
