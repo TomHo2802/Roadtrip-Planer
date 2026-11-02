@@ -510,6 +510,29 @@ html body .text-blue-600,html body .text-blue-700,html body .text-blue-800{color
 html body .bg-blue-50,html body .bg-blue-100{background-color:#E3F2F0}
 html body .border-blue-200,html body .border-blue-300,html body .border-blue-400{border-color:#B7DDD7}
 html body .ring-blue-200{--tw-ring-color:#B7DDD7}
+/* ===== v19: ruhigere Optik ===== */
+:root{--v19-line:#E3E6EB}
+html body .font-mono{font-family:inherit!important;font-variant-numeric:tabular-nums}
+html body .text-\[10px\],html body .text-\[9px\]{font-size:11px!important}
+html body .shadow-xs,html body .shadow-2xs{box-shadow:0 1px 2px rgba(16,24,40,.05)}
+html body .rounded-2xl{border-radius:14px}
+/* einheitliche Buttons: Primär = Teal */
+html body .bg-emerald-600,html body .bg-emerald-700,html body .bg-green-600,html body .bg-green-700,html body .bg-indigo-600,html body .bg-indigo-700,html body .bg-purple-600,html body .bg-sky-600,html body .bg-teal-600,html body .bg-teal-700{background-color:#0F6E66}
+html body .hover\:bg-emerald-500:hover,html body .hover\:bg-emerald-700:hover,html body .hover\:bg-emerald-800:hover,html body .hover\:bg-indigo-800:hover,html body .hover\:bg-teal-700:hover{background-color:#0B5A53}
+html body .min-h-\[36px\]{min-height:40px}
+@media(max-width:767px){html body .min-h-\[36px\]{min-height:44px}}
+/* Tönungen beruhigen */
+html body .bg-indigo-50,html body .bg-purple-50,html body .bg-violet-50,html body .bg-purple-50\/70,html body .bg-indigo-50\/70{background-color:#fff}
+html body .border-indigo-200,html body .border-indigo-300,html body .border-purple-200,html body .border-purple-300{border-color:var(--v19-line)}
+html body .text-indigo-950,html body .text-indigo-900,html body .text-indigo-700,html body .text-purple-950{color:#111827}
+/* Budget-Kacheln */
+.v19-tiles>div:not(:last-child){background:#fff!important;border:1px solid var(--v19-line)!important}
+.v19-tiles>div:not(:last-child) span:first-child{color:#596273!important}
+.v19-tiles>div:not(:last-child) div{color:#111827!important}
+.v19-tiles>div:not(:last-child) span:last-child{color:#596273!important}
+.v19-tiles>div:last-child{background:#0F6E66!important}
+.v19-tiles>div:last-child span:first-child,.v19-tiles>div:last-child span:last-child{color:#D5EDEA!important}
+html body .border-indigo-400{border-color:#0F6E66}html body .text-indigo-700{color:#0B5A53}
 </style>
 
 <style id="roadtrip-readonly-style">html[data-roadtrip-readonly] body.read-only-mode button:not(nav button):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}html[data-roadtrip-readonly] body.read-only-mode :is(input,select,textarea):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}body.read-only-mode{--readonly-banner:1}</style>
@@ -17428,7 +17451,7 @@ var qrcode = function() {
         <section className="bg-white rounded-2xl border-2 border-teal-300 p-3 sm:p-4 space-y-3 min-h-full" aria-label="Vorschläge entlang der Etappe">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="text-base font-bold text-slate-900">💡 Vorschläge von Hotel zu Hotel</h3>
+              <h3 className="text-base font-bold text-slate-900">Vorschläge von Hotel zu Hotel</h3>
               <p className="text-[11px] text-slate-500">Entlang der Strecke (Wikipedia, optional OpenStreetMap; braucht Internet). Du entscheidest pro Ort.</p>
             </div>
             <button type="button" onClick={() => setCtrlOpen((v) => !v)} aria-expanded={ctrlOpen} className="min-h-[40px] shrink-0 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold">{ctrlOpen ? '▲ Zuklappen' : '⚙ Einstellungen'}</button>
@@ -17471,8 +17494,8 @@ var qrcode = function() {
             <p className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-2">{settingsSummary}</p>
           )}
           <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-white py-1.5">
-            <button type="button" disabled={busy || !B} onClick={search} className="min-h-[44px] px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold disabled:opacity-50">{busy ? (progress || 'Suche läuft …') : '🔎 Vorschläge suchen'}</button>
-            {results.length > 0 && <button type="button" onClick={keepRest} className="min-h-[44px] px-3 py-2 rounded-lg border border-slate-400 text-xs font-semibold">🔖 Alle {sorted.length} merken</button>}
+            <button type="button" disabled={busy || !B} onClick={search} className="min-h-[44px] px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold disabled:opacity-50">{busy ? (progress || 'Suche läuft …') : 'Vorschläge suchen'}</button>
+            {results.length > 0 && <button type="button" onClick={keepRest} className="min-h-[44px] px-3 py-2 rounded-lg border border-slate-400 text-xs font-semibold">Alle {sorted.length} merken</button>}
             {results.length > 0 && <button type="button" onClick={() => setResults([])} className="min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 text-xs font-semibold">Leeren</button>}
           </div>
           {msg && <div role="status" className="rounded-lg bg-amber-50 border border-amber-300 p-2 text-sm text-amber-950">{msg}</div>}
@@ -17508,13 +17531,13 @@ var qrcode = function() {
                       </div>
                     ) : (s.key.startsWith('wp-') && (!dt || dt.pending) ? <p className="text-xs text-slate-400">Beschreibung wird geladen …</p> : null)}
                     {s.tags && s.tags.cuisine && <div className="text-[11px] text-slate-600">🍽 {String(s.tags.cuisine).replace(/;/g, ', ').replace(/_/g, ' ')}</div>}
-                    {s.tags && s.tags.opening_hours && <div className="text-[11px] text-slate-600">🕒 {s.tags.opening_hours}</div>}
+                    {s.tags && s.tags.opening_hours && <div className="text-[11px] text-slate-600">{s.tags.opening_hours}</div>}
                     {s.address && <div className="text-[11px] text-slate-500">📍 {s.address}</div>}
                     {link && <a href={link} target="_blank" rel="noopener noreferrer" className="text-[11px] text-teal-700 underline break-all">{s.src === 'Wikipedia' ? 'Wikipedia-Artikel öffnen' : 'Webseite öffnen'}</a>}
                     <div className="flex flex-wrap gap-2">
-                      <button type="button" onClick={() => { addWay(s); drop(s.key); }} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">➕ Auf dem Weg zum Hotel</button>
-                      <button type="button" onClick={() => { addLocal(s); drop(s.key); }} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">➕ Aktion vor Ort</button>
-                      <button type="button" onClick={() => keep(s)} className="min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-400 bg-white text-xs font-semibold">🔖 Merken</button>
+                      <button type="button" onClick={() => { addWay(s); drop(s.key); }} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">Auf dem Weg zum Hotel</button>
+                      <button type="button" onClick={() => { addLocal(s); drop(s.key); }} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Aktion vor Ort</button>
+                      <button type="button" onClick={() => keep(s)} className="min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-400 bg-white text-xs font-semibold">Merken</button>
                       <button type="button" onClick={() => drop(s.key)} className="min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-500">Ausblenden</button>
                     </div>
                   </div>
@@ -17525,7 +17548,7 @@ var qrcode = function() {
           {sorted.length > shown && <button type="button" onClick={() => setShown((n) => n + 15)} className="min-h-[40px] px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold">Mehr anzeigen ({sorted.length - shown})</button>}
 
           <div className="border-t border-slate-200 pt-3 space-y-2">
-            <h4 className="text-sm font-bold text-slate-900">🔖 Merkliste ({saved.length})</h4>
+            <h4 className="text-sm font-bold text-slate-900">Merkliste ({saved.length})</h4>
             {saved.length === 0 && <p className="text-xs text-slate-500">Hier landen Orte, die du „merken“ willst. Du kannst sie später einer Etappe zuordnen.</p>}
             {saved.map((e) => (
               <div key={e.id} className="rounded-xl border border-violet-200 bg-violet-50 p-2.5 space-y-2">
@@ -17543,8 +17566,8 @@ var qrcode = function() {
                   <select aria-label="Etappe für diesen Ort" value={savedStage[e.id] || e.fromStageId || stage.id} onChange={(ev) => setSavedStage((m) => ({ ...m, [e.id]: ev.target.value }))} className="min-h-[40px] px-2 py-1 rounded-lg border border-slate-300 bg-white text-xs">
                     {stages.map((s, i) => <option key={s.id} value={s.id}>Etappe {i + 1}: {s.toCity}</option>)}
                   </select>
-                  <button type="button" onClick={() => fromSaved(e, 'way', savedStage[e.id])} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold">➕ Auf dem Weg</button>
-                  <button type="button" onClick={() => fromSaved(e, 'local', savedStage[e.id])} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">➕ Vor Ort</button>
+                  <button type="button" onClick={() => fromSaved(e, 'way', savedStage[e.id])} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold">Auf dem Weg</button>
+                  <button type="button" onClick={() => fromSaved(e, 'local', savedStage[e.id])} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">Vor Ort</button>
                 </div>
               </div>
             ))}
@@ -17654,7 +17677,7 @@ var qrcode = function() {
           if (planMode) {
             marker.on('click', () => toggleSel(p.key));
           } else {
-            const typeLabel = p.type === 'hotel' ? '🏨 Hotel' : p.type === 'parking' ? '🅿️ Parken' : p.type === 'stop' ? '🚩 Stopp auf dem Weg' : '📍 Ziel';
+            const typeLabel = p.type === 'hotel' ? 'Hotel' : p.type === 'parking' ? '🅿️ Parken' : p.type === 'stop' ? 'Stopp auf dem Weg' : '📍 Ziel';
             marker.bindPopup(`<div style="min-width:180px;font:13px system-ui"><div style="font-weight:800;font-size:14px">${escHtml(p.name)}</div><div style="color:#475569">${typeLabel} · Etappe ${p.stageIdx + 1}</div><div style="color:#64748b;font-size:12px">${escHtml(p.stageLabel)}</div>${p.sub ? `<div style="font-size:12px">${escHtml(p.sub)}</div>` : ''}${p.address ? `<div style="margin-top:4px;font-style:italic">${escHtml(p.address)}</div>` : ''}<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><a href="${escHtml(getGoogleMapsUrl(p.raw, p.address, p.name))}" target="_blank" rel="noopener noreferrer" style="background:#2563eb;color:#fff;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700">Google Maps</a><a href="${escHtml(getAppleMapsUrl(p.raw, p.address, p.name))}" target="_blank" rel="noopener noreferrer" style="background:#0f172a;color:#fff;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700">Apple Maps</a></div></div>`);
           }
           markersRef.current[p.key] = marker;
@@ -17764,7 +17787,7 @@ var qrcode = function() {
           <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3 self-start lg:self-stretch">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900">🗺 Routenkarte</h2>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900">Routenkarte</h2>
                 <p className="text-xs text-slate-500">{visible.length} von {points.length} Orten sichtbar · {planMode ? 'Marker antippen = zur Route hinzufügen/entfernen' : 'Antippen zeigt Details und Navigation'}</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -17778,13 +17801,13 @@ var qrcode = function() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {chip('hotel', `🏨 Hotels (${countBy('hotel')})`, '#0f172a')}
+              {chip('hotel', `Hotels (${countBy('hotel')})`, '#0f172a')}
               {chip('parking', `🅿️ Parken (${countBy('parking')})`, '#9333ea')}
               {chip('attr', `★ Ziele (${countBy('attr')})`, '#d97706')}
-              {chip('stop', `🚩 Stopps (${countBy('stop')})`, '#0f766e')}
-              {chip('saved', `🔖 Merkliste (${(trip.savedSuggestions || []).length})`, '#7c3aed')}
+              {chip('stop', `Stopps (${countBy('stop')})`, '#0f766e')}
+              {chip('saved', `Merkliste (${(trip.savedSuggestions || []).length})`, '#7c3aed')}
               {chip('route', '┅ Hotelroute', '#2563eb')}
-              <button type="button" onClick={() => setPlanMode((v) => !v)} aria-pressed={planMode} className={`min-h-[36px] px-2.5 py-1 rounded-lg border text-xs font-bold ${planMode ? 'bg-red-600 text-white border-red-700 ring-2 ring-red-200' : 'bg-white text-red-700 border-red-400'}`}>{planMode ? '✔ Punkte wählen: AN' : '🧭 Eigene Route planen'}</button>
+              <button type="button" onClick={() => setPlanMode((v) => !v)} aria-pressed={planMode} className={`min-h-[36px] px-2.5 py-1 rounded-lg border text-xs font-bold ${planMode ? 'bg-red-600 text-white border-red-700 ring-2 ring-red-200' : 'bg-white text-red-700 border-red-400'}`}>{planMode ? '✔ Punkte wählen: AN' : 'Eigene Route planen'}</button>
             </div>
             {libMissing && <div className="rounded-lg bg-rose-50 border border-rose-300 p-3 text-sm text-rose-900">Das Kartenmodul konnte nicht geladen werden. Die Orte stehen unten in der Liste.</div>}
             {tilesFailed && <div className="rounded-lg bg-amber-50 border border-amber-300 p-2 text-xs text-amber-900">Kartenkacheln nicht erreichbar (offline oder Anbieter gesperrt?). Orte und Route werden trotzdem angezeigt. Versuche oben einen anderen Kartenstil.</div>}
@@ -17801,7 +17824,7 @@ var qrcode = function() {
           {(planMode || sel.length > 0) && (
             <section className="bg-white rounded-2xl border-2 border-red-300 p-4 sm:p-5 space-y-3" aria-label="Eigene Route">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-bold text-slate-900">🧭 Eigene Route ({sel.length} {sel.length === 1 ? 'Punkt' : 'Punkte'})</h3>
+                <h3 className="text-sm font-bold text-slate-900">Eigene Route ({sel.length} {sel.length === 1 ? 'Punkt' : 'Punkte'})</h3>
                 <div className="flex flex-wrap gap-2">
                   <button type="button" disabled={sel.length < 2} onClick={() => setSel((s) => [...s].reverse())} className="min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold disabled:opacity-40">⇅ Umkehren</button>
                   <button type="button" disabled={!sel.length} onClick={() => setSel([])} className="min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold disabled:opacity-40">✕ Zurücksetzen</button>
@@ -17850,7 +17873,7 @@ var qrcode = function() {
                     {list.map((p) => {
                       const o = sel.indexOf(p.key);
                       return (
-                        <button type="button" key={p.key} onClick={() => (planMode ? toggleSel(p.key) : focusPoint(p))} className={`min-h-[40px] px-3 py-1.5 rounded-lg border text-xs text-left ${o >= 0 ? 'ring-2 ring-red-500 ' : ''}${p.type === 'hotel' ? 'bg-slate-900 text-white border-slate-900 font-bold' : p.type === 'parking' ? 'bg-purple-50 text-purple-900 border-purple-300' : p.type === 'stop' ? 'bg-teal-50 text-teal-950 border-teal-300' : 'bg-amber-50 text-amber-950 border-amber-300'}`}>{o >= 0 ? `${letter(o)} · ` : ''}{typeIcon(p.type)}{p.name}</button>
+                        <button type="button" key={p.key} onClick={() => (planMode ? toggleSel(p.key) : focusPoint(p))} className={`min-h-[40px] px-3 py-1.5 rounded-lg border text-xs text-left ${o >= 0 ? 'ring-2 ring-red-500 ' : ''}${p.type === 'hotel' ? 'bg-[#0F6E66] text-white border-[#0F6E66] font-bold' : p.type === 'parking' ? 'bg-purple-50 text-purple-900 border-purple-300' : p.type === 'stop' ? 'bg-teal-50 text-teal-950 border-teal-300' : 'bg-amber-50 text-amber-950 border-amber-300'}`}>{o >= 0 ? `${letter(o)} · ` : ''}{typeIcon(p.type)}{p.name}</button>
                       );
                     })}
                   </div>
@@ -17996,7 +18019,7 @@ var qrcode = function() {
 
     function NavLink({ gps, address, name, label, className }) {
       const g = Array.isArray(gps) ? llStr(gps) : (gps || '');
-      return <a href={getGoogleMapsUrl(g, address, name)} target="_blank" rel="noopener noreferrer" className={className || 'min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold'}>{label || '🧭 Navi'}</a>;
+      return <a href={getGoogleMapsUrl(g, address, name)} target="_blank" rel="noopener noreferrer" className={className || 'min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold'}>{label || 'Navi'}</a>;
     }
 
     function DayCard({ trip, day, onSave, editable, nowMin, isToday }) {
@@ -18017,8 +18040,8 @@ var qrcode = function() {
             {sun && <div className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">🌅 {fmtHM(sun.sunrise)} · 🌇 {fmtHM(sun.sunset)}</div>}
           </div>
           <WxChip stage={stage} iso={day.iso} />
-          {day.checkoutStage && <div className="text-xs rounded-lg bg-slate-50 border border-slate-200 p-2">🏁 Check-out {hotelName(day.checkoutStage)}{day.checkoutStage.hotel && day.checkoutStage.hotel.checkOut ? ` bis ${day.checkoutStage.hotel.checkOut}` : ''}</div>}
-          {day.kind === 'checkout' && <div className="text-xs rounded-lg bg-slate-50 border border-slate-200 p-2">🏁 Check-out {hotelName(stage)}{h.checkOut ? ` bis ${h.checkOut}` : ''}. Weiterfahrt oder Rückreise.</div>}
+          {day.checkoutStage && <div className="text-xs rounded-lg bg-slate-50 border border-slate-200 p-2">Check-out {hotelName(day.checkoutStage)}{day.checkoutStage.hotel && day.checkoutStage.hotel.checkOut ? ` bis ${day.checkoutStage.hotel.checkOut}` : ''}</div>}
+          {day.kind === 'checkout' && <div className="text-xs rounded-lg bg-slate-50 border border-slate-200 p-2">Check-out {hotelName(stage)}{h.checkOut ? ` bis ${h.checkOut}` : ''}. Weiterfahrt oder Rückreise.</div>}
           {tl && (
             <div className="space-y-2">
               {editable && (
@@ -18084,7 +18107,7 @@ var qrcode = function() {
       return (
         <div className="space-y-4">
           <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
-            <h2 className="text-base sm:text-lg font-bold text-slate-900">🗓 Tagesplan</h2>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">Tagesplan</h2>
             <p className="text-xs text-slate-500">Zeitleiste pro Tag mit Abfahrt, Fahrzeiten, Stopps und Ankunft. Abfahrt, Puffer und Aufenthaltsdauer änderst du direkt, alles wird gespeichert. Sonnenzeiten werden lokal berechnet.</p>
             <label className="block text-xs font-semibold text-slate-700">Etappe
               <select value={stageIdx} onChange={(e) => setStageIdx(Number(e.target.value))} className="mt-1 w-full min-h-[44px] px-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold">
@@ -18127,16 +18150,16 @@ var qrcode = function() {
 
           {(flights.length > 0 || cars.length > 0) && (
             <section className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 space-y-2">
-              <h3 className="text-sm font-bold text-indigo-950">✈️ Flug & Mietwagen heute</h3>
+              <h3 className="text-sm font-bold text-indigo-950">Flug & Mietwagen heute</h3>
               {flights.map((f) => <div key={f.id} className="text-sm">{f.direction}: <b>{f.airline} {f.flightNumber}</b> · {f.from} → {f.to} · {f.departureTime} → {f.arrivalTime}{f.bookingCode ? ` · Buchungscode ${f.bookingCode}` : ''}</div>)}
-              {cars.map((x, i) => <div key={i} className="text-sm">🚗 {x.what}: <b>{x.c.provider}</b> · {x.where} · {x.time}{x.c.bookingCode ? ` · ${x.c.bookingCode}` : ''}</div>)}
+              {cars.map((x, i) => <div key={i} className="text-sm">{x.what}: <b>{x.c.provider}</b> · {x.where} · {x.time}{x.c.bookingCode ? ` · ${x.c.bookingCode}` : ''}</div>)}
             </section>
           )}
 
           <DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} />
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-            <h3 className="text-sm font-bold text-slate-900">🏨 Unterkunft: {h.name || stage.toCity}</h3>
+            <h3 className="text-sm font-bold text-slate-900">Unterkunft: {h.name || stage.toCity}</h3>
             <div className="text-sm text-slate-700 space-y-0.5">
               {h.address && <div>📍 {h.address}</div>}
               <div>Check-in: <b>{h.checkIn || '—'}</b> · Check-out: <b>{h.checkOut || '—'}</b>{h.cancelUntil ? ` · Storno bis ${h.cancelUntil}` : ''}</div>
@@ -18144,10 +18167,10 @@ var qrcode = function() {
               {h.remarks && <div className="text-xs text-slate-500">{h.remarks}</div>}
             </div>
             <div className="flex flex-wrap gap-2">
-              {parseGps(h.gps) && <NavLink gps={h.gps} address={h.address} name={h.name} label="🧭 Zum Hotel" />}
+              {parseGps(h.gps) && <NavLink gps={h.gps} address={h.address} name={h.name} label="Zum Hotel" />}
               {parseGps(h.parkingGarageGps) && <NavLink gps={h.parkingGarageGps} address={h.parkingGarageAddress} name={h.parkingGarageName} label="🅿️ Zum Parkplatz" className="min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-purple-600 text-white text-xs font-bold" />}
-              <button type="button" onClick={() => goTab('map')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">🗺 Karte</button>
-              <button type="button" onClick={() => goTab('plan')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">🗓 Tagesplan bearbeiten</button>
+              <button type="button" onClick={() => goTab('map')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">Karte</button>
+              <button type="button" onClick={() => goTab('plan')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">Tagesplan bearbeiten</button>
             </div>
           </section>
 
@@ -18183,7 +18206,7 @@ var qrcode = function() {
       return (
         <div className="space-y-4">
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-base font-bold text-slate-900">🧳 Packliste</h3><span className="text-xs font-semibold text-slate-600">{done} von {items.length} gepackt</span></div>
+            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-base font-bold text-slate-900">Packliste</h3><span className="text-xs font-semibold text-slate-600">{done} von {items.length} gepackt</span></div>
             <div className="flex flex-wrap gap-2 items-end">
               <label className="text-xs font-semibold text-slate-700">Für
                 <select value={who} onChange={(e) => setWho(e.target.value)} className="mt-1 block min-h-[44px] px-2 rounded-lg border border-slate-300 bg-white text-sm">{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
@@ -18243,7 +18266,7 @@ var qrcode = function() {
       const del = async (d) => { if (!window.confirm(`„${d.name}“ löschen?`)) return; try { await docsTx('readwrite', (s) => s.delete(d.id)); await load(); docsChanged(); onSave({ ...trip }, ''); } catch (e) { setErr('Löschen fehlgeschlagen.'); } };
       return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-          <h3 className="text-base font-bold text-slate-900">📎 Dokumente</h3>
+          <h3 className="text-base font-bold text-slate-900">Dokumente</h3>
           <p className="text-xs text-slate-500">PDFs und Fotos (Tickets, Voucher, Versicherung) werden zusammen mit den Reisedaten in der Datendatei gespeichert (zum Beispiel in Google Drive) und auf jedem Gerät offline vorgehalten. Je größer die Dokumente, desto größer die Datei: am besten PDFs unter 3 MB, Fotos werden automatisch verkleinert.</p>
           {!IS_READ_ONLY_COPY && <div className="flex flex-wrap items-end gap-2">
             <label className="text-xs font-semibold text-slate-700">Kategorie
@@ -18310,7 +18333,7 @@ var qrcode = function() {
       return (
         <div className="space-y-4">
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-            <h3 className="text-base font-bold text-slate-900">⚖️ Routen-Varianten</h3>
+            <h3 className="text-base font-bold text-slate-900">Routen-Varianten</h3>
             <p className="text-xs text-slate-500">Sichere den aktuellen Stand der Etappen als Variante, ändere die Route und vergleiche danach beide nebeneinander. Es werden höchstens 8 Varianten gehalten.</p>
             <div className="flex gap-2 flex-wrap"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name der Variante" className="flex-1 min-w-[12rem] min-h-[44px] px-3 rounded-lg border border-slate-300 text-sm" /><button type="button" onClick={saveVar} className="min-h-[44px] px-4 rounded-lg bg-blue-600 text-white text-sm font-bold">Aktuellen Stand sichern</button></div>
             {vars.map((v) => <div key={v.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 p-2"><div className="min-w-0"><div className="text-sm font-semibold break-words">{v.name}</div><div className="text-[11px] text-slate-500">{new Date(v.created).toLocaleString('de-DE')} · {v.stages.length} Etappen</div></div><div className="flex gap-1.5"><button type="button" onClick={() => restore(v)} className="min-h-[36px] px-3 rounded-lg border border-slate-300 text-xs font-semibold">Wiederherstellen</button><button type="button" aria-label="Löschen" onClick={() => rm(v)} className="min-h-[36px] w-9 rounded-lg text-slate-400 hover:text-red-600">✕</button></div></div>)}
@@ -18341,17 +18364,17 @@ var qrcode = function() {
 
     function OrgView({ trip, onSave }) {
       const [sub, setSub] = useState('pack'); const [printing, setPrinting] = useState(false);
-      const tabs = [['pack', '🧳 Packliste'], ['docs', '📎 Dokumente'], ['print', '🖨 Reiseplan drucken'], ['share', '🔗 Teilen'], ['cmp', '⚖️ Vergleich']];
+      const tabs = [['pack', 'Packliste'], ['docs', 'Dokumente'], ['print', 'Reiseplan drucken'], ['share', 'Teilen'], ['cmp', 'Vergleich']];
       return (
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-1.5">{tabs.map(([id, l]) => <button key={id} type="button" onClick={() => setSub(id)} className={`min-h-[44px] px-3 rounded-lg text-sm font-semibold border ${sub === id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'}`}>{l}</button>)}</div>
+          <div className="flex flex-wrap gap-1.5">{tabs.map(([id, l]) => <button key={id} type="button" onClick={() => setSub(id)} className={`min-h-[44px] px-3 rounded-lg text-sm font-semibold border ${sub === id ? 'bg-[#0F6E66] text-white border-[#0F6E66]' : 'bg-white text-slate-700 border-slate-300'}`}>{l}</button>)}</div>
           {sub === 'pack' && <PackView trip={trip} onSave={onSave} />}
           {sub === 'docs' && <DocsView trip={trip} onSave={onSave} />}
           {sub === 'share' && <SharePanel trip={trip} />}
           {sub === 'cmp' && <CompareView trip={trip} onSave={onSave} />}
           {sub === 'print' && (
             <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-              <h3 className="text-base font-bold text-slate-900">🖨 Reiseplan drucken</h3>
+              <h3 className="text-base font-bold text-slate-900">Reiseplan drucken</h3>
               <p className="text-xs text-slate-500">Erzeugt eine druckfreundliche Seite mit Flügen, Mietwagen, Unterkünften, Tagesplan und Notfallnummern (ohne Kreditkartendaten). Im Druckdialog kannst du „Als PDF speichern“ wählen.</p>
               <button type="button" onClick={() => setPrinting(true)} className="min-h-[44px] px-4 rounded-lg bg-blue-600 text-white text-sm font-bold">Druckansicht öffnen</button>
               {printing && <PrintPlan trip={trip} onClose={() => setPrinting(false)} />}
@@ -18488,29 +18511,29 @@ var qrcode = function() {
       return (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-100 p-4" data-readonly-allow>
           <div className="mx-auto max-w-xl space-y-4 py-6">
-            <h1 className="text-2xl font-extrabold text-slate-900">🧭 Roadtrip-Planer</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900">Roadtrip-Planer</h1>
             <p className="text-sm text-slate-600">Auf diesem Gerät ist keine Reise geöffnet. Die Daten liegen getrennt vom Programm in einer Datei (<code>roadtrip-daten.json</code>, zum Beispiel in Google Drive).</p>
             {lib.length > 0 && (
               <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-                <h2 className="text-base font-bold">🧳 Gespeicherte Reisen auf diesem Gerät</h2>
+                <h2 className="text-base font-bold">Gespeicherte Reisen auf diesem Gerät</h2>
                 {lib.map((e) => <div key={e.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 p-2"><div className="min-w-0"><div className="text-sm font-semibold break-words">{e.title || 'Ohne Titel'}</div><div className="text-[11px] text-slate-500">{e.start ? e.start.split('-').reverse().join('.') : ''} · {e.stages} Etappen · {(e.docs || []).length} Dokumente</div></div><button type="button" disabled={busy} onClick={() => onSwitch(e.id)} className="min-h-[44px] px-4 rounded-xl bg-slate-900 text-white text-sm font-bold">Öffnen</button></div>)}
               </section>
             )}
             <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-              <h2 className="text-base font-bold">📂 Reisedaten-Datei laden</h2>
+              <h2 className="text-base font-bold">Reisedaten-Datei laden</h2>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={ro} onChange={(e) => setRo(e.target.checked)} className="w-5 h-5" /> Nur lesen (empfohlen für Handys)</label>
               <label className="min-h-[48px] inline-flex items-center px-5 rounded-xl bg-blue-600 text-white text-sm font-bold cursor-pointer">Datei auswählen<input type="file" accept=".json,application/json" onChange={onFile} className="hidden" /></label>
               <p className="text-xs text-slate-500">Im Dateiauswahl-Dialog Google Drive wählen und die Reise-Datei antippen. Danach liegt eine Kopie samt Dokumenten offline auf dem Gerät.</p>
             </section>
             {FS_SUPPORTED && (
               <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-                <h2 className="text-base font-bold">💻 Laptop: mit Datei verbinden</h2>
+                <h2 className="text-base font-bold">Laptop: mit Datei verbinden</h2>
                 <p className="text-xs text-slate-500">Änderungen werden automatisch in die Datei zurückgeschrieben (Chrome oder Edge).</p>
-                <button type="button" disabled={busy} onClick={onConnect} className="min-h-[48px] px-5 rounded-xl bg-emerald-600 text-white text-sm font-bold">Datei verbinden</button>
+                <button type="button" disabled={busy} onClick={onConnect} className="min-h-[48px] px-5 rounded-xl bg-[#0F6E66] text-white text-sm font-bold">Datei verbinden</button>
               </section>
             )}
             <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-              <h2 className="text-base font-bold">✨ Neue Reise</h2>
+              <h2 className="text-base font-bold">Neue Reise</h2>
               <button type="button" onClick={onSkip} className="min-h-[48px] px-5 rounded-xl border border-slate-300 bg-white text-sm font-bold">Neue Reise mit Assistent anlegen</button>
             </section>
             {busy && <div className="text-sm text-slate-600">Bitte warten …</div>}
@@ -18534,15 +18557,15 @@ var qrcode = function() {
         if (!window.confirm(`Die Datei gehört zur Reise „${d.meta.title || 'Ohne Titel'}“. Aktuelle Reise sichern und zu dieser wechseln?`)) return; await loadTripFileAsActive(d, h); location.reload(); });
       const onBlank = () => run(async () => { if (!window.confirm('Die aktuelle Reise wird gesichert und bleibt in der Liste. Danach kannst du eine andere Datei laden oder eine neue Reise anlegen. Fortfahren?')) return; await startBlankTrip(); location.reload(); });
       return (
-        <section data-readonly-allow className="rounded-2xl border border-indigo-200 bg-indigo-50 p-5 space-y-3">
-          <h2 className="text-base sm:text-lg font-bold text-indigo-950">🧳 Meine Reisen</h2>
+        <section data-readonly-allow className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+          <h2 className="text-base sm:text-lg font-bold text-indigo-950">Meine Reisen</h2>
           <div className="rounded-xl border-2 border-indigo-400 bg-white p-3"><div className="text-[11px] font-bold text-indigo-700">AKTUELL GEÖFFNET</div><div className="text-sm font-bold break-words">{tripLabel(trip)}</div></div>
           {lib.map((e) => <div key={e.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3"><div className="min-w-0"><div className="text-sm font-semibold break-words">{e.title || 'Ohne Titel'}</div><div className="text-[11px] text-slate-500">{e.start ? e.start.split('-').reverse().join('.') : ''} · {e.stages} Etappen · {(e.docs || []).length} Dokumente</div></div>
-            <div className="flex gap-1.5 shrink-0"><button data-readonly-allow type="button" disabled={busy} onClick={() => onSwitch(e)} className="min-h-[44px] px-3 rounded-xl bg-indigo-700 text-white text-sm font-bold">Wechseln</button><button data-readonly-allow type="button" aria-label="Entfernen" disabled={busy} onClick={() => onRemove(e)} className="min-h-[44px] w-10 rounded-xl text-slate-400 hover:text-red-600">✕</button></div></div>)}
+            <div className="flex gap-1.5 shrink-0"><button data-readonly-allow type="button" disabled={busy} onClick={() => onSwitch(e)} className="min-h-[44px] px-3 rounded-xl bg-[#0F6E66] text-white text-sm font-bold">Wechseln</button><button data-readonly-allow type="button" aria-label="Entfernen" disabled={busy} onClick={() => onRemove(e)} className="min-h-[44px] w-10 rounded-xl text-slate-400 hover:text-red-600">✕</button></div></div>)}
           <div className="flex flex-wrap gap-2">
-            <label data-readonly-allow className="min-h-[44px] inline-flex items-center px-4 rounded-xl bg-blue-700 text-white text-sm font-bold cursor-pointer">📂 Reise aus Datei laden<input type="file" accept=".json,application/json" onChange={onFile} className="hidden" /></label>
-            {mode !== 'readonly' && FS_SUPPORTED && <button data-readonly-allow type="button" disabled={busy} onClick={onConnect} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">💻 Reise per Datei verbinden</button>}
-            {mode !== 'readonly' && <button data-readonly-allow type="button" disabled={busy} onClick={onBlank} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">➕ Neue / andere Reise</button>}
+            <label data-readonly-allow className="min-h-[44px] inline-flex items-center px-4 rounded-xl bg-blue-700 text-white text-sm font-bold cursor-pointer">Reise aus Datei laden<input type="file" accept=".json,application/json" onChange={onFile} className="hidden" /></label>
+            {mode !== 'readonly' && FS_SUPPORTED && <button data-readonly-allow type="button" disabled={busy} onClick={onConnect} className="min-h-[44px] px-4 rounded-xl bg-[#0F6E66] text-white text-sm font-bold">Reise per Datei verbinden</button>}
+            {mode !== 'readonly' && <button data-readonly-allow type="button" disabled={busy} onClick={onBlank} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">Neue / andere Reise</button>}
           </div>
           <p className="text-xs text-indigo-900">Beim Wechsel wird die aktuelle Reise samt Dokumenten auf diesem Gerät gesichert. Eine Datei, die zur selben Reise gehört, ersetzt deren Stand (so holst du Planänderungen aufs Handy).</p>
           {msg && <div role="status" className="text-sm rounded-lg bg-white border border-indigo-300 p-2">{msg}</div>}
@@ -18557,22 +18580,22 @@ var qrcode = function() {
       const createFile = () => run(async () => { await fsSync.pick(true, trip); await fsSync.activate(); setMsg('Datei angelegt und verbunden.'); });
       const exportNow = () => run(async () => { await downloadTripFile(normalizeTrip(trip), 'roadtrip-daten.json'); });
       return (
-        <section data-readonly-allow className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 space-y-3">
-          <h2 className="text-base sm:text-lg font-bold text-emerald-950">📁 Datendatei & Gerätemodus</h2>
+        <section data-readonly-allow className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900">Datendatei & Gerätemodus</h2>
           <p className="text-sm text-emerald-950">Programm und Reisedaten sind getrennt. Die Datei enthält Reisedaten <b>und Dokumente</b> und liegt zum Beispiel in Google Drive. Auf diesem Gerät wird eine Kopie zwischengespeichert.</p>
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm font-semibold">Dieses Gerät: {mode === 'readonly' ? '🔒 Nur lesen' : '✏️ Planung (bearbeiten)'}</span>
+            <span className="text-sm font-semibold">Dieses Gerät: {mode === 'readonly' ? 'Nur lesen' : '✏️ Planung (bearbeiten)'}</span>
             <button data-readonly-allow type="button" onClick={() => { setDeviceMode(mode === 'readonly' ? 'edit' : 'readonly'); location.reload(); }} className="min-h-[44px] px-4 rounded-xl border border-emerald-400 bg-white text-sm font-bold">{mode === 'readonly' ? 'Auf Bearbeiten umstellen' : 'Auf Nur lesen umstellen'}</button>
             <button data-readonly-allow type="button" onClick={exportNow} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">⬇ Daten + Dokumente als JSON speichern</button>
           </div>
           {mode !== 'readonly' && FS_SUPPORTED && (
             <div className="rounded-xl border border-emerald-300 bg-white p-3 space-y-2">
-              <div className="text-sm font-bold">💻 Verbindung mit Datei: {fs.status === 'none' ? 'nicht verbunden' : fs.status === 'connected' ? `✅ ${fs.name}` : `⏸ ${fs.name} (Zugriff bestätigen)`}</div>
+              <div className="text-sm font-bold">Verbindung mit Datei: {fs.status === 'none' ? 'nicht verbunden' : fs.status === 'connected' ? `✅ ${fs.name}` : `⏸ ${fs.name} (Zugriff bestätigen)`}</div>
               {fs.lastWrite && <div className="text-xs text-slate-600">Zuletzt gespeichert: {fs.lastWrite.toLocaleTimeString('de-DE')}</div>}
               {fs.error && <div className="text-xs text-rose-800">{fs.error}</div>}
               <div className="flex flex-wrap gap-2">
-                {fs.status === 'needs-permission' && <button type="button" onClick={reactivate} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">Verbindung erneuern</button>}
-                {fs.status === 'none' && <button type="button" onClick={createFile} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">Neue Datei für diese Reise anlegen</button>}
+                {fs.status === 'needs-permission' && <button type="button" onClick={reactivate} className="min-h-[44px] px-4 rounded-xl bg-[#0F6E66] text-white text-sm font-bold">Verbindung erneuern</button>}
+                {fs.status === 'none' && <button type="button" onClick={createFile} className="min-h-[44px] px-4 rounded-xl bg-[#0F6E66] text-white text-sm font-bold">Neue Datei für diese Reise anlegen</button>}
                 {fs.status === 'connected' && <button type="button" onClick={() => run(() => fsSync.write(trip))} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm font-bold">Jetzt speichern</button>}
                 {fs.status !== 'none' && <button type="button" onClick={() => fsSync.disconnect()} className="min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-sm">Trennen</button>}
               </div>
@@ -18709,10 +18732,10 @@ var qrcode = function() {
                 <select value={si} onChange={(e) => { setSi(Number(e.target.value)); setRoute(null); }} className="mt-1 w-full min-h-[44px] px-3 rounded-lg border border-slate-300 bg-white text-sm">{stages.map((s, i) => <option key={s.id} value={i}>{i + 1}. {hotelName(s)}</option>)}</select>
               </label>
               {tg ? <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 space-y-1.5">
-                <div className="text-sm font-bold text-emerald-950">🏨 {hotelName(target)}: {fmtDist(dT)} Luftlinie</div>
+                <div className="text-sm font-bold text-emerald-950">{hotelName(target)}: {fmtDist(dT)} Luftlinie</div>
                 <div className="text-xs text-emerald-900">Fahrzeit grob geschätzt: ca. {eta(dT)}{route && route.km != null ? ` · Route online: ${Math.round(route.km)} km, ${fmtDurMin(route.min)}` : ''}</div>
                 {route && route.err && <div className="text-xs text-amber-900">{route.err}</div>}
-                <div className="flex flex-wrap gap-2"><NavLink gps={tg} address={target.hotel.address} name={target.hotel.name} label="🧭 Navi zum Hotel" /><button data-readonly-allow type="button" disabled={route && route.busy} onClick={exact} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold">Genaue Fahrzeit (online)</button></div>
+                <div className="flex flex-wrap gap-2"><NavLink gps={tg} address={target.hotel.address} name={target.hotel.name} label="Navi zum Hotel" /><button data-readonly-allow type="button" disabled={route && route.busy} onClick={exact} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold">Genaue Fahrzeit (online)</button></div>
               </div> : <div className="text-xs text-slate-500">Für diese Unterkunft sind keine Koordinaten hinterlegt.</div>}
               <div className="space-y-1.5"><div className="text-xs font-bold text-slate-700">Nächste Ziele deiner Reise</div>
                 {near.map((p, i) => <div key={i} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 p-2"><div className="min-w-0"><div className="text-sm font-semibold break-words">{p.label}</div><div className="text-[11px] text-slate-500">{fmtDist(p.d)} · ca. {eta(p.d)}</div></div><NavLink gps={p.gps} label="🧭" /></div>)}
@@ -18746,8 +18769,8 @@ var qrcode = function() {
       const go = async () => { if (!center) { setErr('Kein Standort. Bestimme zuerst deinen Standort oder wähle eine Unterkunft.'); return; } setErr(''); setBusy(true); setRes(null); try { setRes(await searchNearby(NEARBY_CATS.find((c) => c.id === cat), center[0], center[1], rad)); } catch (e) { setErr('Suche nicht möglich. Die Kartenserver sind erreichbar nur mit Internet und manchmal überlastet. Bitte später erneut versuchen.'); } setBusy(false); };
       return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-          <h3 className="text-base font-bold text-slate-900">🔎 In der Nähe</h3>
-          <div className="flex flex-wrap gap-1.5">{NEARBY_CATS.map((c) => <button key={c.id} data-readonly-allow type="button" onClick={() => { setCat(c.id); setRes(null); }} className={`min-h-[40px] px-3 rounded-full text-sm font-semibold border ${cat === c.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-300'}`}>{c.label}</button>)}</div>
+          <h3 className="text-base font-bold text-slate-900">In der Nähe</h3>
+          <div className="flex flex-wrap gap-1.5">{NEARBY_CATS.map((c) => <button key={c.id} data-readonly-allow type="button" onClick={() => { setCat(c.id); setRes(null); }} className={`min-h-[40px] px-3 rounded-full text-sm font-semibold border ${cat === c.id ? 'bg-[#0F6E66] text-white border-[#0F6E66]' : 'bg-white border-slate-300'}`}>{c.label}</button>)}</div>
           <div className="grid grid-cols-2 gap-2">
             <label className="text-xs font-semibold text-slate-700">Rund um<select value={src} onChange={(e) => { setSrc(e.target.value); setRes(null); }} className="mt-1 w-full min-h-[44px] px-2 rounded-lg border border-slate-300 bg-white text-sm">{pos && <option value="gps">Mein Standort</option>}{!pos && <option value="gps">Mein Standort (erst bestimmen)</option>}{stages.map((s, i) => <option key={s.id} value={String(i)}>Hotel {i + 1}: {hotelName(s)}</option>)}</select></label>
             <label className="text-xs font-semibold text-slate-700">Umkreis<select value={rad} onChange={(e) => { setRad(Number(e.target.value)); setRes(null); }} className="mt-1 w-full min-h-[44px] px-2 rounded-lg border border-slate-300 bg-white text-sm">{[1000, 3000, 5000, 10000].map((r) => <option key={r} value={r}>{r / 1000} km</option>)}</select></label>
@@ -18755,7 +18778,7 @@ var qrcode = function() {
           <button data-readonly-allow type="button" disabled={busy} onClick={go} className="min-h-[44px] px-4 rounded-xl bg-blue-600 text-white text-sm font-bold disabled:opacity-50">{busy ? 'Suche …' : 'Suchen'}</button>
           {err && <div role="alert" className="text-xs rounded-lg bg-rose-50 border border-rose-200 text-rose-900 p-2">{err}</div>}
           {res && res.length === 0 && <div className="text-sm text-slate-500">Nichts gefunden. Vergrößere den Umkreis.</div>}
-          {res && res.map((x, i) => <div key={i} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 p-2"><div className="min-w-0"><div className="text-sm font-semibold break-words">{x.name}</div><div className="text-[11px] text-slate-500">{fmtDist(x.d)}{x.addr ? ` · ${x.addr}` : ''}</div></div><NavLink gps={[x.lat, x.lon]} label="🧭 Navi" /></div>)}
+          {res && res.map((x, i) => <div key={i} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 p-2"><div className="min-w-0"><div className="text-sm font-semibold break-words">{x.name}</div><div className="text-[11px] text-slate-500">{fmtDist(x.d)}{x.addr ? ` · ${x.addr}` : ''}</div></div><NavLink gps={[x.lat, x.lon]} label="Navi" /></div>)}
           <p className="text-[11px] text-slate-500">Daten: OpenStreetMap. Die Einträge können unvollständig oder veraltet sein.</p>
         </section>
       );
@@ -18778,12 +18801,12 @@ var qrcode = function() {
       const cur = Number(trip.meta && trip.meta.exchangeRate) || null; const usd = fx ? (Number(String(eur).replace(',', '.')) || 0) * fx.rate : 0;
       return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-base font-bold text-slate-900">💱 Wechselkurs</h3><button data-readonly-allow type="button" disabled={busy} onClick={load} className="min-h-[40px] px-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold">{busy ? 'Lade …' : '↻ Aktualisieren'}</button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-base font-bold text-slate-900">Wechselkurs</h3><button data-readonly-allow type="button" disabled={busy} onClick={load} className="min-h-[40px] px-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold">{busy ? 'Lade …' : '↻ Aktualisieren'}</button></div>
           {fx ? <div className="space-y-2">
             <div className="text-sm">Aktuell: <b>1 € = {fx.rate.toFixed(4).replace('.', ',')} $</b> <span className="text-xs text-slate-500">({fx.src}, {fx.date}; geladen {new Date(fx.fetchedAt).toLocaleString('de-DE')})</span></div>
             <div className="flex items-center gap-2 flex-wrap"><input data-readonly-allow type="text" inputMode="decimal" value={eur} onChange={(e) => setEur(e.target.value)} className="w-28 min-h-[44px] px-3 rounded-lg border border-slate-300 text-sm" /><span className="text-sm">€ = <b>{usd.toFixed(2).replace('.', ',')} $</b></span></div>
             <div className="text-xs text-slate-600">Kurs im Planer: {cur ? `1 € = ${String(cur).replace('.', ',')} $` : 'nicht gesetzt'}{cur ? ` (Abweichung ${((fx.rate / cur - 1) * 100).toFixed(1).replace('.', ',')} %)` : ''}</div>
-            {!IS_READ_ONLY_COPY && <button type="button" onClick={() => onSave({ ...trip, meta: { ...trip.meta, exchangeRate: Math.round(fx.rate * 10000) / 10000 } }, 'Kurs ins Budget übernommen')} className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold">Als Budget-Kurs übernehmen</button>}
+            {!IS_READ_ONLY_COPY && <button type="button" onClick={() => onSave({ ...trip, meta: { ...trip.meta, exchangeRate: Math.round(fx.rate * 10000) / 10000 } }, 'Kurs ins Budget übernommen')} className="min-h-[44px] px-4 rounded-xl bg-[#0F6E66] text-white text-sm font-bold">Als Budget-Kurs übernehmen</button>}
           </div> : <div className="text-sm text-slate-500">{busy ? 'Lade …' : 'Noch kein Kurs geladen.'}</div>}
           {err && <div className="text-xs rounded-lg bg-amber-50 border border-amber-300 p-2">{err}</div>}
         </section>
@@ -18829,7 +18852,7 @@ var qrcode = function() {
       const share = async () => { try { await navigator.share({ title: (trip.meta && trip.meta.title) || 'Reiseplan', url: link }); } catch (e) {} };
       return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-          <h3 className="text-base font-bold text-slate-900">🔗 Teilen per Link / QR</h3>
+          <h3 className="text-base font-bold text-slate-900">Teilen per Link / QR</h3>
           <p className="text-xs text-slate-500">Erzeugt einen Kompaktplan als Link: Etappen, Hotels, Stopps, Aktionen, Flüge, Mietwagen. Ohne Preise, Kreditkarten, Notizen und Dokumente. Der Plan steckt im Link selbst, es wird nichts hochgeladen. Wer den Link öffnet, sieht den Plan nur zum Lesen.</p>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={opt.emergency} onChange={(e) => setOpt({ ...opt, emergency: e.target.checked })} className="w-5 h-5" /> Notfallnummern mitgeben</label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={opt.codes} onChange={(e) => setOpt({ ...opt, codes: e.target.checked })} className="w-5 h-5" /> Buchungscodes mitgeben (Hotel, Flug, Mietwagen)</label>
@@ -18857,7 +18880,7 @@ var qrcode = function() {
       return (
         <div className="fixed inset-0 z-[110] overflow-y-auto bg-slate-900/70 p-4 flex items-center justify-center" data-readonly-allow>
           <div className="w-full max-w-md rounded-2xl bg-white p-5 space-y-3">
-            <h2 className="text-lg font-bold">🔗 Reiseplan aus Link</h2>
+            <h2 className="text-lg font-bold">Reiseplan aus Link</h2>
             {!data && !err && <div className="text-sm text-slate-600">Lese Plan …</div>}
             {err && <div role="alert" className="text-sm rounded-lg bg-rose-50 border border-rose-200 text-rose-900 p-2">{err}</div>}
             {data && <div className="text-sm space-y-1"><div><b>{data.meta.title || 'Ohne Titel'}</b></div><div className="text-xs text-slate-600">{data.meta.startDate ? data.meta.startDate.split('-').reverse().join('.') : ''} – {data.meta.endDate ? data.meta.endDate.split('-').reverse().join('.') : ''} · {data.stages.length} Etappen</div>
@@ -18900,7 +18923,7 @@ var qrcode = function() {
           <aside className="v18-side hidden md:flex" aria-label="Seitenleiste">
             <div className="flex items-center gap-3">
               <div className="v18-logo"><V18Icon n="logo" size={22} /></div>
-              <div className="min-w-0"><div className="font-bold text-[15px] leading-tight break-words">{meta.title || 'Roadtrip Planer'}</div><div className="text-xs text-slate-500">{(trip.stages || []).length} Etappen · {people} Personen</div></div>
+              <div className="min-w-0"><div className="font-bold text-[15px] leading-tight break-words">{String(meta.title || 'Roadtrip Planer').replace(/\s*\([^)]*\)\s*$/, '')}</div><div className="text-xs text-slate-500">{(String(meta.title || '').match(/\(([^)]*)\)\s*$/) || [])[1] ? (String(meta.title).match(/\(([^)]*)\)\s*$/))[1] + ' · ' : ''}{people} Personen</div></div>
             </div>
             {countdown && <button type="button" onClick={onMeta} className={cdCls} title="Abreisedatum, Titel oder Wechselkurs anpassen">{countdown.label}</button>}
             <nav className="flex flex-col gap-1" aria-label="Bereiche">
@@ -19914,7 +19937,7 @@ var qrcode = function() {
                               <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded ${todayStages.some(stage => stage.id === st.id) ? 'bg-emerald-700 text-white' : 'bg-blue-600 text-white'}`}>
                                 #{idx + 1} • {st.nights}N{todayStages.some(stage => stage.id === st.id) ? ' · Heute' : ''}
                               </span>
-                              <span className="text-[11px] font-mono text-slate-500">{st.routeToHotel?.duration || ''}</span>
+                              <span className="text-[11px] text-slate-500">{st.routeToHotel?.duration || ''}</span>
                             </div>
                             <div className="font-bold text-xs text-slate-900 mt-1 truncate w-full group-hover:text-blue-700">
                               {st.toCity}
@@ -19957,7 +19980,7 @@ var qrcode = function() {
                 </div>
 
                 {/* Stages List with Vertical Timeline Connector */}
-                <div className="relative space-y-8 before:hidden md:before:block before:absolute before:top-8 before:bottom-8 before:left-5 before:w-1 before:bg-gradient-to-b before:from-blue-600 before:via-emerald-500 before:to-amber-500 before:rounded-full">
+                <div className="relative space-y-8 before:hidden md:before:block before:absolute before:top-8 before:bottom-8 before:left-5 before:w-0.5 before:bg-slate-200 before:rounded-full">
                   {(tripData.stages || []).map((stage, sIdx) => {
                     const isExpanded = expandedStages[stage.id] === true;
                     const h = stage.hotel || {};
@@ -19983,13 +20006,13 @@ var qrcode = function() {
                         className={`relative md:pl-14 ${todayStages.some(item => item.id === stage.id) ? 'today-stage' : ''}`}
                       >
                         {/* Timeline Node Badge on Desktop */}
-                        <div className="hidden md:flex absolute left-0 top-3 w-11 h-11 rounded-2xl bg-slate-900 border-4 border-blue-500 text-white font-extrabold text-xs items-center justify-center shadow-md z-10">
+                        <div className="hidden md:flex absolute left-0 top-3 w-11 h-11 rounded-full bg-[#E3F2F0] border-2 border-[#0F6E66] text-[#0B5A53] font-extrabold text-xs items-center justify-center shadow-md z-10">
                           #{sIdx + 1}
                         </div>
 
                         <div className={`bg-white rounded-2xl shadow-xs border overflow-hidden ${todayStages.some(item => item.id === stage.id) ? 'border-emerald-500 ring-2 ring-emerald-200 shadow-md' : 'border-slate-200'}`}>
                           {/* Stage Top Header */}
-                          <div className="bg-slate-900 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+                          <div className="bg-white text-slate-900 px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
                             <div
                               onClick={() =>
                                 setExpandedStages((prev) => ({ ...prev, [stage.id]: !isExpanded }))
@@ -20002,17 +20025,17 @@ var qrcode = function() {
                               <div>
                                 <div className="flex items-center gap-2 text-sm sm:text-base font-bold">
                                   <span>{stage.fromCity}</span>
-                                  <span className="text-blue-400">→</span>
-                                  <span className="text-blue-300">{stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span>
+                                  <span className="text-slate-400">→</span>
+                                  <span className="text-[#0B5A53]">{stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span>
                                 </div>
-                                <div className="text-xs text-slate-300 flex items-center gap-2 flex-wrap">
-                                  <span>📅 {stage.dateRange}</span>
+                                <div className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
+                                  <span>{stage.dateRange}</span>
                                   <span>•</span>
-                                  <span className="bg-white/10 px-2 py-0.2 rounded text-amber-300 font-semibold">
-                                    🌙 {nightsCount} {nightsCount === 1 ? 'Übernachtung' : 'Übernachtungen'}
+                                  <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-semibold">
+                                    {nightsCount} {nightsCount === 1 ? 'Übernachtung' : 'Übernachtungen'}
                                   </span>
                                   <span>•</span>
-                                  <span className="text-emerald-300 font-medium">{h.name}</span>
+                                  <span className="text-[#0B5A53] font-medium">{h.name}</span>
                                 </div>
                               </div>
                             </div>
@@ -20021,7 +20044,7 @@ var qrcode = function() {
                               <button
                                 onClick={() => handleMoveStage(sIdx, -1)}
                                 disabled={sIdx === 0}
-                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 text-xs"
+                                className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-600 text-xs"
                                 title="Nach oben"
                               >
                                 ↑
@@ -20029,14 +20052,14 @@ var qrcode = function() {
                               <button
                                 onClick={() => handleMoveStage(sIdx, 1)}
                                 disabled={sIdx === (tripData.stages || []).length - 1}
-                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 text-xs"
+                                className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-600 text-xs"
                                 title="Nach unten"
                               >
                                 ↓
                               </button>
                               <button
                                 onClick={() => openStageEditor(stage, 'basics')}
-                                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+                                className="bg-[#0F6E66] hover:bg-[#0B5A53] text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
                               >
                                 ✎ Grunddaten bearbeiten
                               </button>
@@ -20048,7 +20071,7 @@ var qrcode = function() {
                                     title: `Etappe ${sIdx + 1}: ${stage.fromCity} → ${stage.toCity}`
                                   })
                                 }
-                                className="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-700 text-slate-300 hover:text-white text-xs transition"
+                                className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-600 text-slate-600 hover:text-white text-xs transition"
                                 title="Löschen"
                               >
                                 🗑
@@ -20060,7 +20083,7 @@ var qrcode = function() {
                             <div className="p-3 sm:p-5 space-y-6">
                               {/* 1. DER WEG ZUM HOTEL */}
                               <details className="stage-section rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden" open>
-                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">🚗 Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary>
+                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary>
                                 <div className="rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden">
                                 <div className="bg-amber-100/80 px-4 py-2.5 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2">
                                   <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 flex-wrap">
@@ -20112,7 +20135,7 @@ var qrcode = function() {
                                               )}
                                             </div>
                                             <div className="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                              {stop.time && <span>🕒 {stop.time}</span>}
+                                              {stop.time && <span>{stop.time}</span>}
                                               {stop.duration && <span>Dauer: {stop.duration}</span>}
                                             </div>
                                             {stop.notes && (
@@ -20141,7 +20164,7 @@ var qrcode = function() {
                                                 rel="noopener noreferrer"
                                                 className="pointer-events-auto cursor-pointer px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-medium"
                                               >
-                                                🗺 Maps
+                                                Maps
                                               </a>
                                             </div>
                                           </div>
@@ -20154,7 +20177,7 @@ var qrcode = function() {
                               </details>
 
                               <details className="stage-section rounded-xl border border-blue-200 bg-white overflow-hidden" open>
-                                <summary className="bg-blue-50 text-blue-950"><span className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center shrink-0">2</span><span className="min-w-0">🏨 Hotel & Unterkunft{stage.hotel?.name ? ` · ${stage.hotel.name}` : ''}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'hotel'); }} className="stage-edit-action" aria-label="Hotel bearbeiten">✎ Bearbeiten</button></summary>
+                                <summary className="bg-blue-50 text-blue-950"><span className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center shrink-0">2</span><span className="min-w-0">Hotel & Unterkunft{stage.hotel?.name ? ` · ${stage.hotel.name}` : ''}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'hotel'); }} className="stage-edit-action" aria-label="Hotel bearbeiten">✎ Bearbeiten</button></summary>
                                 {stage.hotel && (<>
                               {/* 2. HOTEL / UNTERKUNFT (SCREENSHOT-TABELLE ODER ÜBERSICHTLICHE KOMPAKT-KARTE MIT ALLEN DATEN) */}
                               <div className="rounded-xl border border-blue-200 bg-white overflow-hidden">
@@ -20188,15 +20211,15 @@ var qrcode = function() {
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2 max-w-full min-w-0">
-                                      {normalizeHotelLink(h.bookingLink) && <a href={normalizeHotelLink(h.bookingLink)} target="_blank" rel="noopener" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1 rounded-lg">🔗 Buchung</a>}
-                                      {normalizeHotelLink(h.hotelLink) && <a href={normalizeHotelLink(h.hotelLink)} target="_blank" rel="noopener" className="bg-sky-700 hover:bg-sky-600 text-white text-xs font-semibold px-2.5 py-1 rounded-lg">🏨 Hotel-Webseite</a>}
+                                      {normalizeHotelLink(h.bookingLink) && <a href={normalizeHotelLink(h.bookingLink)} target="_blank" rel="noopener" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1 rounded-lg">Buchung</a>}
+                                      {normalizeHotelLink(h.hotelLink) && <a href={normalizeHotelLink(h.hotelLink)} target="_blank" rel="noopener" className="bg-sky-700 hover:bg-sky-600 text-white text-xs font-semibold px-2.5 py-1 rounded-lg">Hotel-Webseite</a>}
                                       <a
                                         href={getGoogleMapsUrl(h.gps, h.address, h.name)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-3 py-1.5 rounded-lg"
                                       >
-                                        🗺 Hotel Koordinate
+                                        Hotel Koordinate
                                       </a>
                                       {(h.parkingGarageName || h.parkingGarageGps) && (
                                         <a
@@ -20216,7 +20239,7 @@ var qrcode = function() {
                                     {/* Spalte 1: Zeiten & Storno */}
                                     <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
                                       <div className="font-bold uppercase text-slate-500 border-b border-slate-200 pb-1">
-                                        🕒 Check-In / Out & Storno
+                                        Check-In / Out & Storno
                                       </div>
                                       <div className="flex justify-between py-1 border-b border-slate-100">
                                         <span className="text-slate-500">Check IN:</span>
@@ -20268,7 +20291,7 @@ var qrcode = function() {
                                     {/* Spalte 3: Preise (ALT, NEU, USD) */}
                                     <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
                                       <div className="font-bold uppercase text-slate-500 border-b border-slate-200 pb-1">
-                                        💶 Preisvergleich (€ & $)
+                                        Preisvergleich (€ & $)
                                       </div>
                                       <div className="flex justify-between py-1 border-b border-slate-100">
                                         <span className="text-slate-500">Preis ALT:</span>
@@ -20287,7 +20310,7 @@ var qrcode = function() {
                                     {/* Spalte 4: Kreditkarte & Belastungsdaten */}
                                     <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
                                       <div className="font-bold uppercase text-slate-500 border-b border-slate-200 pb-1">
-                                        💳 Karte & Abbuchung
+                                        Karte & Abbuchung
                                       </div>
                                       <div className="flex items-center justify-between gap-2">
                                         <span className="text-slate-500">Kreditkarte:</span>
@@ -20317,7 +20340,7 @@ var qrcode = function() {
                                     <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
                                       <span className="font-bold underline text-slate-900 block">GPS-Koordinaten:</span>
                                       <div className="flex items-center justify-between gap-1">
-                                        <span className="text-slate-600 truncate">🏨 {h.gps || '—'}</span>
+                                        <span className="text-slate-600 truncate">{h.gps || '—'}</span>
                                         {h.gps && (
                                           <button
                                             onClick={() => copyToClipboard(h.gps, 'Hotel-GPS kopiert')}
@@ -20349,7 +20372,7 @@ var qrcode = function() {
 
                               {/* 3. SEHENSWÜRDIGKEITEN & AKTIONEN VOR ORT (MIT TAGES-REITERN BEI >= 2 ÜBERNACHTUNGEN) */}
                               <details className="stage-section rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden" open>
-                                <summary className="bg-emerald-100 text-emerald-950"><span className="w-7 h-7 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center shrink-0">3</span><span className="min-w-0">✨ Aktionen vor Ort · {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'activities'); }} className="stage-edit-action" aria-label="Aktionen vor Ort bearbeiten">✎ Bearbeiten</button></summary>
+                                <summary className="bg-emerald-100 text-emerald-950"><span className="w-7 h-7 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center shrink-0">3</span><span className="min-w-0">Aktionen vor Ort · {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'activities'); }} className="stage-edit-action" aria-label="Aktionen vor Ort bearbeiten">✎ Bearbeiten</button></summary>
                                 <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden">
                                 <div className="bg-emerald-100/80 px-4 py-2.5 border-b border-emerald-200 flex flex-wrap items-center justify-between gap-2">
 
@@ -20378,7 +20401,7 @@ var qrcode = function() {
                                                 : 'text-emerald-900 hover:bg-emerald-100'
                                             }`}
                                           >
-                                            📅 Tag {dayNum} vor Ort ({countForDay})
+                                            Tag {dayNum} vor Ort ({countForDay})
                                           </button>
                                         );
                                       })}
@@ -20425,7 +20448,7 @@ var qrcode = function() {
                                             </div>
                                             <h4 className="font-bold text-sm text-slate-900 mt-1.5">{act.name || `Aktion #${aIdx + 1}`}</h4>
                                             <div className="text-xs text-slate-500 mt-1 flex items-center justify-between gap-1 flex-wrap">
-                                              <span>{act.date ? `📅 ${act.date} · ` : ''}🕒 {act.time || 'Flexibel'}</span>
+                                              <span>{act.date ? `📅 ${act.date} · ` : ''}{act.time || 'Flexibel'}</span>
                                               <span aria-disabled="true" title="Nur im Etappen-Bearbeiten-Dialog änderbar" className={`px-2 py-0.5 rounded font-semibold border transition ${
                                                   isPositiveValue(act.booked)
                                                     ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
@@ -20458,7 +20481,7 @@ var qrcode = function() {
                                                 rel="noopener noreferrer"
                                                 className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
                                               >
-                                                🗺 Maps
+                                                Maps
                                               </a>
                                             </div>
                                           </div>
@@ -20495,7 +20518,7 @@ var qrcode = function() {
                 <section className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
                   <div className="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <h2 className="text-base sm:text-lg font-bold">✈️ Flugdaten (Hin- & Rückflug)</h2>
+                      <h2 className="text-base sm:text-lg font-bold">Flugdaten (Hin- & Rückflug)</h2>
                       <p className="text-xs text-slate-300">Airlines, Flugnummern, Buchungscode (PNR), Sitzplätze & Gepäck</p>
                     </div>
                     <button
@@ -20619,7 +20642,7 @@ var qrcode = function() {
                 <section className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
                   <div className="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <h2 className="text-base sm:text-lg font-bold">🚙 Leihwagen / Mietwagen</h2>
+                      <h2 className="text-base sm:text-lg font-bold">Leihwagen / Mietwagen</h2>
                       <p className="text-xs text-slate-300">Vermieter, Fahrzeugklasse, Abholung/Rückgabe, Maut-Pass & Preis-Vergleich</p>
                     </div>
                     <button
@@ -20757,7 +20780,7 @@ var qrcode = function() {
                   <div className="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
-                        <span>💳 Kreditkarten, Konditionen & Live-Kreditrahmen</span>
+                        <span>Kreditkarten, Konditionen & Live-Kreditrahmen</span>
                       </h2>
                       <p className="text-xs text-slate-300">
                         Hier hinterlegte Karten können direkt bei Flügen, Mietwagen und Hotels ausgewählt werden. Beträge & Rest-Kreditrahmen aktualisieren sich automatisch!
@@ -20925,7 +20948,7 @@ var qrcode = function() {
                                   href={`tel:${card.emergencyPhone.replace(/\s+/g, '')}`}
                                   className="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-2.5 py-1.5 rounded-lg transition"
                                 >
-                                  📞 Sperr-Notruf: {card.emergencyPhone}
+                                  Sperr-Notruf: {card.emergencyPhone}
                                 </a>
                               ) : (
                                 <span className="text-slate-500">Keine Sperrnummer</span>
@@ -20984,7 +21007,7 @@ var qrcode = function() {
                   <div className="bg-rose-950 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
-                        <span>🚨 Notfallnummern & Wichtige Kontakte (Bank, ADAC, Versicherung, USA)</span>
+                        <span>Notfallnummern & Wichtige Kontakte (Bank, ADAC, Versicherung, USA)</span>
                       </h2>
                       <p className="text-xs text-rose-200">
                         Mit 1-Klick-Anruffunktion für Android & iPhone sowie Vertrags-/Mitgliedsnummern für den Ernstfall
@@ -21064,7 +21087,7 @@ var qrcode = function() {
                             href={`tel:${(em.phone || em.displayPhone || '').replace(/\s+/g, '')}`}
                             className="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 px-3 rounded-lg text-center flex items-center justify-center gap-1.5 shadow-2xs transition"
                           >
-                            <span>📞 Anrufen: {em.displayPhone || em.phone}</span>
+                            <span>Anrufen: {em.displayPhone || em.phone}</span>
                           </a>
                           <button
                             onClick={() => copyToClipboard(em.displayPhone || em.phone, 'Nummer kopiert')}
@@ -21091,7 +21114,7 @@ var qrcode = function() {
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div>
                       <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                        📊 Budgetplaner: Kosten getrennt nach Kategorien
+                        Budgetplaner: Kosten getrennt nach Kategorien
                       </h2>
                       <p className="text-xs text-slate-500">
                         Transparente Aufschlüsselung für Hotels, Flüge, Mietwagen, Touren/Stopps und sonstige Reiseausgaben
@@ -21099,14 +21122,14 @@ var qrcode = function() {
                     </div>
                     {financeSummary.totalSaved > 0 && (
                       <div className="bg-emerald-100 text-emerald-900 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold">
-                        🎉 Durch Preisvergleich (ALT vs. NEU) gespart: {formatEur(financeSummary.totalSaved)}
+                        Durch Preisvergleich (ALT vs. NEU) gespart: {formatEur(financeSummary.totalSaved)}
                       </div>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="v19-tiles grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     <div className="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200">
-                      <span className="text-[11px] font-bold uppercase text-blue-800 block">🏨 Hotels ({financeSummary.totalNights} N.)</span>
+                      <span className="text-[11px] font-bold uppercase text-blue-800 block">Hotels ({financeSummary.totalNights} N.)</span>
                       <div className="text-lg font-extrabold text-blue-950 mt-1">{formatEur(financeSummary.hotelsNew)}</div>
                       <span className="text-[11px] text-blue-700">
                         Ø {formatEur(financeSummary.totalNights ? financeSummary.hotelsNew / financeSummary.totalNights : 0)} / Nacht
@@ -21114,31 +21137,31 @@ var qrcode = function() {
                     </div>
 
                     <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-200">
-                      <span className="text-[11px] font-bold uppercase text-sky-800 block">✈️ Flüge ({tripData.flights?.length || 0})</span>
+                      <span className="text-[11px] font-bold uppercase text-sky-800 block">Flüge ({tripData.flights?.length || 0})</span>
                       <div className="text-lg font-extrabold text-sky-950 mt-1">{formatEur(financeSummary.flightsNew)}</div>
                       <span className="text-[11px] text-sky-700">Hin- & Rückflüge</span>
                     </div>
 
                     <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
-                      <span className="text-[11px] font-bold uppercase text-amber-900 block">🚙 Mietwagen</span>
+                      <span className="text-[11px] font-bold uppercase text-amber-900 block">Mietwagen</span>
                       <div className="text-lg font-extrabold text-amber-950 mt-1">{formatEur(financeSummary.carsNew)}</div>
                       <span className="text-[11px] text-amber-800">Inkl. Maut / Paket</span>
                     </div>
 
                     <div className="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200">
-                      <span className="text-[11px] font-bold uppercase text-emerald-800 block">🎟 Touren & Stopps</span>
+                      <span className="text-[11px] font-bold uppercase text-emerald-800 block">Touren & Stopps</span>
                       <div className="text-lg font-extrabold text-emerald-950 mt-1">{formatEur(financeSummary.stopsAndAttractions)}</div>
                       <span className="text-[11px] text-emerald-700">Eintritte & Parken</span>
                     </div>
 
                     <div className="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200">
-                      <span className="text-[11px] font-bold uppercase text-purple-800 block">🧾 Extras & Sonstiges</span>
+                      <span className="text-[11px] font-bold uppercase text-purple-800 block">Extras & Sonstiges</span>
                       <div className="text-lg font-extrabold text-purple-950 mt-1">{formatEur(financeSummary.customExpensesCost)}</div>
                       <span className="text-[11px] text-purple-700">ESTA, Essen, Tanken</span>
                     </div>
 
                     <div className="bg-slate-900 text-white p-3.5 rounded-xl">
-                      <span className="text-[11px] font-bold uppercase text-slate-300 block">💰 Gesamtsumme</span>
+                      <span className="text-[11px] font-bold uppercase text-slate-300 block">Gesamtsumme</span>
                       <div className="text-lg font-extrabold text-white mt-1">{formatEur(financeSummary.totalNew)}</div>
                       <span className="text-[11px] text-emerald-300">
                         ≈ {formatUsd(financeSummary.totalNew * (tripData.meta?.exchangeRate || 1.09))}
@@ -21152,7 +21175,7 @@ var qrcode = function() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div>
                       <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                        👥 Teilnehmer & Kostenaufteilung (Wer zahlt was / Wer bekommt wie viel?)
+                        Teilnehmer & Kostenaufteilung (Wer zahlt was / Wer bekommt wie viel?)
                       </h2>
                       <p className="text-xs text-slate-500">
                         Füge Mitreisende hinzu, ordne Ausgaben zu und sieh sofort den fairen Kostenausgleich
@@ -21212,7 +21235,7 @@ var qrcode = function() {
                         key={p.id}
                         className="inline-flex items-center gap-2 bg-slate-100 border border-slate-300 px-3 py-1 rounded-full text-xs font-bold text-slate-800"
                       >
-                        <span>👤 {p.name}</span>
+                        <span>{p.name}</span>
                         {(tripData.participants || []).length > 1 && (
                           <button
                             onClick={() => {
@@ -21236,7 +21259,7 @@ var qrcode = function() {
                       return (
                         <div key={person.name} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
                           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <span className="font-extrabold text-sm text-slate-900">👤 {person.name}</span>
+                            <span className="font-extrabold text-sm text-slate-900">{person.name}</span>
                             <span
                               className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
                                 Math.abs(person.netBalance) < 0.05
@@ -21268,11 +21291,11 @@ var qrcode = function() {
                           {/* Category Share per Person */}
                           <div className="text-[11px] text-slate-600 space-y-1 bg-white p-2.5 rounded-lg border border-slate-200">
                             <div className="font-bold text-slate-700 mb-1">Eigener Anteil nach Kategorie:</div>
-                            <div className="flex justify-between"><span>🏨 Hotels:</span><strong>{formatEur(person.byCategory.hotels)}</strong></div>
-                            <div className="flex justify-between"><span>✈️ Flüge:</span><strong>{formatEur(person.byCategory.flights)}</strong></div>
-                            <div className="flex justify-between"><span>🚙 Mietwagen:</span><strong>{formatEur(person.byCategory.cars)}</strong></div>
-                            <div className="flex justify-between"><span>🎟 Touren/Stopps:</span><strong>{formatEur(person.byCategory.activities)}</strong></div>
-                            <div className="flex justify-between"><span>🧾 Extras:</span><strong>{formatEur(person.byCategory.extras)}</strong></div>
+                            <div className="flex justify-between"><span>Hotels:</span><strong>{formatEur(person.byCategory.hotels)}</strong></div>
+                            <div className="flex justify-between"><span>Flüge:</span><strong>{formatEur(person.byCategory.flights)}</strong></div>
+                            <div className="flex justify-between"><span>Mietwagen:</span><strong>{formatEur(person.byCategory.cars)}</strong></div>
+                            <div className="flex justify-between"><span>Touren/Stopps:</span><strong>{formatEur(person.byCategory.activities)}</strong></div>
+                            <div className="flex justify-between"><span>Extras:</span><strong>{formatEur(person.byCategory.extras)}</strong></div>
                           </div>
                         </div>
                       );
@@ -21283,7 +21306,7 @@ var qrcode = function() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
                     <div className="bg-emerald-50/70 rounded-xl border border-emerald-200 p-4 space-y-2">
                       <h4 className="font-bold text-xs uppercase text-emerald-950">
-                        ⚖️ Direkter Ausgleich (Wer überweist wem?)
+                        Direkter Ausgleich (Wer überweist wem?)
                       </h4>
                       {financeSummary.settlements.length === 0 ? (
                         <p className="text-xs text-emerald-800">
@@ -21306,7 +21329,7 @@ var qrcode = function() {
                     {/* Add Shared Expense (Tanken, Essen, ESTA, Trinkgeld) */}
                     <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2.5 text-xs">
                       <h4 className="font-bold uppercase text-slate-700">
-                        ➕ Zusätzliche Ausgabe eintragen (z.B. Tanken, Restaurant, ESTA)
+                        Zusätzliche Ausgabe eintragen (z.B. Tanken, Restaurant, ESTA)
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <input
@@ -21386,7 +21409,7 @@ var qrcode = function() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-4">
                     <div className="flex items-center justify-between border-b pb-2">
-                      <h3 className="font-bold text-slate-900">💳 Kreditkarten-Belastungen & Rahmen</h3>
+                      <h3 className="font-bold text-slate-900">Kreditkarten-Belastungen & Rahmen</h3>
                       <button
                         onClick={() => setActiveTab('cards')}
                         className="text-xs text-blue-600 hover:underline font-semibold"
@@ -21440,7 +21463,7 @@ var qrcode = function() {
                       <tbody className="divide-y divide-slate-200">
                         {(tripData.rentalCars || []).map((c) => (
                           <tr key={c.id}>
-                            <td className="py-2 px-2 font-semibold">🚙 {c.provider}</td>
+                            <td className="py-2 px-2 font-semibold">{c.provider}</td>
                             <td className="py-2 px-2 text-amber-800 font-medium">{c.cancelUntil || '—'}</td>
                             <td className="py-2 px-2 text-slate-500">{formatEur(c.priceOldEur)}</td>
                             <td className="py-2 px-2 font-bold">{formatEur(c.priceNewEur)}</td>
@@ -21457,10 +21480,10 @@ var qrcode = function() {
                         {(tripData.stages || []).map((s, idx) => (
                           <tr key={s.id}>
                             <td className="py-2 px-2 font-semibold">
-                              <div>🏨 {idx + 1}. {s.toCity}: {s.hotel?.name}</div>
+                              <div>{idx + 1}. {s.toCity}: {s.hotel?.name}</div>
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {normalizeHotelLink(s.hotel?.bookingLink) && <a href={normalizeHotelLink(s.hotel.bookingLink)} target="_blank" rel="noopener" className="inline-flex bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold px-2 py-0.5 rounded">🔗 Buchung</a>}
-                                {normalizeHotelLink(s.hotel?.hotelLink) && <a href={normalizeHotelLink(s.hotel.hotelLink)} target="_blank" rel="noopener" className="inline-flex bg-sky-700 hover:bg-sky-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded">🏨 Hotel-Webseite</a>}
+                                {normalizeHotelLink(s.hotel?.bookingLink) && <a href={normalizeHotelLink(s.hotel.bookingLink)} target="_blank" rel="noopener" className="inline-flex bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold px-2 py-0.5 rounded">Buchung</a>}
+                                {normalizeHotelLink(s.hotel?.hotelLink) && <a href={normalizeHotelLink(s.hotel.hotelLink)} target="_blank" rel="noopener" className="inline-flex bg-sky-700 hover:bg-sky-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded">Hotel-Webseite</a>}
                               </div>
                             </td>
                             <td className="py-2 px-2 text-amber-800 font-medium">{s.hotel?.cancelUntil || '—'}</td>
@@ -21505,10 +21528,10 @@ var qrcode = function() {
                         className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-slate-50 font-semibold"
                       >
                         <option value="ALL">Alle Kategorien ({allGpsPoints.length})</option>
-                        <option value="Hotel / Unterkunft">🏨 Nur Hotels</option>
+                        <option value="Hotel / Unterkunft">Nur Hotels</option>
                         <option value="Parkhaus / Parkplatz">🅿️ Nur Parkhäuser</option>
-                        <option value="Stopp unterwegs">🚗 Nur Stopps unterwegs</option>
-                        <option value="Vor Ort / Aktivität">✨ Nur Sehenswürdigkeiten vor Ort</option>
+                        <option value="Stopp unterwegs">Nur Stopps unterwegs</option>
+                        <option value="Vor Ort / Aktivität">Nur Sehenswürdigkeiten vor Ort</option>
                       </select>
                       <input
                         type="text"
@@ -21717,7 +21740,7 @@ var qrcode = function() {
                 {/* 2. WÄHRUNG, TRINKGELD, TANKSTELLEN-RECHNER & CHECKLISTE */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-4">
-                    <h3 className="font-bold text-slate-900 border-b pb-2">🧮 US-Rechner (Währung, Trinkgeld, Gallonen & Temperatur)</h3>
+                    <h3 className="font-bold text-slate-900 border-b pb-2">US-Rechner (Währung, Trinkgeld, Gallonen & Temperatur)</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                         <label className="font-bold text-slate-700 block">Betrag in US-Dollar ($)</label>
@@ -21881,11 +21904,11 @@ var qrcode = function() {
                       <button type="button" onClick={handleDownloadStandaloneHtml} className="v18-btn sm" title="Speichert diese komplette HTML-Datei inklusive deiner aktuellen Eingaben">Offline-HTML speichern</button>
                     </div>
                     <section className="rounded-2xl border border-blue-200 bg-blue-50 p-5 space-y-3">
-                  <h2 className="text-base sm:text-lg font-bold text-blue-950">🔒 Teilen / Nur-Lesen</h2>
+                  <h2 className="text-base sm:text-lg font-bold text-blue-950">Teilen / Nur-Lesen</h2>
                   <p className="text-sm leading-relaxed text-blue-950"><strong>Empfohlen:</strong> Lege die HTML-Datei in Google Drive und gib Mitreisenden ausschließlich die Rolle <strong>„Betrachter“</strong>. Der Besitzer bearbeitet den Planer am Laptop. Mitreisende öffnen die Datei nur zum Lesen; Änderungen von Betrachtern werden nicht in Drive gespeichert. Google-Drive-Freigaben und der lokale Ansichtsmodus sind keine Verschlüsselung.</p>
                   <div className="flex flex-wrap gap-2">
                     <button data-readonly-allow type="button" onClick={handleDownloadReadOnlyHtml} className="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800">⬇ Nur-Lesen-Version exportieren</button>
-                    <button data-readonly-allow type="button" onClick={()=>setIsReadOnly(v=>!v)} className="rounded-xl border border-blue-300 bg-white px-4 py-2.5 text-sm font-bold text-blue-950 hover:bg-blue-100">{isReadOnly ? '🔓 Ansichtsmodus beenden' : '🔒 Ansichtsmodus einschalten'}</button>
+                    <button data-readonly-allow type="button" onClick={()=>setIsReadOnly(v=>!v)} className="rounded-xl border border-blue-300 bg-white px-4 py-2.5 text-sm font-bold text-blue-950 hover:bg-blue-100">{isReadOnly ? '🔓 Ansichtsmodus beenden' : 'Ansichtsmodus einschalten'}</button>
                   </div>
                   <p className="text-xs text-blue-800">Die exportierte Kopie enthält den aktuellen Datenstand und blendet Bearbeitungs-/Lösch-/Anlegen-Steuerelemente aus. Sie bleibt eine HTML-Datei; zum Verteilen in Drive zusätzlich Betrachterrechte setzen. Der Schalter hier ist nur eine Anzeige-Sperre, kein Zugriffsschutz.</p>
                 </section>
@@ -21924,7 +21947,7 @@ var qrcode = function() {
                   {/* Cached Web Links Directory with Offline Snapshot Info */}
                   <div className="space-y-2">
                     <h3 className="text-xs font-bold uppercase text-slate-500">
-                      🔗 Zwischengespeicherte Web-Links & Restaurant-Infos ({allExtractedLinks.length})
+                      Zwischengespeicherte Web-Links & Restaurant-Infos ({allExtractedLinks.length})
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {allExtractedLinks.map((lnk, idx) => (
@@ -22021,7 +22044,7 @@ var qrcode = function() {
                     <h2 className="text-base sm:text-lg font-bold text-slate-900">☁️ Google Drive-Synchronisierung</h2>
                     <p className="text-sm text-slate-600 leading-relaxed">Diese persönliche Apps-Script-Web-App speichert Reisedaten als <code>roadtrip-daten.json</code> in deinem Google Drive. Zugriff ist auf dein Konto begrenzt; Konflikte werden nicht still überschrieben.</p>
                     <div role="status" aria-live="polite" className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs"><strong>Sync-Status:</strong> {({local:'Nur lokal',connecting:'Verbinde …',synced:'Drive und lokal abgeglichen',conflict:'Konflikt – Entscheidung nötig',offline:'Offline – im Cache gespeichert',error:'Sync-Fehler – lokal zwischengespeichert','cloud-empty':'Drive-Datei wird beim ersten Sync angelegt','local-ahead':'Lokale Änderungen warten auf Sync'})[syncStatus]||syncStatus} · Drive-Version {cloudVersion}</div>
-                    <button id="fallback-file-pick" type="button" style={{ display: 'none' }} onClick={() => window.__roadtripChooseFile && window.__roadtripChooseFile()} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold px-4 py-3 rounded-lg">📁 Drive-JSON-Datei wählen (Laptop/Chrome)</button>
+                    <button id="fallback-file-pick" type="button" style={{ display: 'none' }} onClick={() => window.__roadtripChooseFile && window.__roadtripChooseFile()} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold px-4 py-3 rounded-lg">Drive-JSON-Datei wählen (Laptop/Chrome)</button>
                     <button type="button" onClick={syncNow} className="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-3 rounded-lg">↻ Jetzt synchronisieren</button>
                     <p className="text-xs text-slate-500">Abgleich erfolgt außerdem automatisch etwa alle 20 Sekunden und nach Wiederherstellung der Verbindung. Änderungen bleiben zusätzlich im Browser-Cache und im vorhandenen JSON-Backup-Workflow.</p>
                     <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3">Offline sind nur bereits geladene App und lokal gespeicherte Daten nutzbar. Beim nächsten erfolgreichen Aufruf werden Änderungen mit der Drive-Version abgeglichen. Bei gleichzeitig geänderten Versionen erscheint der Konfliktdialog.</p>
@@ -22120,7 +22143,7 @@ var qrcode = function() {
                   <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h4 className="font-bold text-amber-950 uppercase tracking-wider">
-                        🚗 1. Der Weg zum Hotel & Zwischenstopps unterwegs
+                        1. Der Weg zum Hotel & Zwischenstopps unterwegs
                       </h4>
                       <button
                         type="button"
@@ -22328,7 +22351,7 @@ var qrcode = function() {
                   {/* 2. Hotel / Unterkunft */}
                   <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-200 space-y-3">
                     <h4 className="font-bold text-blue-950 uppercase tracking-wider">
-                      🏨 2. Unterkunft / Hotel & Buchungsdaten
+                      2. Unterkunft / Hotel & Buchungsdaten
                     </h4>
                     <button type="button" onClick={() => handleDeleteStageHotel(editingStageModal)} className="min-h-[44px] text-xs font-semibold text-rose-700 hover:text-white hover:bg-rose-600 px-3 py-2 rounded-lg border border-rose-200 bg-white" title="Nur das Hotel dieser Etappe entfernen">🗑 Hotel entfernen</button>
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -22662,7 +22685,7 @@ var qrcode = function() {
                   <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h4 className="font-bold text-emerald-950 uppercase tracking-wider">
-                        ✨ 3. Sehenswürdigkeiten & Aktionen vor Ort ({editingStageModal.localAttractions?.length || 0})
+                        3. Sehenswürdigkeiten & Aktionen vor Ort ({editingStageModal.localAttractions?.length || 0})
                       </h4>
                       <button
                         type="button"
@@ -22866,7 +22889,7 @@ var qrcode = function() {
             <div className="fixed inset-0 z-50 bg-slate-950/75 flex items-center justify-center p-3 overflow-y-auto">
               <div className="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-2xl overflow-hidden">
                 <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
-                  <h3 className="font-bold text-sm sm:text-base">✈️ Flugdaten bearbeiten / anlegen</h3>
+                  <h3 className="font-bold text-sm sm:text-base">Flugdaten bearbeiten / anlegen</h3>
                   <button onClick={() => setEditingFlightModal(null)} className="text-slate-300 hover:text-white font-bold">
                     ✕
                   </button>
@@ -23111,7 +23134,7 @@ var qrcode = function() {
             <div className="fixed inset-0 z-50 bg-slate-950/75 flex items-center justify-center p-3 overflow-y-auto">
               <div className="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-2xl overflow-hidden">
                 <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
-                  <h3 className="font-bold text-sm sm:text-base">🚙 Mietwagen bearbeiten / anlegen</h3>
+                  <h3 className="font-bold text-sm sm:text-base">Mietwagen bearbeiten / anlegen</h3>
                   <button onClick={() => setEditingCarModal(null)} className="text-slate-300 hover:text-white font-bold">
                     ✕
                   </button>
@@ -23447,7 +23470,7 @@ var qrcode = function() {
               <div className="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-2xl overflow-hidden">
                 <div className="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
                   <div>
-                    <h3 className="font-bold text-sm sm:text-base">💳 Kreditkarte bearbeiten / anlegen</h3>
+                    <h3 className="font-bold text-sm sm:text-base">Kreditkarte bearbeiten / anlegen</h3>
                     <p className="text-xs text-slate-300">Wird automatisch in allen Buchungs-Dropdowns bereitgestellt</p>
                   </div>
                   <button onClick={() => setEditingCardModal(null)}>✕</button>
@@ -23632,7 +23655,7 @@ var qrcode = function() {
             <div className="fixed inset-0 z-50 bg-slate-950/70 flex items-center justify-center p-3">
               <div className="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-lg overflow-hidden">
                 <div className="bg-rose-950 text-white px-5 py-3.5 flex justify-between items-center">
-                  <h3 className="font-bold text-sm sm:text-base">🚨 Notfallkontakt bearbeiten / anlegen</h3>
+                  <h3 className="font-bold text-sm sm:text-base">Notfallkontakt bearbeiten / anlegen</h3>
                   <button onClick={() => setEditingEmergencyModal(null)}>✕</button>
                 </div>
                 <div className="p-5 space-y-3 text-xs">
