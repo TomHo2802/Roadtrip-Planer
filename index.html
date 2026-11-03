@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 32</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 33</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19304,7 +19304,7 @@ var qrcode = function() {
     const SFW_KEY = 'roadtrip_wayassist_v1';
     const sfwGet = (k) => { try { const o = JSON.parse(localStorage.getItem(SFW_KEY) || '{}'); return o[k] && Date.now() - o[k].t < 30 * 864e5 ? o[k].v : null; } catch (e) { return null; } };
     const sfwPut = (k, v) => { try { const o = JSON.parse(localStorage.getItem(SFW_KEY) || '{}'); o[k] = { t: Date.now(), v }; const n = {}; Object.keys(o).sort((a, b) => o[b].t - o[a].t).slice(0, 12).forEach((x) => { n[x] = o[x]; }); localStorage.setItem(SFW_KEY, JSON.stringify(n)); } catch (e) {} };
-    const SFW_KINDS = { stadt: 'Stadt', sehensw: 'Sehenswürdigkeit', natur: 'Natur & Aussicht', museum: 'Museum', freizeit: 'Freizeit' };
+    const SFW_KINDS = { stadt: 'Stadt', sehensw: 'Sehenswürdigkeit', natur: 'Natur & Aussicht', museum: 'Museum', freizeit: 'Freizeit', shopping: 'Shopping' };
     const sfwKind = (t) => t.place ? 'stadt' : /^(museum)$/.test(t.tourism || '') ? 'museum' : /^(zoo|theme_park|aquarium)$/.test(t.tourism || '') ? 'freizeit' : (t.natural || t.tourism === 'viewpoint') ? 'natur' : 'sehensw';
     function SfProgress({ pct, label, onCancel }) {
       return (
@@ -19318,6 +19318,7 @@ var qrcode = function() {
     const sfwDistKm = (p, a, b) => { const k = Math.cos(p[0] * Math.PI / 180); const ax = (a[1] - p[1]) * k, ay = a[0] - p[0], bx = (b[1] - p[1]) * k, by = b[0] - p[0]; const dx = bx - ax, dy = by - ay; const l2 = dx * dx + dy * dy; let t = l2 ? -(ax * dx + ay * dy) / l2 : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(ax + t * dx, ay + t * dy) * 111.2; };
     const sfwKindOf = (d) => { d = (d || '').toLowerCase();
       if (/county|landkreis|bezirk|district|bundesstaat|us-bundesstaat|state of|provinz|province|region|census|unincorporated|gemeindefrei|town in|township|village in|dorf in|ort in/.test(d) && !/state park|nationalpark/.test(d)) return /(city|stadt)/.test(d) ? 'stadt' : null;
+      if (/shopping|einkauf|\bmall\b|outlet|kaufhaus|warenhaus|department store|bazaar|basar|galleria|markthalle|marketplace|wochenmarkt|flea market|flohmarkt/.test(d)) return 'shopping';
       if (/museum|galerie|gallery/.test(d)) return 'museum';
       if (/zoo|aquarium|theme park|amusement|freizeitpark|vergnügungspark|wasserpark|water park|casino/.test(d)) return 'freizeit';
       if (/park|strand|beach|insel|island|bucht|bay|lake|see |wasserfall|waterfall|mountain|berg|canyon|aussicht|viewpoint|cave|höhle|nature|natur|reserve|sumpf|swamp|everglades|key |riff|reef|spring|quelle|forest|wald|river|fluss/.test(d)) return 'natur';
@@ -19337,12 +19338,12 @@ var qrcode = function() {
       const pad = 0.12;
       const one = async (pts) => {
         const S = Math.min(...pts.map((p) => p[0])) - pad, N = Math.max(...pts.map((p) => p[0])) + pad, W = Math.min(...pts.map((p) => p[1])) - pad, Ea = Math.max(...pts.map((p) => p[1])) + pad;
-        const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d WHERE { SERVICE wikibase:box { ?item wdt:P625 ?loc . bd:serviceParam wikibase:cornerSouthWest "Point(${W.toFixed(4)} ${S.toFixed(4)})"^^geo:wktLiteral . bd:serviceParam wikibase:cornerNorthEast "Point(${Ea.toFixed(4)} ${N.toFixed(4)})"^^geo:wktLiteral . } ?item wikibase:sitelinks ?sl . FILTER(?sl >= 12) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 300`;
+        const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d ?shop WHERE { SERVICE wikibase:box { ?item wdt:P625 ?loc . bd:serviceParam wikibase:cornerSouthWest "Point(${W.toFixed(4)} ${S.toFixed(4)})"^^geo:wktLiteral . bd:serviceParam wikibase:cornerNorthEast "Point(${Ea.toFixed(4)} ${N.toFixed(4)})"^^geo:wktLiteral . } ?item wikibase:sitelinks ?sl . BIND(EXISTS { VALUES ?shopT { wd:Q31374404 wd:Q11315 wd:Q216107 wd:Q330284 wd:Q1127689 } ?item wdt:P31 ?shopT } AS ?shop) FILTER(?sl >= 12 || ?shop) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 300`;
         let j; for (let tr = 0; tr < 2 && !j; tr++) { try { j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 30000); } catch (e) { lastErr = e.message; if (tr === 0) await new Promise((r) => setTimeout(r, 1500)); } }
         if (!j) failed++; else ((j.results && j.results.bindings) || []).forEach((r) => {
           const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return; const id = r.item.value.split('/').pop(); const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
           const prev = found.get(id) || {}; const d = (r.d && r.d.value) || prev.d || '';
-          found.set(id, { id, name, lat: Number(mm[2]), lon: Number(mm[1]), sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d });
+          found.set(id, { id, name, shop: prev.shop || (r.shop && r.shop.value === 'true'), lat: Number(mm[2]), lon: Number(mm[1]), sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d });
         });
         done++; setP(14 + 60 * done / nSeg, `Orte entlang der Strecke (${done} von ${nSeg}) …`);
       };
@@ -19350,7 +19351,7 @@ var qrcode = function() {
       if (failed === nSeg) throw new Error(`Wikidata nicht erreichbar (${lastErr || 'keine Antwort'})`);
       // nur Orte nahe an der Strecke, sinnvolle Arten
       setP(76, 'Treffer werden geprüft …');
-      let cand = [...found.values()].map((c) => ({ ...c, kind: sfwKindOf(c.d), off: Math.min(...line.slice(1).map((p, i) => sfwDistKm([c.lat, c.lon], line[i], p))) })).filter((c) => c.kind && c.off <= (c.kind === 'stadt' ? 12 : 8) && haversineM(A, [c.lat, c.lon]) > 3000 && haversineM(B, [c.lat, c.lon]) > 3000);
+      let cand = [...found.values()].map((c) => ({ ...c, kind: c.shop ? 'shopping' : sfwKindOf(c.d), off: Math.min(...line.slice(1).map((p, i) => sfwDistKm([c.lat, c.lon], line[i], p))) })).filter((c) => c.kind && c.off <= (c.kind === 'stadt' ? 12 : 8) && haversineM(A, [c.lat, c.lon]) > 3000 && haversineM(B, [c.lat, c.lon]) > 3000);
       cand.sort((a, b) => b.sl - a.sl); cand = cand.slice(0, 60); chk();
       if (!cand.length) return { line, totalKm, totalMin, items: [], failed };
       setP(82, 'Umwege werden berechnet …');
@@ -19525,24 +19526,42 @@ var qrcode = function() {
     }
     // ---- ② Hotel ----
     const AS_HTYPES = { hotel: 'Hotel', motel: 'Motel', guest_house: 'Pension / B&B', hostel: 'Hostel', apartment: 'Apartment' };
+    const AS_OVP = [...new Set([...(typeof OVERPASS !== 'undefined' ? OVERPASS : []), 'https://overpass.openstreetmap.fr/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'])];
+    const asNomHotels = async (P, d) => {
+      const vb = `${P[1] - d},${P[0] + d},${P[1] + d},${P[0] - d}`; const out = [];
+      for (const term of ['hotel', 'motel', 'guest house']) {
+        try { const j = await fetchJsonT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=40&extratags=1&addressdetails=1&bounded=1&viewbox=${vb}&q=${encodeURIComponent(term)}`, 15000); (j || []).forEach((x) => out.push(x)); } catch (e) {}
+        await new Promise((r) => setTimeout(r, 1100));
+      }
+      return out;
+    };
     async function asHotelRun(P, setP, cancelled) {
       setP(5, 'Unterkünfte werden gesucht …');
-      const around = `(around:8000,${P[0]},${P[1]})`;
-      const q = `[out:json][timeout:25];(${Object.keys(AS_HTYPES).map((k) => `nwr["tourism"="${k}"]${around};`).join('')});out center tags 250;`;
-      const stop = asProgressTicker(setP, 10, 85, 'Unterkünfte werden geladen …'); let j;
-      try { j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 30000))); }
-      catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
-      finally { stop(); }
-      if (cancelled()) throw new Error('__cancel');
-      setP(90, 'Ergebnisse werden aufbereitet …');
+      const mk = (R, types) => `[out:json][timeout:20];(${types.map((k) => `nwr["tourism"="${k}"](around:${R},${P[0]},${P[1]});`).join('')});out center tags 150;`;
+      const attempts = [[6000, ['hotel', 'motel', 'guest_house', 'hostel']], [3500, ['hotel', 'motel', 'guest_house']]];
+      let j = null, lastErr = '';
+      for (let i = 0; i < attempts.length && !j; i++) {
+        const stop = asProgressTicker(setP, i ? 45 : 10, i ? 60 : 40, i ? 'Zweiter Versuch mit kleinerem Umkreis …' : 'Unterkünfte werden geladen …');
+        try { j = await Promise.any(AS_OVP.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(mk(...attempts[i]))}`, 22000))); } catch (e) { lastErr = (e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | '); } finally { stop(); }
+        if (cancelled()) throw new Error('__cancel');
+      }
+      let elements = j ? (j.elements || []) : [];
+      if (!j) {
+        const stop = asProgressTicker(setP, 62, 88, 'Alternative Quelle (Nominatim) wird abgefragt …'); let nom = [];
+        try { nom = await asNomHotels(P, 0.06); } finally { stop(); }
+        if (cancelled()) throw new Error('__cancel');
+        if (!nom.length) throw new Error('Overpass: ' + (lastErr || 'keine Antwort') + ' · Nominatim ohne Ergebnis');
+        elements = nom.map((x) => ({ type: x.osm_type || 'n', id: x.osm_id, lat: Number(x.lat), lon: Number(x.lon), tags: { name: x.name || (x.display_name || '').split(',')[0], tourism: AS_HTYPES[x.type] ? x.type : (x.type === 'guest_house' ? 'guest_house' : 'hotel'), ...(x.extratags || {}), 'addr:street': x.address && x.address.road, 'addr:housenumber': x.address && x.address.house_number, 'addr:postcode': x.address && x.address.postcode, 'addr:city': x.address && (x.address.city || x.address.town || x.address.village) } }));
+      }
+      setP(92, 'Ergebnisse werden aufbereitet …');
       const seen = new Set(); const items = [];
-      (j.elements || []).forEach((e) => {
+      elements.forEach((e) => {
         const t = e.tags || {}; const lat = e.lat != null ? e.lat : e.center && e.center.lat, lon = e.lon != null ? e.lon : e.center && e.center.lon;
         if (!t.name || lat == null || !AS_HTYPES[t.tourism]) return; const key = t.name + '|' + lat.toFixed(3) + lon.toFixed(3); if (seen.has(key)) return; seen.add(key);
         const st = parseFloat(String(t.stars || '').replace(',', '.')); const addr = [[t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' '), [t['addr:postcode'], t['addr:city']].filter(Boolean).join(' ')].filter(Boolean).join(', ');
         items.push({ id: 'h' + e.type + e.id, name: t.name, type: t.tourism, stars: isFinite(st) ? Math.min(5, Math.round(st)) : 0, web: t.website || t['contact:website'] || '', phone: t.phone || t['contact:phone'] || '', addr, wifi: ['wlan', 'yes', 'wifi'].includes(String(t.internet_access || '').toLowerCase()), lat, lon, dist: haversineM(P, [lat, lon]) / 1000 });
       });
-      return { items };
+      return { items, via: j ? 'overpass' : 'nominatim' };
     }
     function AsHotelCard({ c, selected, onSelect, note, setNote, links, onPick }) {
       return (
@@ -19606,6 +19625,7 @@ var qrcode = function() {
           </div>
           {(p.busy || (p.pct > 0 && p.pct < 100)) && <SfProgress pct={p.pct} label={p.label} onCancel={p.busy ? () => { cancelRef.current = true; } : null} />}
           {err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{err}</div>}
+          {res && res.via === 'nominatim' && res.items.length > 0 && <div className="text-xs text-amber-900">Die Hauptquelle war nicht erreichbar, die Liste stammt aus einer Ersatzabfrage und kann kürzer sein. „Neu suchen“ versucht es erneut.</div>}
           {res && res.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">In OpenStreetMap wurden hier keine Unterkünfte gefunden. Nutze die Suche bei Booking oder Google.</div>}
           {res && res.items.length > 0 && (
             <div className="space-y-3">
@@ -19632,14 +19652,14 @@ var qrcode = function() {
     // ---- ③ Vor Ort ----
     async function asDoRun(P, Rkm, setP, cancelled) {
       setP(5, 'Orte in der Umgebung werden gesucht …');
-      const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${P[1].toFixed(5)} ${P[0].toFixed(5)})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Rkm}" . } ?item wikibase:sitelinks ?sl . FILTER(?sl >= 6) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 250`;
+      const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d ?shop WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${P[1].toFixed(5)} ${P[0].toFixed(5)})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Rkm}" . } ?item wikibase:sitelinks ?sl . BIND(EXISTS { VALUES ?shopT { wd:Q31374404 wd:Q11315 wd:Q216107 wd:Q330284 wd:Q1127689 } ?item wdt:P31 ?shopT } AS ?shop) FILTER(?sl >= 6 || ?shop) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 250`;
       const stop = asProgressTicker(setP, 10, 85, 'Sehenswürdigkeiten werden geladen …'); let j, last = '';
       try { for (let tr = 0; tr < 2 && !j; tr++) { try { j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 35000); } catch (e) { last = e.message; if (cancelled()) throw new Error('__cancel'); } } } finally { stop(); }
       if (!j) throw new Error(`Wikidata nicht erreichbar (${last || 'keine Antwort'})`); if (cancelled()) throw new Error('__cancel');
       setP(90, 'Ergebnisse werden aufbereitet …'); const map = new Map();
       ((j.results && j.results.bindings) || []).forEach((r) => {
         const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return; const id = r.item.value.split('/').pop(); const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
-        const d = (r.d && r.d.value) || ''; if (asBadWord.test(d.toLowerCase())) return; const kind = sfwKindOf(d); if (!kind || kind === 'stadt') return;
+        const d = (r.d && r.d.value) || ''; const shop = r.shop && r.shop.value === 'true'; if (!shop && asBadWord.test(d.toLowerCase())) return; const kind = shop ? 'shopping' : sfwKindOf(d); if (!kind || kind === 'stadt') return;
         const prev = map.get(id) || {}; const lat = Number(mm[2]), lon = Number(mm[1]);
         map.set(id, { id, name, lat, lon, sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d, kind, dist: haversineM(P, [lat, lon]) / 1000 });
       });
