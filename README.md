@@ -125,3 +125,10 @@ See / Fluss / Wasserfall – Gewässer oder Wasserfall in der Nähe
 Freizeitpark / Zoo – auch Aquarium, im Umkreis von 10 km
 Viele Sehenswürdigkeiten – mindestens 15 Attraktionen und historische Orte im Umkreis von 2,5 km
 Daneben bleiben die Größenfilter (Großstadt / Stadt / Kleinstadt). Zutreffende Eigenschaften stehen als Etiketten an jedem Ort.
+
+## v29 – Etappen-Assistent, Schritt 1 „Weg“
+Bei jeder Etappe steht unter der Kopfzeile eine Leiste Assistent: ① Weg · ② Hotel · ③ Vor Ort (② und ③ folgen in den nächsten Versionen).
+① Weg: „Ziele suchen“ lädt die Strecke vom Ziel der vorigen Etappe zum Ziel dieser Etappe und sucht bekannte Orte entlang der Straße (Sehenswürdigkeiten, Natur & Aussicht, Museen, Freizeit, Städte). Zu jedem Ziel steht der Umweg in Minuten; Filter nach Art, Regler „Umweg höchstens“, Sortierung in Fahrtreihenfolge oder nach kleinstem Umweg. Links Fotos, rechts die Karte; bei Auswahl zeigt die Karte die Fahrt über den Stopp.
+Ein Fortschrittsbalken in % zeigt die Teilschritte (Route, Orte pro Streckenabschnitt, Fotos, Umwege) mit Abbrechen-Button. Ergebnisse werden 30 Tage auf dem Gerät zwischengespeichert, ein zweiter Aufruf dauert nur Sekunden.
+„Als Stopp übernehmen“ trägt das Ziel unter „Weg zum Hotel“ der Etappe ein (Aufenthalt vorbelegt mit ca. 1 Std., danach anpassbar).
+Start ist das Hotel/Ziel der vorigen Etappe, Ziel das Hotel dieser Etappe (sonst werden die Ortsnamen gesucht).
