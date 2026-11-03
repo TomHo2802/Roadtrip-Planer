@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 34</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 35</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19725,16 +19725,20 @@ var qrcode = function() {
       const [open, setOpen] = useState(null);
       const steps = [['way', '① Weg', 'Ziele entlang der Strecke vorschlagen'], ['hotel', '② Hotel', 'Unterkünfte vergleichen und übernehmen'], ['do', '③ Vor Ort', 'Unternehmungen in der Umgebung']];
       return (
-        <div data-stage-assistant className="v18-edit-only no-print px-4 py-2.5 bg-[#F5F8FC] border-b border-slate-100 space-y-3">
+        <>
+        <div data-stage-assistant style={{ order: 1 }} className="v18-edit-only no-print px-4 py-2.5 bg-[#F5F8FC] border-b border-slate-100">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#173B6B]">Assistent</span>
             {steps.map(([k, l, tip]) => <button key={k} type="button" data-readonly-allow data-assist={k} title={tip} aria-pressed={open === k} onClick={() => setOpen(open === k ? null : k)} className={`h-9 px-3 rounded-full border text-sm font-semibold ${open === k ? 'bg-[#1F4E8C] border-[#1F4E8C] text-white' : 'bg-white border-slate-300 text-slate-800 hover:border-[#1F4E8C]'}`}>{l}</button>)}
-            <button type="button" data-readonly-allow data-assist-details aria-pressed={expanded} onClick={() => { if (!expanded) setOpen(null); onToggleExpand(); }} className="ml-auto h-9 px-3 rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-800 hover:border-[#1F4E8C]">{expanded ? 'Details ausblenden ▴' : 'Details anzeigen ▾'}</button>
+            <button type="button" data-readonly-allow data-assist-details aria-pressed={expanded} onClick={() => onToggleExpand()} className="ml-auto h-9 px-3 rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-800 hover:border-[#1F4E8C]">{expanded ? 'Details ausblenden ▴' : 'Details anzeigen ▾'}</button>
           </div>
+        </div>
+        {open && <div data-assist-panel style={{ order: 3 }} className="v18-edit-only no-print px-4 py-3 bg-[#F5F8FC] border-t border-slate-100">
           {open === 'way' && <StageWayPanel trip={trip} stage={stage} index={index} onAddStop={onAddStop} />}
           {open === 'hotel' && <StageHotelPanel trip={trip} stage={stage} index={index} onSetHotel={onSetHotel} />}
           {open === 'do' && <StageDoPanel trip={trip} stage={stage} index={index} onAddLocal={onAddLocal} />}
-        </div>
+        </div>}
+        </>
       );
     }
 
@@ -20799,7 +20803,7 @@ Quelle: ${lt.url}` : '') }] } });
                           #{sIdx + 1}
                         </div>
 
-                        <div className={`bg-white rounded-2xl shadow-xs border overflow-hidden ${todayStages.some(item => item.id === stage.id) ? 'border-emerald-500 ring-2 ring-emerald-200 shadow-md' : 'border-slate-200'}`}>
+                        <div className={`flex flex-col bg-white rounded-2xl shadow-xs border overflow-hidden ${todayStages.some(item => item.id === stage.id) ? 'border-emerald-500 ring-2 ring-emerald-200 shadow-md' : 'border-slate-200'}`}>
                           {/* Stage Top Header */}
                           <div className="bg-white text-slate-900 px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
                             <div
@@ -20871,7 +20875,7 @@ Quelle: ${lt.url}` : '') }] } });
                           <StageAssistant trip={tripData} stage={stage} index={sIdx} expanded={isExpanded} onToggleExpand={() => { setExpandedStages((prev) => ({ ...prev, [stage.id]: !isExpanded })); if (!isExpanded) setTimeout(() => { const el = document.getElementById('stage-card-' + stage.id); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 80); }} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />
 
                           {isExpanded && (
-                            <div className="p-3 sm:p-5 space-y-6">
+                            <div style={{ order: 2 }} className="p-3 sm:p-5 space-y-6">
                               {/* 1. DER WEG ZUM HOTEL */}
                               <details className="stage-section rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden" open>
                                 <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary>

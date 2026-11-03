@@ -155,3 +155,6 @@ Neue Kategorie „Shopping“ (Einkaufszentren, Outlets, Kaufhäuser, Märkte) b
 
 ## v34
 Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste zur ausgewählten Karte.
+
+## v35
+- „Details anzeigen/ausblenden“ überarbeitet: Die Suche (Weg, Hotel, Vor Ort) bleibt beim Umschalten erhalten. Die Etappen-Details erscheinen direkt unter der Assistenten-Leiste, das Suchfeld darunter.
