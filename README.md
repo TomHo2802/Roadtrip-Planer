@@ -142,3 +142,9 @@ Prüfen: In der Seitenleiste muss „Version 30“ stehen (sonst alte Version im
 ## v31
 Jede Station beim Etappen-Assistenten hat „Mehr anzeigen“ mit ausführlicher Beschreibung (Wikipedia, Quelle verlinkt).
 Beim Übernehmen als Zwischenstopp wird dieser Text samt Quelle in die Notizen geschrieben.
+
+## v32
+Fix: In der Assistenten-Leiste gibt es jetzt „Details anzeigen/ausblenden“ – die Etappe lässt sich auch bei geöffnetem Assistenten öffnen (Panel schließt sich dabei, Etappe wird ins Bild gescrollt).
+② Hotel: Unterkünfte aus OpenStreetMap (bis 8 km), Filter Typ/Sterne/Entfernung/WLAN/Merkliste, Sortierung, eigene Felder für Preis und Bewertung (werden auf diesem Gerät gespeichert), Links zu Booking (mit Reisedaten und Personenzahl) und Google, „Als Hotel übernehmen“ (Name, Adresse, GPS, Preis × Nächte, Bewertung, Links).
+③ Vor Ort: bekannte Orte im Umkreis (Wikidata/Wikipedia) mit Foto, Beschreibung, Filter, Umkreis, „Zu Aktionen hinzufügen“ (bei mehreren Nächten Tag wählbar).
+Übernommene Karten zeigen „✓ Übernommen“.
