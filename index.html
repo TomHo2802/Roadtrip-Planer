@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 25</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 26</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19017,14 +19017,15 @@ var qrcode = function() {
       return j && j[0] ? [Number(j[0].lat), Number(j[0].lon)] : null;
     }
     async function sfWikidata(origin, Rkm, minPop, minSl) {
-      const q = `SELECT ?item ?itemLabel ?loc ?pop WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${origin[1]} ${origin[0]})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Math.round(Rkm)}" . } ?item wdt:P1082 ?pop . FILTER(?pop > ${minPop}) ?item wdt:P31/wdt:P279* wd:Q486972 . ?item wikibase:sitelinks ?sl . FILTER(?sl >= ${minSl}) FILTER NOT EXISTS { ?item wdt:P31 wd:Q498162 } . SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?pop) LIMIT 200`;
+      const q = `SELECT ?item ?itemLabel ?loc ?pop ?img WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${origin[1]} ${origin[0]})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Math.round(Rkm)}" . } ?item wdt:P1082 ?pop . FILTER(?pop > ${minPop}) ?item wdt:P31/wdt:P279* wd:Q486972 . ?item wikibase:sitelinks ?sl . FILTER(?sl >= ${minSl}) FILTER NOT EXISTS { ?item wdt:P31 wd:Q498162 } . OPTIONAL { ?item wdt:P18 ?img } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?pop) LIMIT 250`;
       const j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 25000);
       const m = new Map();
       ((j.results && j.results.bindings) || []).forEach((r) => {
         const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return;
         const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
         const id = r.item.value, pop = Number(r.pop.value) || 0, prev = m.get(id);
-        if (!prev || pop > prev.pop) m.set(id, { id, name, lat: Number(mm[2]), lon: Number(mm[1]), pop, type: 'city' });
+        const img = r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : (prev && prev.img) || '';
+        if (!prev || pop > prev.pop) m.set(id, { id, name, lat: Number(mm[2]), lon: Number(mm[1]), pop, type: 'city', img }); else if (img && !prev.img) prev.img = img;
       });
       return [...m.values()];
     }
@@ -19033,7 +19034,7 @@ var qrcode = function() {
       let j;
       try { j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 25000))); }
       catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
-      return (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null && (e.tags.place === 'city' || Number(e.tags.population) >= 10000 || e.tags.wikipedia || e.tags.wikidata)).map((e) => ({ id: 'o' + e.id, name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place }));
+      return (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null && (e.tags.place === 'city' || Number(e.tags.population) >= 10000 || e.tags.wikipedia || e.tags.wikidata)).map((e) => ({ id: 'o' + e.id, name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, wp: e.tags.wikipedia || '' }));
     }
     async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin, dir) {
       const maxStraight = mode === 'km' ? limitKm : (limitMin / 60) * 110; // Luftlinie <= Fahrstrecke, 110 km/h als obere Schranke
@@ -19090,12 +19091,85 @@ var qrcode = function() {
         </div>
       );
     }
+    const sfInfoCache = {};
+    async function sfWikiInfo(c) {
+      const key = c.id || c.name; if (sfInfoCache[key]) return sfInfoCache[key];
+      const tries = []; if (c.wp && /^[a-z-]+:/.test(c.wp)) { const [l, ...t] = c.wp.split(':'); tries.push([l, t.join(':')]); }
+      tries.push(['de', c.name], ['en', c.name]);
+      let info = { img: '', desc: '' };
+      for (const [lang, title] of tries) {
+        try { const j = await fetchJsonT(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}?redirect=true`, 9000);
+          if (j && j.type !== 'disambiguation') { info = { img: (j.thumbnail && j.thumbnail.source) || '', desc: (j.description || '').slice(0, 110) }; if (info.img || info.desc) break; } } catch (e) {}
+      }
+      sfInfoCache[key] = info; return info;
+    }
+    function SfPlaceCard({ c, selected, onSelect, onPick }) {
+      const [info, setInfo] = useState(sfInfoCache[c.id || c.name] || null);
+      const [imgBad, setImgBad] = useState(false);
+      useEffect(() => { let on = true; if (!info) sfWikiInfo(c).then((i) => on && setInfo(i)); return () => { on = false; }; }, [c.id, c.name]);
+      const photo = !imgBad && (c.img || (info && info.img));
+      const desc = info && info.desc;
+      return (
+        <li data-sf-card aria-current={selected ? 'true' : undefined} onClick={onSelect} className={`list-none flex gap-3 rounded-xl border bg-white p-2.5 cursor-pointer transition ${selected ? 'border-[#1F4E8C] ring-2 ring-[#BCCDE6]' : 'border-slate-200 hover:border-slate-300'}`}>
+          <div className="shrink-0 w-28 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-[#D6E2F3] to-[#BCCDE6] flex items-center justify-center text-3xl font-bold text-[#1F4E8C]">
+            {photo ? <img src={photo} alt={`Foto ${c.name}`} loading="lazy" referrerPolicy="no-referrer" onError={() => setImgBad(true)} className="w-full h-full object-cover" /> : <span aria-hidden="true">{(c.name || '?').charAt(0)}</span>}
+          </div>
+          <div className="min-w-0 flex-1 flex flex-col">
+            <div className="font-bold text-slate-900 leading-tight break-words">{c.name}</div>
+            <div className="text-xs text-slate-600 mt-0.5">{Math.round(c.km)} km · {sfFmtH(c.min)}</div>
+            <div className="text-xs text-slate-500">{c.pop ? `${c.pop.toLocaleString('de-DE')} Einwohner` : ''}{desc ? `${c.pop ? ' · ' : ''}${desc}` : ''}</div>
+            <div className="mt-auto pt-1.5 flex gap-2">
+              <button type="button" data-readonly-allow onClick={(e) => { e.stopPropagation(); onPick(c); }} className="v18-btn pri sm">Übernehmen</button>
+              <a data-readonly-allow href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="v18-btn sm">Maps</a>
+            </div>
+          </div>
+        </li>
+      );
+    }
+    const sfRouteCache = {};
+    function SfMap({ origin, items, selId, onSelect, originName }) {
+      const el = useRef(null), mapRef = useRef(null), grp = useRef(null), routeRef = useRef(null);
+      const [note, setNote] = useState('');
+      const sel = items.find((x) => (x.id || x.name) === selId) || items[0];
+      useEffect(() => {
+        if (!window.L || !el.current) return; const L = window.L;
+        const map = L.map(el.current, { zoomControl: true, attributionControl: true, scrollWheelZoom: false }).setView(origin, 6);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap-Mitwirkende' }).addTo(map);
+        mapRef.current = map; grp.current = L.layerGroup().addTo(map);
+        const t = setTimeout(() => map.invalidateSize(), 200); const onR = () => map.invalidateSize(); window.addEventListener('resize', onR);
+        return () => { clearTimeout(t); window.removeEventListener('resize', onR); map.remove(); mapRef.current = null; };
+      }, []);
+      useEffect(() => {
+        const L = window.L, map = mapRef.current; if (!L || !map) return; grp.current.clearLayers();
+        L.circleMarker(origin, { radius: 9, color: '#173B6B', weight: 3, fillColor: '#fff', fillOpacity: 1 }).bindTooltip(`Start: ${originName || ''}`, { permanent: false }).addTo(grp.current);
+        items.forEach((c) => { const on = sel && (c.id || c.name) === (sel.id || sel.name); L.circleMarker([c.lat, c.lon], { radius: on ? 10 : 6, color: '#1F4E8C', weight: on ? 3 : 2, fillColor: on ? '#1F4E8C' : '#fff', fillOpacity: 1 }).bindTooltip(c.name).on('click', () => onSelect(c.id || c.name)).addTo(grp.current); });
+      }, [items, selId]);
+      useEffect(() => {
+        const L = window.L, map = mapRef.current; if (!L || !map || !sel) return; let on = true;
+        if (routeRef.current) { map.removeLayer(routeRef.current); routeRef.current = null; }
+        const key = `${origin}|${sel.lat},${sel.lon}`;
+        const draw = (pts, dashed) => { if (!on) return; routeRef.current = L.polyline(pts, { color: '#1F4E8C', weight: 5, opacity: 0.9, dashArray: dashed ? '8 8' : null }).addTo(map); map.fitBounds(routeRef.current.getBounds(), { padding: [30, 30], maxZoom: 9 }); };
+        setNote(`${Math.round(sel.km)} km · ${sfFmtH(sel.min)}`);
+        if (sfRouteCache[key]) { draw(sfRouteCache[key]); return () => { on = false; }; }
+        fetchJsonT(`https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${sel.lon},${sel.lat}?overview=simplified&geometries=geojson`, 15000)
+          .then((j) => { const g = j.routes && j.routes[0] && j.routes[0].geometry.coordinates; if (!g) throw new Error('no route'); const pts = g.map(([x, y]) => [y, x]); sfRouteCache[key] = pts; draw(pts); })
+          .catch(() => { draw([origin, [sel.lat, sel.lon]], true); setNote(`${Math.round(sel.km)} km · ${sfFmtH(sel.min)} (Luftlinie, Route nicht geladen)`); });
+        return () => { on = false; };
+      }, [selId, items]);
+      return (
+        <div className="rounded-xl overflow-hidden border border-slate-200 bg-white">
+          <div ref={el} data-sf-map className="w-full h-[280px] lg:h-[520px] bg-slate-100" role="img" aria-label="Karte mit Routenabschnitt" />
+          <div className="px-3 py-2 text-xs text-slate-600 border-t border-slate-100"><b className="text-slate-900">{originName} → {sel && sel.name}</b> · {note}</div>
+        </div>
+      );
+    }
     function StageFinder({ trip, onPick }) {
       const stages = trip.stages || [];
       const [from, setFrom] = useState(Math.max(0, stages.length - 1));
       const [mode, setMode] = useState('km');
       const [rng, setRng] = useState([0, 300]);
       const [dir, setDir] = useState(null);
+      const [selId, setSelId] = useState(null);
       const [st, setSt] = useState({ busy: false, err: '', items: null, estimated: false, origin: null });
       useEffect(() => { if (from >= stages.length) setFrom(Math.max(0, stages.length - 1)); }, [stages.length]);
       if (!stages.length) return null;
@@ -19113,7 +19187,7 @@ var qrcode = function() {
           const [mn, mx] = rng;
           if (!(mx > 0)) throw new Error('Wert: Der Höchstabstand muss größer als 0 sein.');
           const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60, dir);
-          setSt({ busy: false, err: '', items: r.items, estimated: r.estimated, origin: g });
+          setSt({ busy: false, err: '', items: r.items, estimated: r.estimated, origin: g }); setSelId(r.items[0] ? (r.items[0].id || r.items[0].name) : null);
         } catch (e) { setSt({ busy: false, err: /Startpunkt|^Wert/.test(e.message) ? e.message.replace(/^Wert: /, '') : `Orte konnten nicht geladen werden (${String(e.message || e).slice(0, 260)}). Internet nötig; bei großem Radius hilft eine kleinere Obergrenze.`, items: null, estimated: false, origin: null }); }
       };
       return (
@@ -19152,17 +19226,17 @@ var qrcode = function() {
             {st.items && st.items.length > 0 && (
               <div className="space-y-2">
                 {st.estimated && <div className="text-xs text-amber-900">Routing-Dienst nicht erreichbar: Werte sind geschätzt (Luftlinie × 1,3).</div>}
-                <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
-                  {st.items.map((c) => (
-                    <li key={`${c.name}-${c.lat}`} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
-                      <div className="min-w-0"><div className="font-semibold text-slate-900 break-words">{c.name}</div><div className="text-xs text-slate-500">{Math.round(c.km)} km · {sfFmtH(c.min)}{c.pop ? ` · ${c.pop.toLocaleString('de-DE')} Einwohner` : ''}</div></div>
-                      <div className="flex gap-2 shrink-0">
-                        <a data-readonly-allow href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}`} target="_blank" rel="noopener noreferrer" className="v18-btn sm">Karte</a>
-                        <button type="button" data-readonly-allow onClick={() => onPick(from, c)} className="v18-btn sm pri">Übernehmen</button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                  <div className="order-2 lg:order-1 min-w-0">
+                    <ul className="space-y-2 p-0 m-0 lg:max-h-[540px] lg:overflow-y-auto lg:pr-1">
+                      {st.items.map((c) => <SfPlaceCard key={c.id || `${c.name}-${c.lat}`} c={c} selected={(c.id || c.name) === selId} onSelect={() => setSelId(c.id || c.name)} onPick={(x) => onPick(from, x)} />)}
+                    </ul>
+                    <div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div>
+                  </div>
+                  <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">
+                    <SfMap key={`${st.origin}`} origin={st.origin} items={st.items} selId={selId} onSelect={setSelId} originName={label(o)} />
+                  </div>
+                </div>
               </div>
             )}
           </div>
