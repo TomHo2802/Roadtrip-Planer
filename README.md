@@ -138,3 +138,7 @@ Start ist das Hotel/Ziel der vorigen Etappe, Ziel das Hotel dieser Etappe (sonst
 „Neu suchen“ umgeht den Zwischenspeicher und startet wirklich eine neue Suche.
 Leere oder unvollständige Ergebnisse werden nicht mehr gespeichert; Fehler werden im Panel angezeigt.
 Prüfen: In der Seitenleiste muss „Version 30“ stehen (sonst alte Version im Cache: Seite neu laden).
+
+## v31
+Jede Station beim Etappen-Assistenten hat „Mehr anzeigen“ mit ausführlicher Beschreibung (Wikipedia, Quelle verlinkt).
+Beim Übernehmen als Zwischenstopp wird dieser Text samt Quelle in die Notizen geschrieben.
