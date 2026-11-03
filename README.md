@@ -158,3 +158,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v35
 - „Details anzeigen/ausblenden“ überarbeitet: Die Suche (Weg, Hotel, Vor Ort) bleibt beim Umschalten erhalten. Die Etappen-Details erscheinen direkt unter der Assistenten-Leiste, das Suchfeld darunter.
+
+## v36
+- Der Assistent (Weg, Hotel, Vor Ort) erscheint jetzt ganz oben in der Etappe, direkt unter der Kopfzeile. Beim Einblenden der Details scrollt die Seite zu den Etappen-Details.

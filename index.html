@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 35</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 36</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19733,7 +19733,7 @@ var qrcode = function() {
             <button type="button" data-readonly-allow data-assist-details aria-pressed={expanded} onClick={() => onToggleExpand()} className="ml-auto h-9 px-3 rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-800 hover:border-[#1F4E8C]">{expanded ? 'Details ausblenden ▴' : 'Details anzeigen ▾'}</button>
           </div>
         </div>
-        {open && <div data-assist-panel style={{ order: 3 }} className="v18-edit-only no-print px-4 py-3 bg-[#F5F8FC] border-t border-slate-100">
+        {open && <div data-assist-panel style={{ order: 1 }} className="v18-edit-only no-print px-4 py-3 bg-[#F5F8FC] border-t border-slate-100">
           {open === 'way' && <StageWayPanel trip={trip} stage={stage} index={index} onAddStop={onAddStop} />}
           {open === 'hotel' && <StageHotelPanel trip={trip} stage={stage} index={index} onSetHotel={onSetHotel} />}
           {open === 'do' && <StageDoPanel trip={trip} stage={stage} index={index} onAddLocal={onAddLocal} />}
@@ -20872,7 +20872,7 @@ Quelle: ${lt.url}` : '') }] } });
                             </div>
                           </div>
 
-                          <StageAssistant trip={tripData} stage={stage} index={sIdx} expanded={isExpanded} onToggleExpand={() => { setExpandedStages((prev) => ({ ...prev, [stage.id]: !isExpanded })); if (!isExpanded) setTimeout(() => { const el = document.getElementById('stage-card-' + stage.id); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 80); }} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />
+                          <StageAssistant trip={tripData} stage={stage} index={sIdx} expanded={isExpanded} onToggleExpand={() => { setExpandedStages((prev) => ({ ...prev, [stage.id]: !isExpanded })); if (!isExpanded) setTimeout(() => { const c0 = document.getElementById('stage-card-' + stage.id); const el = c0 && (c0.querySelector('[style*="order: 2"]') || c0); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 80); }} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />
 
                           {isExpanded && (
                             <div style={{ order: 2 }} className="p-3 sm:p-5 space-y-6">
