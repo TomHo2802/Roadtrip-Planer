@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 30</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 31</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19397,8 +19397,22 @@ var qrcode = function() {
       }, [selId]);
       return <div className="rounded-xl overflow-hidden border border-slate-200 bg-white"><div ref={el} data-sfw-map className="w-full h-[280px] lg:h-[480px] bg-slate-100" role="img" aria-label="Karte mit Route und Zwischenstopps" /><div className="px-3 py-2 text-xs text-slate-600 border-t border-slate-100">{sel ? <><b className="text-slate-900">{sel.name}</b> · +{sel.detour} min Umweg · {Math.round(sel.fromStartKm)} km ab Start</> : 'Ort wählen, um die Fahrt über den Stopp zu sehen'}</div></div>;
     }
+    const sfwTextCache = {};
+    async function sfwLongText(c) {
+      if (sfwTextCache[c.id] !== undefined) return sfwTextCache[c.id];
+      const tries = [];
+      try { const w = await fetchJsonT(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${c.id}&props=sitelinks&sitefilter=dewiki|enwiki&format=json&origin=*`, 9000); const sl = (w.entities && w.entities[c.id] && w.entities[c.id].sitelinks) || {}; if (sl.dewiki) tries.push(['de', sl.dewiki.title]); if (sl.enwiki) tries.push(['en', sl.enwiki.title]); } catch (e) {}
+      tries.push(['de', c.name], ['en', c.name]);
+      let out = { text: '', url: '' };
+      for (const [lang, title] of tries) {
+        try { const j = await fetchJsonT(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}?redirect=true`, 9000);
+          if (j && j.type !== 'disambiguation' && j.extract && j.extract.length > 60) { let t = j.extract; if (t.length > 900) { const cut = t.slice(0, 900); const k = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! ')); t = k > 300 ? cut.slice(0, k + 1) : cut + ' …'; } out = { text: t, url: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || '' }; break; } } catch (e) {}
+      }
+      sfwTextCache[c.id] = out; return out;
+    }
     function SfwCard({ c, selected, onSelect, onPick }) {
-      const [info, setInfo] = useState(c.img ? { img: c.img, desc: '' } : (sfInfoCache[c.id] || null)); const [bad, setBad] = useState(false);
+      const [info, setInfo] = useState(c.img ? { img: c.img, desc: '' } : (sfInfoCache[c.id] || null)); const [bad, setBad] = useState(false); const [more, setMore] = useState(false); const [lt, setLt] = useState(sfwTextCache[c.id] || null);
+      const toggleMore = (e) => { e.stopPropagation(); const n = !more; setMore(n); if (n && !lt) { setLt({ loading: true }); sfwLongText(c).then(setLt); } };
       useEffect(() => { let on = true; if (!info || (!info.img && !info.desc)) sfWikiInfo({ id: c.id, name: c.name, wp: c.wp }).then((i) => on && setInfo({ img: c.img || i.img, desc: i.desc })); return () => { on = false; }; }, [c.id]);
       const photo = !bad && (c.img || (info && info.img));
       return (
@@ -19409,6 +19423,8 @@ var qrcode = function() {
             <div className="text-xs text-slate-600 mt-0.5">{Math.round(c.fromStartKm)} km ab Start · <b>+{c.detour} min Umweg</b>{c.est ? ' (geschätzt)' : ''}</div>
             <div className="flex flex-wrap gap-1 mt-0.5"><span className="text-[11px] px-1.5 rounded bg-[#E8EEF7] text-[#173B6B]">{SFW_KINDS[c.kind]}</span></div>
             {info && info.desc && <div className="text-xs text-slate-500 line-clamp-2">{info.desc}</div>}
+            {more && <div data-sfw-long className="text-xs text-slate-700 mt-1 leading-relaxed">{lt && lt.loading ? 'Beschreibung wird geladen …' : (lt && lt.text) ? <>{lt.text}{lt.url && <> <a href={lt.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="underline text-[#1F4E8C]">Wikipedia</a></>}</> : 'Keine ausführlichere Beschreibung gefunden.'}</div>}
+            <button type="button" data-readonly-allow data-sfw-more onClick={toggleMore} className="self-start text-xs underline text-[#1F4E8C] mt-0.5">{more ? 'Weniger anzeigen' : 'Mehr anzeigen'}</button>
             <div className="mt-auto pt-1.5 flex gap-2"><button type="button" data-readonly-allow onClick={(e) => { e.stopPropagation(); onPick(c); }} className="v18-btn pri sm">Als Stopp übernehmen</button><a data-readonly-allow href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="v18-btn sm">Maps</a></div>
           </div>
         </li>
@@ -19462,7 +19478,7 @@ var qrcode = function() {
               </div>
               {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Nichts passt zu den Filtern. Erhöhe den Umweg oder nimm einen Filter heraus.</div>}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-                <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[480px] lg:overflow-y-auto lg:pr-1">{shown.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} onPick={(x) => onAddStop(stage.id, x)} />)}</ul><div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div></div>
+                <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[480px] lg:overflow-y-auto lg:pr-1">{shown.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} onPick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddStop(stage.id, x, t); }} />)}</ul><div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div></div>
                 <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4"><SfwMap key={`${res.A}|${res.B}`} A={res.A} B={res.B} line={res.line} items={shown} selId={selId} onSelect={setSelId} /></div>
               </div>
             </div>
@@ -20322,8 +20338,13 @@ var qrcode = function() {
         }
       };
 
-      const handleAddWayStop = (stageId, c) => {
-        const st = (tripData.stages || []).map((s) => s.id !== stageId ? s : { ...s, routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: [...((s.routeToHotel && s.routeToHotel.stopsOnWay) || []), { id: `stop-${Date.now()}`, name: c.name, time: '', duration: 'ca. 1 Std.', address: '', gps: `${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}`, costEur: 0, notes: `${SFW_KINDS[c.kind] || 'Stopp'}, ca. ${c.detour} min Umweg` }] } });
+      const handleAddWayStop = (stageId, c, lt) => {
+        const st = (tripData.stages || []).map((s) => s.id !== stageId ? s : { ...s, routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: [...((s.routeToHotel && s.routeToHotel.stopsOnWay) || []), { id: `stop-${Date.now()}`, name: c.name, time: '', duration: 'ca. 1 Std.', address: '', gps: `${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}`, costEur: 0, notes: `${SFW_KINDS[c.kind] || 'Stopp'}, ca. ${c.detour} min Umweg` + ((lt && lt.text) ? `
+
+${lt.text}` : (c.d ? `
+
+${c.d}` : '')) + ((lt && lt.url) ? `
+Quelle: ${lt.url}` : '') }] } });
         saveTripData({ ...tripData, stages: st }, `Zwischenstopp „${c.name}“ eingetragen`);
       };
 
