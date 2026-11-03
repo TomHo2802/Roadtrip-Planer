@@ -152,3 +152,6 @@ Fix: In der Assistenten-Leiste gibt es jetzt „Details anzeigen/ausblenden“ �
 ## v33
 Hotelsuche robuster: kleinere Abfrage (6 km), zweiter Versuch mit 3,5 km, zusätzliche Overpass-Server und als Ersatz Nominatim, wenn Overpass nicht antwortet (Hinweis in der Liste).
 Neue Kategorie „Shopping“ (Einkaufszentren, Outlets, Kaufhäuser, Märkte) bei ① Weg und ③ Vor Ort.
+
+## v34
+Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste zur ausgewählten Karte.
