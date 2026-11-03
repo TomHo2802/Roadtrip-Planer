@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 28</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 29</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19297,6 +19297,185 @@ var qrcode = function() {
             )}
           </div>
         </details>
+      );
+    }
+
+        /* ===== v29: Etappen-Assistent, Schritt 1: Zwischenstopps entlang der Route ===== */
+    const SFW_KEY = 'roadtrip_wayassist_v1';
+    const sfwGet = (k) => { try { const o = JSON.parse(localStorage.getItem(SFW_KEY) || '{}'); return o[k] && Date.now() - o[k].t < 30 * 864e5 ? o[k].v : null; } catch (e) { return null; } };
+    const sfwPut = (k, v) => { try { const o = JSON.parse(localStorage.getItem(SFW_KEY) || '{}'); o[k] = { t: Date.now(), v }; const n = {}; Object.keys(o).sort((a, b) => o[b].t - o[a].t).slice(0, 12).forEach((x) => { n[x] = o[x]; }); localStorage.setItem(SFW_KEY, JSON.stringify(n)); } catch (e) {} };
+    const SFW_KINDS = { stadt: 'Stadt', sehensw: 'Sehenswürdigkeit', natur: 'Natur & Aussicht', museum: 'Museum', freizeit: 'Freizeit' };
+    const sfwKind = (t) => t.place ? 'stadt' : /^(museum)$/.test(t.tourism || '') ? 'museum' : /^(zoo|theme_park|aquarium)$/.test(t.tourism || '') ? 'freizeit' : (t.natural || t.tourism === 'viewpoint') ? 'natur' : 'sehensw';
+    function SfProgress({ pct, label, onCancel }) {
+      return (
+        <div role="status" aria-live="polite" data-sfw-progress className="rounded-xl border border-[#BCCDE6] bg-[#F5F8FC] p-3 space-y-2">
+          <div className="flex items-center justify-between gap-3 text-sm"><span className="font-semibold text-[#173B6B]">{label}</span><span className="font-bold text-[#1F4E8C] tabular-nums">{Math.round(pct)} %</span></div>
+          <div className="h-2.5 rounded-full bg-[#D6E2F3] overflow-hidden"><div className="h-full bg-[#1F4E8C] transition-all duration-300" style={{ width: `${Math.min(100, pct)}%` }} /></div>
+          {onCancel && <button type="button" data-readonly-allow onClick={onCancel} className="text-xs font-semibold text-slate-600 underline">Abbrechen</button>}
+        </div>
+      );
+    }
+    async function sfwRun(A, B, setP, cancelled) {
+      const chk = () => { if (cancelled()) throw new Error('__cancel'); };
+      setP(8, 'Route wird geladen …');
+      const rj = await fetchJsonT(`https://router.project-osrm.org/route/v1/driving/${A[1]},${A[0]};${B[1]},${B[0]}?overview=simplified&geometries=geojson`, 20000);
+      const r0 = rj.routes && rj.routes[0]; if (!r0) throw new Error('Keine Route gefunden');
+      const line = r0.geometry.coordinates.map(([x, y]) => [y, x]); const totalKm = r0.distance / 1000, totalMin = r0.duration / 60; chk();
+      // Strecke in Abschnitte teilen
+      const nSeg = Math.min(8, Math.max(1, Math.ceil(totalKm / 60)));
+      const cum = [0]; for (let i = 1; i < line.length; i++) cum.push(cum[i - 1] + haversineM(line[i - 1], line[i]));
+      const segs = []; for (let s = 0; s < nSeg; s++) { const lo = cum[cum.length - 1] * s / nSeg, hi = cum[cum.length - 1] * (s + 1) / nSeg; let pts = line.filter((_, i) => cum[i] >= lo && cum[i] <= hi); if (pts.length < 2) pts = [line[Math.min(line.length - 1, Math.max(0, cum.findIndex((c) => c >= lo)))], line[Math.min(line.length - 1, cum.findIndex((c) => c >= hi) < 0 ? line.length - 1 : cum.findIndex((c) => c >= hi))]]; const step = Math.max(1, Math.ceil(pts.length / 10)); segs.push(pts.filter((_, i) => i % step === 0 || i === pts.length - 1)); }
+      setP(18, `Orte entlang der Strecke (0 von ${nSeg}) …`); let done = 0; const found = new Map();
+      await Promise.all(segs.map(async (pts) => {
+        const poly = pts.map((p) => `${p[0].toFixed(4)},${p[1].toFixed(4)}`).join(',');
+        const q = `[out:json][timeout:25];(nwr["tourism"~"^(attraction|viewpoint|museum|zoo|theme_park|aquarium)$"]["name"]["wikidata"](around:6000,${poly});nwr["natural"~"^(beach|waterfall|peak|cave_entrance)$"]["name"]["wikidata"](around:6000,${poly});nwr["historic"]["name"]["wikidata"](around:5000,${poly});node["place"~"^(city|town)$"]["wikidata"](around:8000,${poly}););out center 120;`;
+        try { const j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 30000)));
+          (j.elements || []).forEach((e) => { const t = e.tags || {}; const lat = e.lat != null ? e.lat : e.center && e.center.lat, lon = e.lon != null ? e.lon : e.center && e.center.lon; if (!t.name || !t.wikidata || lat == null) return; if (!found.has(t.wikidata)) found.set(t.wikidata, { id: t.wikidata, name: t.name, lat, lon, kind: sfwKind(t), wp: t.wikipedia || '' }); });
+        } catch (e) { /* Abschnitt ohne Antwort */ }
+        done++; setP(18 + 42 * done / nSeg, `Orte entlang der Strecke (${done} von ${nSeg}) …`);
+      })); chk();
+      let cand = [...found.values()]; if (!cand.length) return { line, totalKm, totalMin, items: [] };
+      // Bekanntheit + Foto per Wikidata
+      setP(62, 'Bekanntheit und Fotos werden geladen …');
+      const info = {};
+      try {
+        for (let i = 0; i < cand.length; i += 80) {
+          const ids = cand.slice(i, i + 80).map((c) => 'wd:' + c.id).join(' ');
+          const q = `SELECT ?item ?sl ?img ?itemLabel WHERE { VALUES ?item { ${ids} } ?item wikibase:sitelinks ?sl . OPTIONAL { ?item wdt:P18 ?img } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } }`;
+          const j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 25000);
+          ((j.results && j.results.bindings) || []).forEach((r) => { const id = r.item.value.split('/').pop(); const prev = info[id]; info[id] = { sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || (prev && prev.img) || '', label: r.itemLabel && !/^Q\d+$/.test(r.itemLabel.value) ? r.itemLabel.value : '' }; });
+        }
+      } catch (e) { /* ohne Zusatzinfos weiter */ }
+      cand = cand.map((c) => ({ ...c, sl: (info[c.id] && info[c.id].sl) || 0, img: (info[c.id] && info[c.id].img) || '', name: (info[c.id] && info[c.id].label) || c.name })).filter((c) => !Object.keys(info).length || c.sl >= 6);
+      cand.sort((a, b) => b.sl - a.sl); cand = cand.slice(0, 60); chk();
+      // Umweg per OSRM-Tabelle
+      setP(80, 'Umwege werden berechnet …');
+      try {
+        const coords = [A, B, ...cand.map((c) => [c.lat, c.lon])].map((p) => `${p[1]},${p[0]}`).join(';');
+        const t = await fetchJsonT(`https://router.project-osrm.org/table/v1/driving/${coords}?sources=0;1&annotations=duration,distance`, 25000);
+        const ab = t.durations[0][1] / 60;
+        cand.forEach((c, i) => { const a1 = t.durations[0][i + 2] / 60, b1 = t.durations[1][i + 2] / 60; c.detour = Math.max(0, Math.round(a1 + b1 - ab)); c.fromStartKm = t.distances[0][i + 2] / 1000; c.snap = t.destinations && t.destinations[i + 2] ? t.destinations[i + 2].distance : 0; });
+        cand = cand.filter((c) => !(c.snap > 2500) && c.detour != null);
+      } catch (e) {
+        const ab = haversineM(A, B) / 1000;
+        cand.forEach((c) => { const a1 = haversineM(A, [c.lat, c.lon]) / 1000, b1 = haversineM([c.lat, c.lon], B) / 1000; c.detour = Math.round(Math.max(0, a1 + b1 - ab) * 1.3 / 80 * 60); c.fromStartKm = a1 * 1.2; c.est = true; });
+      }
+      setP(97, 'Ergebnisse werden aufbereitet …');
+      return { line, totalKm, totalMin, items: cand };
+    }
+    function SfwMap({ A, B, line, items, selId, onSelect }) {
+      const el = useRef(null), mapRef = useRef(null), grp = useRef(null), viaRef = useRef(null);
+      const sel = items.find((x) => x.id === selId) || null;
+      useEffect(() => {
+        if (!window.L || !el.current) return; const L = window.L;
+        const map = L.map(el.current, { scrollWheelZoom: false }).setView(A, 8);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap-Mitwirkende' }).addTo(map);
+        const pl = L.polyline(line, { color: '#8FA9CF', weight: 5, opacity: 0.9 }).addTo(map); map.fitBounds(pl.getBounds(), { padding: [30, 30] });
+        mapRef.current = map; grp.current = L.layerGroup().addTo(map);
+        const t = setTimeout(() => map.invalidateSize(), 200); const onR = () => map.invalidateSize(); window.addEventListener('resize', onR);
+        return () => { clearTimeout(t); window.removeEventListener('resize', onR); map.remove(); mapRef.current = null; };
+      }, []);
+      useEffect(() => {
+        const L = window.L, map = mapRef.current; if (!L || !map) return; grp.current.clearLayers();
+        [[A, 'Start'], [B, 'Ziel']].forEach(([p, n]) => L.circleMarker(p, { radius: 9, color: '#173B6B', weight: 3, fillColor: '#fff', fillOpacity: 1 }).bindTooltip(n).addTo(grp.current));
+        items.forEach((c) => { const on = c.id === selId; L.circleMarker([c.lat, c.lon], { radius: on ? 10 : 6, color: '#1F4E8C', weight: on ? 3 : 2, fillColor: on ? '#1F4E8C' : '#fff', fillOpacity: 1 }).bindTooltip(`${c.name} (+${c.detour} min)`).on('click', () => onSelect(c.id)).addTo(grp.current); });
+      }, [items, selId]);
+      useEffect(() => {
+        const L = window.L, map = mapRef.current; if (!L || !map) return; let on = true;
+        if (viaRef.current) { map.removeLayer(viaRef.current); viaRef.current = null; } if (!sel) return;
+        const key = `via|${A}|${sel.lat},${sel.lon}|${B}`;
+        const draw = (pts, dashed) => { if (!on) return; viaRef.current = L.polyline(pts, { color: '#1F4E8C', weight: 5, opacity: 1, dashArray: dashed ? '8 8' : null }).addTo(map); };
+        if (sfRouteCache[key]) { draw(sfRouteCache[key]); return () => { on = false; }; }
+        fetchJsonT(`https://router.project-osrm.org/route/v1/driving/${A[1]},${A[0]};${sel.lon},${sel.lat};${B[1]},${B[0]}?overview=simplified&geometries=geojson`, 15000)
+          .then((j) => { const g = j.routes && j.routes[0] && j.routes[0].geometry.coordinates; if (!g) throw new Error('x'); const pts = g.map(([x, y]) => [y, x]); sfRouteCache[key] = pts; draw(pts); })
+          .catch(() => draw([A, [sel.lat, sel.lon], B], true));
+        return () => { on = false; };
+      }, [selId]);
+      return <div className="rounded-xl overflow-hidden border border-slate-200 bg-white"><div ref={el} data-sfw-map className="w-full h-[280px] lg:h-[480px] bg-slate-100" role="img" aria-label="Karte mit Route und Zwischenstopps" /><div className="px-3 py-2 text-xs text-slate-600 border-t border-slate-100">{sel ? <><b className="text-slate-900">{sel.name}</b> · +{sel.detour} min Umweg · {Math.round(sel.fromStartKm)} km ab Start</> : 'Ort wählen, um die Fahrt über den Stopp zu sehen'}</div></div>;
+    }
+    function SfwCard({ c, selected, onSelect, onPick }) {
+      const [info, setInfo] = useState(c.img ? { img: c.img, desc: '' } : (sfInfoCache[c.id] || null)); const [bad, setBad] = useState(false);
+      useEffect(() => { let on = true; if (!info || (!info.img && !info.desc)) sfWikiInfo({ id: c.id, name: c.name, wp: c.wp }).then((i) => on && setInfo({ img: c.img || i.img, desc: i.desc })); return () => { on = false; }; }, [c.id]);
+      const photo = !bad && (c.img || (info && info.img));
+      return (
+        <li data-sfw-card aria-current={selected ? 'true' : undefined} onClick={onSelect} className={`list-none flex gap-3 rounded-xl border bg-white p-2.5 cursor-pointer transition ${selected ? 'border-[#1F4E8C] ring-2 ring-[#BCCDE6]' : 'border-slate-200 hover:border-slate-300'}`}>
+          <div className="shrink-0 w-28 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-[#D6E2F3] to-[#BCCDE6] flex items-center justify-center text-3xl font-bold text-[#1F4E8C]">{photo ? <img src={photo} alt={`Foto ${c.name}`} loading="lazy" referrerPolicy="no-referrer" onError={() => setBad(true)} className="w-full h-full object-cover" /> : <span aria-hidden="true">{(c.name || '?').charAt(0)}</span>}</div>
+          <div className="min-w-0 flex-1 flex flex-col">
+            <div className="font-bold text-slate-900 leading-tight break-words">{c.name}</div>
+            <div className="text-xs text-slate-600 mt-0.5">{Math.round(c.fromStartKm)} km ab Start · <b>+{c.detour} min Umweg</b>{c.est ? ' (geschätzt)' : ''}</div>
+            <div className="flex flex-wrap gap-1 mt-0.5"><span className="text-[11px] px-1.5 rounded bg-[#E8EEF7] text-[#173B6B]">{SFW_KINDS[c.kind]}</span></div>
+            {info && info.desc && <div className="text-xs text-slate-500 line-clamp-2">{info.desc}</div>}
+            <div className="mt-auto pt-1.5 flex gap-2"><button type="button" data-readonly-allow onClick={(e) => { e.stopPropagation(); onPick(c); }} className="v18-btn pri sm">Als Stopp übernehmen</button><a data-readonly-allow href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="v18-btn sm">Maps</a></div>
+          </div>
+        </li>
+      );
+    }
+    function StageWayPanel({ trip, stage, index, onAddStop }) {
+      const [p, setPr] = useState({ pct: 0, label: '', busy: false });
+      const [res, setRes] = useState(null); const [err, setErr] = useState('');
+      const [kinds, setKinds] = useState([]); const [maxD, setMaxD] = useState(30); const [sortBy, setSortBy] = useState('route'); const [selId, setSelId] = useState(null);
+      const cancelRef = useRef(false);
+      const prev = (trip.stages || [])[index - 1];
+      const run = async () => {
+        cancelRef.current = false; setErr(''); setRes(null); setPr({ pct: 1, label: 'Start …', busy: true });
+        const setP = (pct, label) => setPr({ pct, label, busy: true });
+        try {
+          setP(3, 'Start und Ziel werden bestimmt …');
+          let A = parseGps(prev && prev.hotel && prev.hotel.gps); if (!A) { const nm = (prev && prev.toCity) || stage.fromCity; if (nm) A = await sfGeocode(nm); }
+          let B = parseGps(stage.hotel && stage.hotel.gps); if (!B && stage.toCity) B = await sfGeocode(stage.toCity);
+          if (!A || !B) throw new Error('Start oder Ziel nicht gefunden. Bitte Ortsnamen prüfen oder GPS beim Hotel eintragen.');
+          const key = `${A.map((x) => x.toFixed(3))}|${B.map((x) => x.toFixed(3))}`;
+          const cached = sfwGet(key);
+          if (cached) { setP(100, 'Aus dem Zwischenspeicher geladen'); cached.A = A; cached.B = B; setRes(cached); setSelId(cached.items[0] ? cached.items[0].id : null); setPr({ pct: 100, label: 'Fertig (aus Zwischenspeicher)', busy: false }); return; }
+          const r = await sfwRun(A, B, setP, () => cancelRef.current);
+          r.A = A; r.B = B; sfwPut(key, r); setRes(r); setSelId(r.items[0] ? r.items[0].id : null); setPr({ pct: 100, label: 'Fertig', busy: false });
+        } catch (e) { if (e.message === '__cancel') setPr({ pct: 0, label: 'Abgebrochen', busy: false }); else { setErr(/nicht gefunden|Keine Route/.test(e.message) ? e.message : `Suche fehlgeschlagen (${String(e.message).slice(0, 200)}). Internet nötig.`); setPr({ pct: 0, label: '', busy: false }); } }
+      };
+      const shown = useMemo(() => { if (!res) return []; const b = res.items.filter((c) => c.detour <= maxD && (!kinds.length || kinds.includes(c.kind))); return [...b].sort(sortBy === 'route' ? (x, y) => x.fromStartKm - y.fromStartKm : (x, y) => x.detour - y.detour); }, [res, kinds, maxD, sortBy]);
+      useEffect(() => { if (shown.length && !shown.some((c) => c.id === selId)) setSelId(shown[0].id); }, [shown]);
+      const counts = {}; (res ? res.items : []).forEach((c) => { counts[c.kind] = (counts[c.kind] || 0) + 1; });
+      return (
+        <div data-sfw className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div><div className="font-bold text-slate-900">Ziele auf dem Weg: {(prev && prev.toCity) || stage.fromCity || '?'} → {stage.toCity || '?'}</div><div className="text-xs text-slate-500">Sehenswertes entlang der Strecke, mit Umweg in Minuten</div></div>
+            <button type="button" data-readonly-allow onClick={run} disabled={p.busy} className="v18-btn pri disabled:opacity-50">{p.busy ? 'Suche läuft …' : res ? 'Neu suchen' : 'Ziele suchen'}</button>
+          </div>
+          {(p.busy || (p.pct > 0 && p.pct < 100)) && <SfProgress pct={p.pct} label={p.label} onCancel={p.busy ? () => { cancelRef.current = true; } : null} />}
+          {err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{err}</div>}
+          {res && res.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Auf dieser Strecke wurden keine bekannten Ziele gefunden.</div>}
+          {res && res.items.length > 0 && (
+            <div className="space-y-3">
+              <div className="text-xs text-slate-500">{Math.round(res.totalKm)} km · {sfFmtH(res.totalMin)} Fahrzeit direkt{p.label.includes('Zwischenspeicher') ? ' · gespeichertes Ergebnis' : ''}</div>
+              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Arten filtern">
+                {Object.keys(SFW_KINDS).map((k) => { const on = kinds.includes(k); return <button key={k} type="button" data-readonly-allow data-sfw-kind={k} aria-pressed={on} disabled={!on && !counts[k]} onClick={() => setKinds(on ? kinds.filter((x) => x !== k) : [...kinds, k])} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-full border text-sm font-semibold disabled:opacity-40 ${on ? 'bg-[#1F4E8C] border-[#1F4E8C] text-white' : 'bg-white border-slate-300 text-slate-700'}`}>{SFW_KINDS[k]}<span className={`text-xs ${on ? 'text-[#D6E2F3]' : 'text-slate-400'}`}>{counts[k] || 0}</span></button>; })}
+                {kinds.length > 0 && <button type="button" data-readonly-allow onClick={() => setKinds([])} className="text-sm font-semibold text-[#1F4E8C] px-1">Zurücksetzen</button>}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                <label className="flex items-center gap-3 font-semibold min-w-[240px]">Umweg höchstens <b data-sfw-maxd className="text-[#1F4E8C] w-14">{maxD} min</b><input data-readonly-allow type="range" min="0" max="90" step="5" value={maxD} onChange={(e) => setMaxD(Number(e.target.value))} aria-label="Maximaler Umweg in Minuten" className="flex-1 accent-[#1F4E8C]" /></label>
+                <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">Sortierung:{[['route', 'In Fahrtreihenfolge'], ['detour', 'Kleinster Umweg']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={sortBy === k} onClick={() => setSortBy(k)} className={`h-8 px-2.5 rounded-lg border text-xs font-semibold ${sortBy === k ? 'bg-[#E8EEF7] border-[#BCCDE6] text-[#173B6B]' : 'bg-white border-slate-300 text-slate-600'}`}>{l}</button>)}</span>
+                <span data-sfw-count className="text-xs text-slate-500">{shown.length} von {res.items.length} Zielen</span>
+              </div>
+              {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Nichts passt zu den Filtern. Erhöhe den Umweg oder nimm einen Filter heraus.</div>}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[480px] lg:overflow-y-auto lg:pr-1">{shown.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} onPick={(x) => onAddStop(stage.id, x)} />)}</ul><div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div></div>
+                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4"><SfwMap key={`${res.A}|${res.B}`} A={res.A} B={res.B} line={res.line} items={shown} selId={selId} onSelect={setSelId} /></div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    function StageAssistant({ trip, stage, index, onAddStop }) {
+      const [open, setOpen] = useState(null);
+      const steps = [['way', '① Weg', 'Ziele entlang der Strecke vorschlagen', true], ['hotel', '② Hotel', 'Hotelauswahl nach Kriterien – folgt in der nächsten Version', false], ['do', '③ Vor Ort', 'Aktionen und Unternehmungen – folgt in der nächsten Version', false]];
+      return (
+        <div data-stage-assistant className="v18-edit-only no-print px-4 py-2.5 bg-[#F5F8FC] border-b border-slate-100 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#173B6B]">Assistent</span>
+            {steps.map(([k, l, tip, ok]) => <button key={k} type="button" data-readonly-allow data-assist={k} title={tip} disabled={!ok} aria-pressed={open === k} onClick={() => setOpen(open === k ? null : k)} className={`h-9 px-3 rounded-full border text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${open === k ? 'bg-[#1F4E8C] border-[#1F4E8C] text-white' : 'bg-white border-slate-300 text-slate-700'}`}>{l}{!ok && <span className="ml-1 text-[11px] font-normal text-slate-400">bald</span>}</button>)}
+          </div>
+          {open === 'way' && <StageWayPanel trip={trip} stage={stage} index={index} onAddStop={onAddStop} />}
+        </div>
       );
     }
 
@@ -20138,6 +20317,11 @@ var qrcode = function() {
         }
       };
 
+      const handleAddWayStop = (stageId, c) => {
+        const st = (tripData.stages || []).map((s) => s.id !== stageId ? s : { ...s, routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: [...((s.routeToHotel && s.routeToHotel.stopsOnWay) || []), { id: `stop-${Date.now()}`, name: c.name, time: '', duration: 'ca. 1 Std.', address: '', gps: `${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}`, costEur: 0, notes: `${SFW_KINDS[c.kind] || 'Stopp'}, ca. ${c.detour} min Umweg` }] } });
+        saveTripData({ ...tripData, stages: st }, `Zwischenstopp „${c.name}“ eingetragen`);
+      };
+
       const handleMoveStage = (index, direction) => {
         const stages = [...(tripData.stages || [])];
         const targetIndex = index + direction;
@@ -20410,6 +20594,8 @@ var qrcode = function() {
                               </button>
                             </div>
                           </div>
+
+                          <StageAssistant trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} />
 
                           {isExpanded && (
                             <div className="p-3 sm:p-5 space-y-6">
