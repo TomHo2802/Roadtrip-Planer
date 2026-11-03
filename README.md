@@ -148,3 +148,7 @@ Fix: In der Assistenten-Leiste gibt es jetzt „Details anzeigen/ausblenden“ �
 ② Hotel: Unterkünfte aus OpenStreetMap (bis 8 km), Filter Typ/Sterne/Entfernung/WLAN/Merkliste, Sortierung, eigene Felder für Preis und Bewertung (werden auf diesem Gerät gespeichert), Links zu Booking (mit Reisedaten und Personenzahl) und Google, „Als Hotel übernehmen“ (Name, Adresse, GPS, Preis × Nächte, Bewertung, Links).
 ③ Vor Ort: bekannte Orte im Umkreis (Wikidata/Wikipedia) mit Foto, Beschreibung, Filter, Umkreis, „Zu Aktionen hinzufügen“ (bei mehreren Nächten Tag wählbar).
 Übernommene Karten zeigen „✓ Übernommen“.
+
+## v33
+Hotelsuche robuster: kleinere Abfrage (6 km), zweiter Versuch mit 3,5 km, zusätzliche Overpass-Server und als Ersatz Nominatim, wenn Overpass nicht antwortet (Hinweis in der Liste).
+Neue Kategorie „Shopping“ (Einkaufszentren, Outlets, Kaufhäuser, Märkte) bei ① Weg und ③ Vor Ort.
