@@ -132,3 +132,9 @@ Bei jeder Etappe steht unter der Kopfzeile eine Leiste Assistent: ① Weg · ②
 Ein Fortschrittsbalken in % zeigt die Teilschritte (Route, Orte pro Streckenabschnitt, Fotos, Umwege) mit Abbrechen-Button. Ergebnisse werden 30 Tage auf dem Gerät zwischengespeichert, ein zweiter Aufruf dauert nur Sekunden.
 „Als Stopp übernehmen“ trägt das Ziel unter „Weg zum Hotel“ der Etappe ein (Aufenthalt vorbelegt mit ca. 1 Std., danach anpassbar).
 Start ist das Hotel/Ziel der vorigen Etappe, Ziel das Hotel dieser Etappe (sonst werden die Ortsnamen gesucht).
+
+## v30
+„Ziele auf dem Weg“ nutzt jetzt Wikidata (Abschnitt für Abschnitt entlang der Route) statt Overpass.
+„Neu suchen“ umgeht den Zwischenspeicher und startet wirklich eine neue Suche.
+Leere oder unvollständige Ergebnisse werden nicht mehr gespeichert; Fehler werden im Panel angezeigt.
+Prüfen: In der Seitenleiste muss „Version 30“ stehen (sonst alte Version im Cache: Seite neu laden).
