@@ -111,3 +111,17 @@ Nur noch „interessante“ Orte: Wikidata-Treffer brauchen Einwohnerzahl und me
 ## v26
 Etappen-Finder mit Bild und Karte: links die gefundenen Orte als Karten mit Foto (Wikimedia Commons bzw. Wikipedia), Entfernung, Fahrzeit, Einwohnerzahl und Kurzbeschreibung; rechts eine Karte mit dem Routenabschnitt vom Startort zum gewählten Ort. Ort anklicken (Liste oder Karte) wählt ihn aus, „Übernehmen“ trägt ihn als Etappe ein. Am Handy steht die Karte über der Liste.
 Fotos und Karte brauchen Internet; ohne Foto erscheint ein Platzhalter, ohne Routing eine gestrichelte Luftlinie.
+
+## v27
+Etappen-Finder: Treffer sind standardmäßig nach Entfernung sortiert (nah → weit); umschaltbar auf „Größte zuerst“. Es werden bis zu 40 Orte geladen.
+Filter-Buttons (mit Trefferanzahl): Größe (Großstadt / Stadt / Kleinstadt, untereinander „oder“), dazu Am Wasser, Bekannt, Hauptstadt, Höhenlage, Mit Foto (alle „und“). „Zurücksetzen“ löscht die Auswahl. Liste und Karte zeigen nur die passenden Orte.
+Eigenschaften stammen aus Wikidata; Orte, die nur aus OpenStreetMap stammen, haben keine Angabe zu „Am Wasser“, „Hauptstadt“ oder „Höhenlage“ und fallen bei diesen Filtern heraus.
+
+## v28
+Etappen-Finder: neue Filter nach Eigenschaften (aus OpenStreetMap, werden nach der Suche im Hintergrund geladen, solange zeigen die Buttons „…“):
+Strand – Sandstrand höchstens ca. 4 km vom Ort
+Nationalpark / Natur – Nationalpark im Umkreis von 25 km oder Naturschutzgebiet im Umkreis von 8 km
+See / Fluss / Wasserfall – Gewässer oder Wasserfall in der Nähe
+Freizeitpark / Zoo – auch Aquarium, im Umkreis von 10 km
+Viele Sehenswürdigkeiten – mindestens 15 Attraktionen und historische Orte im Umkreis von 2,5 km
+Daneben bleiben die Größenfilter (Großstadt / Stadt / Kleinstadt). Zutreffende Eigenschaften stehen als Etiketten an jedem Ort.
