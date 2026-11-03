@@ -166,3 +166,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Neuer Schalter „Darstellung“: in der Seitenleiste (Hell · Auto · Dunkel), am Handy oben in der Kopfzeile (tippen wechselt Hell → Dunkel → Auto).
 - Dunkel = Dark-Glass-Optik (dunkler Hintergrund, halbtransparente Karten, abgedunkelte Karte). Auto folgt der Einstellung des Geräts. Die Wahl wird pro Gerät gespeichert.
 - Beim Drucken wird immer die helle Darstellung verwendet.
+
+## v38
+- Dunkle Darstellung freundlicher: hellere blaue Grundfarbe, kräftigere Farbverläufe, hellere Karten und Ränder, lebendigere Buttons.
