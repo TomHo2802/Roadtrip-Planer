@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 33</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 34</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19411,14 +19411,21 @@ var qrcode = function() {
       }
       sfwTextCache[c.id] = out; return out;
     }
+    function asRevealCard(el, fromMap) {
+      if (!el) return; let a = el.parentElement; while (a && !(a.scrollHeight > a.clientHeight + 4 && /(auto|scroll)/.test(getComputedStyle(a).overflowY))) a = a.parentElement;
+      if (a && a !== document.body && a !== document.documentElement) { const r = el.getBoundingClientRect(), ar = a.getBoundingClientRect(); a.scrollTo({ top: a.scrollTop + (r.top - ar.top) - (ar.height - r.height) / 2, behavior: 'smooth' }); }
+      else if (fromMap) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    const asMapSelect = (fn) => (id) => { window.__asMapClick = true; fn(id); };
     function SfwCard({ c, selected, onSelect, onPick, meta, pickLabel }) {
-      const [done, setDone] = useState(false);
+      const [done, setDone] = useState(false); const liRef = useRef(null); const mounted = useRef(false);
+      useEffect(() => { if (selected && mounted.current) { asRevealCard(liRef.current, window.__asMapClick); } mounted.current = true; window.__asMapClick = false; }, [selected]);
       const [info, setInfo] = useState(c.img ? { img: c.img, desc: '' } : (sfInfoCache[c.id] || null)); const [bad, setBad] = useState(false); const [more, setMore] = useState(false); const [lt, setLt] = useState(sfwTextCache[c.id] || null);
       const toggleMore = (e) => { e.stopPropagation(); const n = !more; setMore(n); if (n && !lt) { setLt({ loading: true }); sfwLongText(c).then(setLt); } };
       useEffect(() => { let on = true; if (!info || (!info.img && !info.desc)) sfWikiInfo({ id: c.id, name: c.name, wp: c.wp }).then((i) => on && setInfo({ img: c.img || i.img, desc: i.desc })); return () => { on = false; }; }, [c.id]);
       const photo = !bad && (c.img || (info && info.img));
       return (
-        <li data-sfw-card aria-current={selected ? 'true' : undefined} onClick={onSelect} className={`list-none flex gap-3 rounded-xl border bg-white p-2.5 cursor-pointer transition ${selected ? 'border-[#1F4E8C] ring-2 ring-[#BCCDE6]' : 'border-slate-200 hover:border-slate-300'}`}>
+        <li ref={liRef} data-sfw-card aria-current={selected ? 'true' : undefined} onClick={onSelect} className={`list-none flex gap-3 rounded-xl border bg-white p-2.5 cursor-pointer transition ${selected ? 'border-[#1F4E8C] ring-2 ring-[#BCCDE6]' : 'border-slate-200 hover:border-slate-300'}`}>
           <div className="shrink-0 w-28 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-[#D6E2F3] to-[#BCCDE6] flex items-center justify-center text-3xl font-bold text-[#1F4E8C]">{photo ? <img src={photo} alt={`Foto ${c.name}`} loading="lazy" referrerPolicy="no-referrer" onError={() => setBad(true)} className="w-full h-full object-cover" /> : <span aria-hidden="true">{(c.name || '?').charAt(0)}</span>}</div>
           <div className="min-w-0 flex-1 flex flex-col">
             <div className="font-bold text-slate-900 leading-tight break-words">{c.name}</div>
@@ -19481,7 +19488,7 @@ var qrcode = function() {
               {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Nichts passt zu den Filtern. Erhöhe den Umweg oder nimm einen Filter heraus.</div>}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
                 <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[480px] lg:overflow-y-auto lg:pr-1">{shown.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} onPick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddStop(stage.id, x, t); }} />)}</ul><div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div></div>
-                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4"><SfwMap key={`${res.A}|${res.B}`} A={res.A} B={res.B} line={res.line} items={shown} selId={selId} onSelect={setSelId} /></div>
+                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4"><SfwMap key={`${res.A}|${res.B}`} A={res.A} B={res.B} line={res.line} items={shown} selId={selId} onSelect={asMapSelect(setSelId)} /></div>
               </div>
             </div>
           )}
@@ -19564,8 +19571,10 @@ var qrcode = function() {
       return { items, via: j ? 'overpass' : 'nominatim' };
     }
     function AsHotelCard({ c, selected, onSelect, note, setNote, links, onPick }) {
+      const liRef = useRef(null); const mounted = useRef(false);
+      useEffect(() => { if (selected && mounted.current) { asRevealCard(liRef.current, window.__asMapClick); } mounted.current = true; window.__asMapClick = false; }, [selected]);
       return (
-        <li data-as-hotel aria-current={selected ? 'true' : undefined} onClick={onSelect} className={`list-none rounded-xl border bg-white p-3 cursor-pointer transition space-y-1.5 ${selected ? 'border-[#1F4E8C] ring-2 ring-[#BCCDE6]' : 'border-slate-200 hover:border-slate-300'}`}>
+        <li ref={liRef} data-as-hotel aria-current={selected ? 'true' : undefined} onClick={onSelect} className={`list-none rounded-xl border bg-white p-3 cursor-pointer transition space-y-1.5 ${selected ? 'border-[#1F4E8C] ring-2 ring-[#BCCDE6]' : 'border-slate-200 hover:border-slate-300'}`}>
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <div className="font-bold text-slate-900 leading-tight break-words">{c.name}</div>
@@ -19642,7 +19651,7 @@ var qrcode = function() {
               {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Nichts passt zu den Filtern.</div>}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
                 <ul className="order-2 lg:order-1 space-y-2 p-0 m-0 lg:max-h-[520px] lg:overflow-y-auto lg:pr-1 min-w-0">{shown.map((c) => <AsHotelCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} note={getN(c)} setNote={(pt) => setN(c, pt)} links={linksOf(c)} onPick={pick} />)}</ul>
-                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">{P && <AsMap key={P.join()} P={P} items={shown} selId={selId} onSelect={setSelId} nameOf={(c) => c.name} />}</div>
+                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">{P && <AsMap key={P.join()} P={P} items={shown} selId={selId} onSelect={asMapSelect(setSelId)} nameOf={(c) => c.name} />}</div>
               </div>
             </div>
           )}
@@ -19705,7 +19714,7 @@ var qrcode = function() {
               {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Nichts passt zu den Filtern. Erhöhe den Umkreis oder nimm einen Filter heraus.</div>}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
                 <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[520px] lg:overflow-y-auto lg:pr-1">{shown.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} meta={<><b>{c.dist.toFixed(1).replace('.', ',')} km</b> vom Zentrum{c.kind === 'museum' ? ' · auch bei Regen' : ''}{have.has(c.name.toLowerCase()) ? ' · bereits in der Etappe' : ''}</>} pickLabel="Zu Aktionen hinzufügen" onPick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddLocal(stage.id, x, t, day); }} />)}</ul></div>
-                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">{P && <AsMap key={P.join()} P={P} items={shown} selId={selId} onSelect={setSelId} nameOf={(c) => `${c.name} (${c.dist.toFixed(1)} km)`} />}</div>
+                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">{P && <AsMap key={P.join()} P={P} items={shown} selId={selId} onSelect={asMapSelect(setSelId)} nameOf={(c) => `${c.name} (${c.dist.toFixed(1)} km)`} />}</div>
               </div>
             </div>
           )}
