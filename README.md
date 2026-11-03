@@ -161,3 +161,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v36
 - Der Assistent (Weg, Hotel, Vor Ort) erscheint jetzt ganz oben in der Etappe, direkt unter der Kopfzeile. Beim Einblenden der Details scrollt die Seite zu den Etappen-Details.
+
+## v37 – Hell / Dunkel / Automatisch
+- Neuer Schalter „Darstellung“: in der Seitenleiste (Hell · Auto · Dunkel), am Handy oben in der Kopfzeile (tippen wechselt Hell → Dunkel → Auto).
+- Dunkel = Dark-Glass-Optik (dunkler Hintergrund, halbtransparente Karten, abgedunkelte Karte). Auto folgt der Einstellung des Geräts. Die Wahl wird pro Gerät gespeichert.
+- Beim Drucken wird immer die helle Darstellung verwendet.
