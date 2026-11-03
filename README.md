@@ -107,3 +107,7 @@ Kompassrose: Himmelsrichtung antippen (N, NO, O, SO, S, SW, W, NW); „alle“ i
 ## v25
 Etappen-Finder: Regler-Punkte sitzen exakt auf der Linie.
 Nur noch „interessante“ Orte: Wikidata-Treffer brauchen Einwohnerzahl und mehrere Sprachversionen bei Wikipedia (keine Statistik-Orte ohne Bedeutung); OpenStreetMap-Treffer nur Städte, Orte ab 10.000 Einwohnern oder mit Wikipedia-Eintrag. Orte, deren Mittelpunkt mehr als 2,5 km vom Straßennetz entfernt liegt, werden aussortiert (die „Punkte in der Botanik“).
+
+## v26
+Etappen-Finder mit Bild und Karte: links die gefundenen Orte als Karten mit Foto (Wikimedia Commons bzw. Wikipedia), Entfernung, Fahrzeit, Einwohnerzahl und Kurzbeschreibung; rechts eine Karte mit dem Routenabschnitt vom Startort zum gewählten Ort. Ort anklicken (Liste oder Karte) wählt ihn aus, „Übernehmen“ trägt ihn als Etappe ein. Am Handy steht die Karte über der Liste.
+Fotos und Karte brauchen Internet; ohne Foto erscheint ein Platzhalter, ohne Routing eine gestrichelte Luftlinie.
