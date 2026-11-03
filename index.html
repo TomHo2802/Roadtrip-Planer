@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 26</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 28</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19017,7 +19017,7 @@ var qrcode = function() {
       return j && j[0] ? [Number(j[0].lat), Number(j[0].lon)] : null;
     }
     async function sfWikidata(origin, Rkm, minPop, minSl) {
-      const q = `SELECT ?item ?itemLabel ?loc ?pop ?img WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${origin[1]} ${origin[0]})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Math.round(Rkm)}" . } ?item wdt:P1082 ?pop . FILTER(?pop > ${minPop}) ?item wdt:P31/wdt:P279* wd:Q486972 . ?item wikibase:sitelinks ?sl . FILTER(?sl >= ${minSl}) FILTER NOT EXISTS { ?item wdt:P31 wd:Q498162 } . OPTIONAL { ?item wdt:P18 ?img } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?pop) LIMIT 250`;
+      const q = `SELECT ?item ?itemLabel ?loc ?pop ?img ?sl ?elev ?water ?cap WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${origin[1]} ${origin[0]})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Math.round(Rkm)}" . } ?item wdt:P1082 ?pop . FILTER(?pop > ${minPop}) ?item wdt:P31/wdt:P279* wd:Q486972 . ?item wikibase:sitelinks ?sl . FILTER(?sl >= ${minSl}) FILTER NOT EXISTS { ?item wdt:P31 wd:Q498162 } . BIND(EXISTS { ?item wdt:P206 ?w0 } AS ?water) BIND(EXISTS { ?item wdt:P1376 ?c0 } AS ?cap) OPTIONAL { ?item wdt:P2044 ?elev } OPTIONAL { ?item wdt:P18 ?img } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?pop) LIMIT 250`;
       const j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 25000);
       const m = new Map();
       ((j.results && j.results.bindings) || []).forEach((r) => {
@@ -19025,7 +19025,8 @@ var qrcode = function() {
         const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
         const id = r.item.value, pop = Number(r.pop.value) || 0, prev = m.get(id);
         const img = r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : (prev && prev.img) || '';
-        if (!prev || pop > prev.pop) m.set(id, { id, name, lat: Number(mm[2]), lon: Number(mm[1]), pop, type: 'city', img }); else if (img && !prev.img) prev.img = img;
+        const extra = { sl: Number(r.sl && r.sl.value) || 0, water: !!(r.water && r.water.value === 'true'), cap: !!(r.cap && r.cap.value === 'true'), elev: r.elev ? Number(r.elev.value) : null };
+        if (!prev || pop > prev.pop) m.set(id, { id, name, lat: Number(mm[2]), lon: Number(mm[1]), pop, type: 'city', img, ...extra }); else if (img && !prev.img) prev.img = img;
       });
       return [...m.values()];
     }
@@ -19034,7 +19035,7 @@ var qrcode = function() {
       let j;
       try { j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 25000))); }
       catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
-      return (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null && (e.tags.place === 'city' || Number(e.tags.population) >= 10000 || e.tags.wikipedia || e.tags.wikidata)).map((e) => ({ id: 'o' + e.id, name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, wp: e.tags.wikipedia || '' }));
+      return (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null && (e.tags.place === 'city' || Number(e.tags.population) >= 10000 || e.tags.wikipedia || e.tags.wikidata)).map((e) => ({ id: 'o' + (e.id != null ? e.id : e.lat + ',' + e.lon), name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, wp: e.tags.wikipedia || '' }));
     }
     async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin, dir) {
       const maxStraight = mode === 'km' ? limitKm : (limitMin / 60) * 110; // Luftlinie <= Fahrstrecke, 110 km/h als obere Schranke
@@ -19059,7 +19060,7 @@ var qrcode = function() {
           chunk.forEach((c, k) => { const d = t.distances[0][k + 1], s = t.durations[0][k + 1]; const snap = t.destinations && t.destinations[k + 1] && t.destinations[k + 1].distance; if (snap != null && snap > 2500) return; if (d != null && s != null) out.push({ ...c, km: d / 1000, min: s / 60 }); });
         } catch (e) { estimated = true; chunk.forEach((c) => out.push({ ...c, km: c.air * 1.3, min: (c.air * 1.3) / 80 * 60 })); }
       }
-      const items = out.filter((c) => (mode === 'km' ? c.km <= limitKm && c.km >= minKm : c.min <= limitMin && c.min >= minMin)).sort((a, b) => (b.pop - a.pop) || (a.km - b.km)).slice(0, 15);
+      const items = out.filter((c) => (mode === 'km' ? c.km <= limitKm && c.km >= minKm : c.min <= limitMin && c.min >= minMin)).sort((a, b) => a.km - b.km).slice(0, 40);
       return { items, estimated };
     }
     const SF_DIRS = [['N', 'Norden', 0], ['NO', 'Nordosten', 45], ['O', 'Osten', 90], ['SO', 'Südosten', 135], ['S', 'Süden', 180], ['SW', 'Südwesten', 225], ['W', 'Westen', 270], ['NW', 'Nordwesten', 315]];
@@ -19103,7 +19104,7 @@ var qrcode = function() {
       }
       sfInfoCache[key] = info; return info;
     }
-    function SfPlaceCard({ c, selected, onSelect, onPick }) {
+    function SfPlaceCard({ c, e: en, selected, onSelect, onPick }) {
       const [info, setInfo] = useState(sfInfoCache[c.id || c.name] || null);
       const [imgBad, setImgBad] = useState(false);
       useEffect(() => { let on = true; if (!info) sfWikiInfo(c).then((i) => on && setInfo(i)); return () => { on = false; }; }, [c.id, c.name]);
@@ -19117,6 +19118,7 @@ var qrcode = function() {
           <div className="min-w-0 flex-1 flex flex-col">
             <div className="font-bold text-slate-900 leading-tight break-words">{c.name}</div>
             <div className="text-xs text-slate-600 mt-0.5">{Math.round(c.km)} km · {sfFmtH(c.min)}</div>
+            <div className="flex flex-wrap gap-1 mt-0.5">{[['beach', 'Strand', (e) => e.beach > 0], ['park', 'Natur', (e) => e.park > 0], ['water', 'Gewässer', (e) => e.water > 0 || c.water === true], ['fun', 'Freizeit', (e) => e.fun > 0], ['sights', 'Sehenswürdigkeiten', (e) => e.sights >= 15]].filter(([k, l, f]) => en && f(en)).map(([k, l]) => <span key={k} className="text-[11px] px-1.5 rounded bg-[#E8EEF7] text-[#173B6B]">{l}</span>)}</div>
             <div className="text-xs text-slate-500">{c.pop ? `${c.pop.toLocaleString('de-DE')} Einwohner` : ''}{desc ? `${c.pop ? ' · ' : ''}${desc}` : ''}</div>
             <div className="mt-auto pt-1.5 flex gap-2">
               <button type="button" data-readonly-allow onClick={(e) => { e.stopPropagation(); onPick(c); }} className="v18-btn pri sm">Übernehmen</button>
@@ -19130,7 +19132,7 @@ var qrcode = function() {
     function SfMap({ origin, items, selId, onSelect, originName }) {
       const el = useRef(null), mapRef = useRef(null), grp = useRef(null), routeRef = useRef(null);
       const [note, setNote] = useState('');
-      const sel = items.find((x) => (x.id || x.name) === selId) || items[0];
+      const sel = items.find((x) => (x.id || x.name) === selId) || items[0] || null;
       useEffect(() => {
         if (!window.L || !el.current) return; const L = window.L;
         const map = L.map(el.current, { zoomControl: true, attributionControl: true, scrollWheelZoom: false }).setView(origin, 6);
@@ -19145,7 +19147,7 @@ var qrcode = function() {
         items.forEach((c) => { const on = sel && (c.id || c.name) === (sel.id || sel.name); L.circleMarker([c.lat, c.lon], { radius: on ? 10 : 6, color: '#1F4E8C', weight: on ? 3 : 2, fillColor: on ? '#1F4E8C' : '#fff', fillOpacity: 1 }).bindTooltip(c.name).on('click', () => onSelect(c.id || c.name)).addTo(grp.current); });
       }, [items, selId]);
       useEffect(() => {
-        const L = window.L, map = mapRef.current; if (!L || !map || !sel) return; let on = true;
+        const L = window.L, map = mapRef.current; if (!L || !map) return; if (routeRef.current) { map.removeLayer(routeRef.current); routeRef.current = null; } if (!sel) { setNote(''); return; } let on = true;
         if (routeRef.current) { map.removeLayer(routeRef.current); routeRef.current = null; }
         const key = `${origin}|${sel.lat},${sel.lon}`;
         const draw = (pts, dashed) => { if (!on) return; routeRef.current = L.polyline(pts, { color: '#1F4E8C', weight: 5, opacity: 0.9, dashArray: dashed ? '8 8' : null }).addTo(map); map.fitBounds(routeRef.current.getBounds(), { padding: [30, 30], maxZoom: 9 }); };
@@ -19163,6 +19165,30 @@ var qrcode = function() {
         </div>
       );
     }
+    const sfEnrCache = {};
+    async function sfEnrich(items) {
+      const out = {}; const todo = [];
+      items.forEach((c) => { const k = `${c.lat.toFixed(3)},${c.lon.toFixed(3)}`; if (sfEnrCache[k]) out[c.id || c.name] = sfEnrCache[k]; else todo.push({ c, k }); });
+      const chunks = []; for (let i = 0; i < todo.length; i += 10) chunks.push(todo.slice(i, i + 10));
+      const blk = (c) => { const p = `${c.lat},${c.lon}`; return [
+        `nwr["natural"="beach"](around:4000,${p});out count;`,
+        `(nwr["boundary"="national_park"](around:25000,${p});nwr["leisure"="nature_reserve"]["name"](around:8000,${p}););out count;`,
+        `(nwr["waterway"="waterfall"](around:15000,${p});nwr["natural"="water"]["water"~"^(lake|reservoir)$"]["name"](around:5000,${p});way["waterway"="river"]["name"](around:3000,${p}););out count;`,
+        `nwr["tourism"~"^(theme_park|zoo|aquarium)$"](around:10000,${p});out count;`,
+        `(nwr["tourism"="attraction"](around:2500,${p});nwr["historic"](around:2500,${p}););out count;`]; };
+      let ok = 0, fail = 0;
+      await Promise.all(chunks.map(async (ch) => {
+        const q = `[out:json][timeout:40];\n${ch.map(({ c }) => blk(c).join('\n')).join('\n')}`;
+        try {
+          const j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 45000)));
+          const cnt = (j.elements || []).filter((e) => e.type === 'count').map((e) => Number(e.tags && e.tags.total) || 0);
+          if (cnt.length < ch.length * 5) throw new Error('unvollständig');
+          ch.forEach(({ c, k }, i) => { const v = { beach: cnt[i * 5], park: cnt[i * 5 + 1], water: cnt[i * 5 + 2], fun: cnt[i * 5 + 3], sights: cnt[i * 5 + 4] }; sfEnrCache[k] = v; out[c.id || c.name] = v; });
+          ok += ch.length;
+        } catch (e) { fail += ch.length; }
+      }));
+      return { map: out, ok, fail };
+    }
     function StageFinder({ trip, onPick }) {
       const stages = trip.stages || [];
       const [from, setFrom] = useState(Math.max(0, stages.length - 1));
@@ -19170,8 +19196,25 @@ var qrcode = function() {
       const [rng, setRng] = useState([0, 300]);
       const [dir, setDir] = useState(null);
       const [selId, setSelId] = useState(null);
+      const [flt, setFlt] = useState([]);
+      const [enr, setEnr] = useState({ busy: false, map: {}, fail: 0 });
+      const [sortBy, setSortBy] = useState('km');
       const [st, setSt] = useState({ busy: false, err: '', items: null, estimated: false, origin: null });
       useEffect(() => { if (from >= stages.length) setFrom(Math.max(0, stages.length - 1)); }, [stages.length]);
+      const E = (c) => enr.map[c.id || c.name] || null;
+      const FLT = [['big', 'Großstadt', 'Ab 250.000 Einwohnern', (c) => c.pop >= 250000, 'size'], ['mid', 'Stadt', '50.000 bis 250.000 Einwohner', (c) => c.pop >= 50000 && c.pop < 250000, 'size'], ['small', 'Kleinstadt', 'Unter 50.000 Einwohnern', (c) => c.pop > 0 && c.pop < 50000, 'size'],
+        ['beach', 'Strand', 'Sandstrand höchstens ca. 4 km vom Ort', (c) => !!E(c) && E(c).beach > 0, 'f'],
+        ['park', 'Nationalpark / Natur', 'Nationalpark im Umkreis von 25 km oder Naturschutzgebiet im Umkreis von 8 km', (c) => !!E(c) && E(c).park > 0, 'f'],
+        ['water', 'See / Fluss / Wasserfall', 'Gewässer oder Wasserfall in der Nähe', (c) => c.water === true || (!!E(c) && E(c).water > 0), 'f'],
+        ['fun', 'Freizeitpark / Zoo', 'Freizeitpark, Zoo oder Aquarium im Umkreis von 10 km', (c) => !!E(c) && E(c).fun > 0, 'f'],
+        ['sights', 'Viele Sehenswürdigkeiten', 'Mindestens 15 Attraktionen und historische Orte im Umkreis von 2,5 km', (c) => !!E(c) && E(c).sights >= 15, 'f']];
+      useEffect(() => { if (!st.items || !st.items.length) { setEnr({ busy: false, map: {}, fail: 0 }); return; } let on = true; setEnr({ busy: true, map: {}, fail: 0 }); sfEnrich(st.items).then((r) => on && setEnr({ busy: false, map: r.map, fail: r.fail })); return () => { on = false; }; }, [st.items]);
+      const sizeSel = FLT.filter((f) => f[4] === 'size' && flt.includes(f[0])), featSel = FLT.filter((f) => f[4] === 'f' && flt.includes(f[0]));
+      const shown = useMemo(() => {
+        const base = (st.items || []).filter((c) => (!sizeSel.length || sizeSel.some((f) => f[3](c))) && featSel.every((f) => f[3](c)));
+        return [...base].sort(sortBy === 'km' ? (a, b) => a.km - b.km : (a, b) => b.pop - a.pop);
+      }, [st.items, flt, sortBy]);
+      useEffect(() => { if (shown.length && !shown.some((c) => (c.id || c.name) === selId)) setSelId(shown[0].id || shown[0].name); }, [shown]);
       if (!stages.length) return null;
       const o = stages[Math.min(from, stages.length - 1)]; const next = stages[from + 1];
       const label = (s) => (s.toCity || s.fromCity || '–');
@@ -19226,15 +19269,28 @@ var qrcode = function() {
             {st.items && st.items.length > 0 && (
               <div className="space-y-2">
                 {st.estimated && <div className="text-xs text-amber-900">Routing-Dienst nicht erreichbar: Werte sind geschätzt (Luftlinie × 1,3).</div>}
+                <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Orte filtern">
+                  {FLT.map(([k, l, tip, fn]) => { const on = flt.includes(k); const n = st.items.filter(fn).length; const wait = enr.busy && !['big', 'mid', 'small'].includes(k); return <button key={k} type="button" data-readonly-allow data-flt={k} aria-pressed={on} title={tip} disabled={wait || (!on && n === 0)} onClick={() => setFlt(on ? flt.filter((x) => x !== k) : [...flt, k])} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-full border text-sm font-semibold disabled:opacity-40 ${on ? 'bg-[#1F4E8C] border-[#1F4E8C] text-white' : 'bg-white border-slate-300 text-slate-700'}`}>{l}<span className={`text-xs ${on ? 'text-[#D6E2F3]' : 'text-slate-400'}`}>{wait ? '…' : n}</span></button>; })}
+                  {flt.length > 0 && <button type="button" data-readonly-allow onClick={() => setFlt([])} className="text-sm font-semibold text-[#1F4E8C] px-1">Zurücksetzen</button>}
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                  <span data-sf-count>{shown.length} von {st.items.length} Orten</span>
+                  <span className="inline-flex items-center gap-1.5">Sortierung:
+                    {[['km', 'Nah → weit'], ['pop', 'Größte zuerst']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={sortBy === k} onClick={() => setSortBy(k)} className={`h-8 px-2.5 rounded-lg border text-xs font-semibold ${sortBy === k ? 'bg-[#E8EEF7] border-[#BCCDE6] text-[#173B6B]' : 'bg-white border-slate-300 text-slate-600'}`}>{l}</button>)}
+                  </span>
+                </div>
+                {enr.busy && <div className="text-xs text-slate-500">Zusatzinfos zu Strand, Natur, Freizeit und Sehenswürdigkeiten werden geladen …</div>}
+                {!enr.busy && enr.fail > 0 && <div className="text-xs text-amber-900">Für {enr.fail} Orte konnten die Zusatzinfos nicht geladen werden (Filter gelten dann nicht für sie).</div>}
+                {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Kein Ort passt zu allen Filtern. Nimm einen Filter heraus.</div>}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
                   <div className="order-2 lg:order-1 min-w-0">
                     <ul className="space-y-2 p-0 m-0 lg:max-h-[540px] lg:overflow-y-auto lg:pr-1">
-                      {st.items.map((c) => <SfPlaceCard key={c.id || `${c.name}-${c.lat}`} c={c} selected={(c.id || c.name) === selId} onSelect={() => setSelId(c.id || c.name)} onPick={(x) => onPick(from, x)} />)}
+                      {shown.map((c) => <SfPlaceCard key={c.id || `${c.name}-${c.lat}`} c={c} e={E(c)} selected={(c.id || c.name) === selId} onSelect={() => setSelId(c.id || c.name)} onPick={(x) => onPick(from, x)} />)}
                     </ul>
                     <div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div>
                   </div>
                   <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">
-                    <SfMap key={`${st.origin}`} origin={st.origin} items={st.items} selId={selId} onSelect={setSelId} originName={label(o)} />
+                    <SfMap key={`${st.origin}`} origin={st.origin} items={shown} selId={selId} onSelect={setSelId} originName={label(o)} />
                   </div>
                 </div>
               </div>
