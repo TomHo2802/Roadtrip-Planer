@@ -18951,7 +18951,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 29</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 30</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
@@ -19315,53 +19315,57 @@ var qrcode = function() {
         </div>
       );
     }
+    const sfwDistKm = (p, a, b) => { const k = Math.cos(p[0] * Math.PI / 180); const ax = (a[1] - p[1]) * k, ay = a[0] - p[0], bx = (b[1] - p[1]) * k, by = b[0] - p[0]; const dx = bx - ax, dy = by - ay; const l2 = dx * dx + dy * dy; let t = l2 ? -(ax * dx + ay * dy) / l2 : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(ax + t * dx, ay + t * dy) * 111.2; };
+    const sfwKindOf = (d) => { d = (d || '').toLowerCase();
+      if (/county|landkreis|bezirk|district|bundesstaat|us-bundesstaat|state of|provinz|province|region|census|unincorporated|gemeindefrei|town in|township|village in|dorf in|ort in/.test(d) && !/state park|nationalpark/.test(d)) return /(city|stadt)/.test(d) ? 'stadt' : null;
+      if (/museum|galerie|gallery/.test(d)) return 'museum';
+      if (/zoo|aquarium|theme park|amusement|freizeitpark|vergnügungspark|wasserpark|water park|casino/.test(d)) return 'freizeit';
+      if (/park|strand|beach|insel|island|bucht|bay|lake|see |wasserfall|waterfall|mountain|berg|canyon|aussicht|viewpoint|cave|höhle|nature|natur|reserve|sumpf|swamp|everglades|key |riff|reef|spring|quelle|forest|wald|river|fluss/.test(d)) return 'natur';
+      if (/city|stadt|großstadt|hauptstadt|municipality|gemeinde/.test(d)) return 'stadt';
+      return 'sehensw'; };
     async function sfwRun(A, B, setP, cancelled) {
       const chk = () => { if (cancelled()) throw new Error('__cancel'); };
-      setP(8, 'Route wird geladen …');
+      setP(6, 'Route wird geladen …');
       const rj = await fetchJsonT(`https://router.project-osrm.org/route/v1/driving/${A[1]},${A[0]};${B[1]},${B[0]}?overview=simplified&geometries=geojson`, 20000);
       const r0 = rj.routes && rj.routes[0]; if (!r0) throw new Error('Keine Route gefunden');
       const line = r0.geometry.coordinates.map(([x, y]) => [y, x]); const totalKm = r0.distance / 1000, totalMin = r0.duration / 60; chk();
-      // Strecke in Abschnitte teilen
-      const nSeg = Math.min(8, Math.max(1, Math.ceil(totalKm / 60)));
+      // Strecke in Abschnitte teilen, je Abschnitt eine Wikidata-Abfrage im Rechteck
+      const nSeg = Math.min(8, Math.max(1, Math.ceil(totalKm / 50)));
       const cum = [0]; for (let i = 1; i < line.length; i++) cum.push(cum[i - 1] + haversineM(line[i - 1], line[i]));
-      const segs = []; for (let s = 0; s < nSeg; s++) { const lo = cum[cum.length - 1] * s / nSeg, hi = cum[cum.length - 1] * (s + 1) / nSeg; let pts = line.filter((_, i) => cum[i] >= lo && cum[i] <= hi); if (pts.length < 2) pts = [line[Math.min(line.length - 1, Math.max(0, cum.findIndex((c) => c >= lo)))], line[Math.min(line.length - 1, cum.findIndex((c) => c >= hi) < 0 ? line.length - 1 : cum.findIndex((c) => c >= hi))]]; const step = Math.max(1, Math.ceil(pts.length / 10)); segs.push(pts.filter((_, i) => i % step === 0 || i === pts.length - 1)); }
-      setP(18, `Orte entlang der Strecke (0 von ${nSeg}) …`); let done = 0; const found = new Map();
-      await Promise.all(segs.map(async (pts) => {
-        const poly = pts.map((p) => `${p[0].toFixed(4)},${p[1].toFixed(4)}`).join(',');
-        const q = `[out:json][timeout:25];(nwr["tourism"~"^(attraction|viewpoint|museum|zoo|theme_park|aquarium)$"]["name"]["wikidata"](around:6000,${poly});nwr["natural"~"^(beach|waterfall|peak|cave_entrance)$"]["name"]["wikidata"](around:6000,${poly});nwr["historic"]["name"]["wikidata"](around:5000,${poly});node["place"~"^(city|town)$"]["wikidata"](around:8000,${poly}););out center 120;`;
-        try { const j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 30000)));
-          (j.elements || []).forEach((e) => { const t = e.tags || {}; const lat = e.lat != null ? e.lat : e.center && e.center.lat, lon = e.lon != null ? e.lon : e.center && e.center.lon; if (!t.name || !t.wikidata || lat == null) return; if (!found.has(t.wikidata)) found.set(t.wikidata, { id: t.wikidata, name: t.name, lat, lon, kind: sfwKind(t), wp: t.wikipedia || '' }); });
-        } catch (e) { /* Abschnitt ohne Antwort */ }
-        done++; setP(18 + 42 * done / nSeg, `Orte entlang der Strecke (${done} von ${nSeg}) …`);
-      })); chk();
-      let cand = [...found.values()]; if (!cand.length) return { line, totalKm, totalMin, items: [] };
-      // Bekanntheit + Foto per Wikidata
-      setP(62, 'Bekanntheit und Fotos werden geladen …');
-      const info = {};
-      try {
-        for (let i = 0; i < cand.length; i += 80) {
-          const ids = cand.slice(i, i + 80).map((c) => 'wd:' + c.id).join(' ');
-          const q = `SELECT ?item ?sl ?img ?itemLabel WHERE { VALUES ?item { ${ids} } ?item wikibase:sitelinks ?sl . OPTIONAL { ?item wdt:P18 ?img } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } }`;
-          const j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 25000);
-          ((j.results && j.results.bindings) || []).forEach((r) => { const id = r.item.value.split('/').pop(); const prev = info[id]; info[id] = { sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || (prev && prev.img) || '', label: r.itemLabel && !/^Q\d+$/.test(r.itemLabel.value) ? r.itemLabel.value : '' }; });
-        }
-      } catch (e) { /* ohne Zusatzinfos weiter */ }
-      cand = cand.map((c) => ({ ...c, sl: (info[c.id] && info[c.id].sl) || 0, img: (info[c.id] && info[c.id].img) || '', name: (info[c.id] && info[c.id].label) || c.name })).filter((c) => !Object.keys(info).length || c.sl >= 6);
+      const segs = []; for (let s2 = 0; s2 < nSeg; s2++) { const lo = cum[cum.length - 1] * s2 / nSeg, hi = cum[cum.length - 1] * (s2 + 1) / nSeg; let pts = line.filter((_, i) => cum[i] >= lo && cum[i] <= hi); if (pts.length < 1) pts = [line[Math.min(line.length - 1, Math.max(0, cum.findIndex((c) => c >= lo)))]]; segs.push(pts); }
+      setP(14, `Orte entlang der Strecke (0 von ${nSeg}) …`); let done = 0, failed = 0, lastErr = ''; const found = new Map();
+      const pad = 0.12;
+      const one = async (pts) => {
+        const S = Math.min(...pts.map((p) => p[0])) - pad, N = Math.max(...pts.map((p) => p[0])) + pad, W = Math.min(...pts.map((p) => p[1])) - pad, Ea = Math.max(...pts.map((p) => p[1])) + pad;
+        const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d WHERE { SERVICE wikibase:box { ?item wdt:P625 ?loc . bd:serviceParam wikibase:cornerSouthWest "Point(${W.toFixed(4)} ${S.toFixed(4)})"^^geo:wktLiteral . bd:serviceParam wikibase:cornerNorthEast "Point(${Ea.toFixed(4)} ${N.toFixed(4)})"^^geo:wktLiteral . } ?item wikibase:sitelinks ?sl . FILTER(?sl >= 12) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 300`;
+        let j; for (let tr = 0; tr < 2 && !j; tr++) { try { j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 30000); } catch (e) { lastErr = e.message; if (tr === 0) await new Promise((r) => setTimeout(r, 1500)); } }
+        if (!j) failed++; else ((j.results && j.results.bindings) || []).forEach((r) => {
+          const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return; const id = r.item.value.split('/').pop(); const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
+          const prev = found.get(id) || {}; const d = (r.d && r.d.value) || prev.d || '';
+          found.set(id, { id, name, lat: Number(mm[2]), lon: Number(mm[1]), sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d });
+        });
+        done++; setP(14 + 60 * done / nSeg, `Orte entlang der Strecke (${done} von ${nSeg}) …`);
+      };
+      const queue = segs.slice(); await Promise.all([0, 1, 2].map(async () => { while (queue.length) { await one(queue.shift()); chk(); } })); chk();
+      if (failed === nSeg) throw new Error(`Wikidata nicht erreichbar (${lastErr || 'keine Antwort'})`);
+      // nur Orte nahe an der Strecke, sinnvolle Arten
+      setP(76, 'Treffer werden geprüft …');
+      let cand = [...found.values()].map((c) => ({ ...c, kind: sfwKindOf(c.d), off: Math.min(...line.slice(1).map((p, i) => sfwDistKm([c.lat, c.lon], line[i], p))) })).filter((c) => c.kind && c.off <= (c.kind === 'stadt' ? 12 : 8) && haversineM(A, [c.lat, c.lon]) > 3000 && haversineM(B, [c.lat, c.lon]) > 3000);
       cand.sort((a, b) => b.sl - a.sl); cand = cand.slice(0, 60); chk();
-      // Umweg per OSRM-Tabelle
-      setP(80, 'Umwege werden berechnet …');
+      if (!cand.length) return { line, totalKm, totalMin, items: [], failed };
+      setP(82, 'Umwege werden berechnet …');
       try {
         const coords = [A, B, ...cand.map((c) => [c.lat, c.lon])].map((p) => `${p[1]},${p[0]}`).join(';');
         const t = await fetchJsonT(`https://router.project-osrm.org/table/v1/driving/${coords}?sources=0;1&annotations=duration,distance`, 25000);
         const ab = t.durations[0][1] / 60;
         cand.forEach((c, i) => { const a1 = t.durations[0][i + 2] / 60, b1 = t.durations[1][i + 2] / 60; c.detour = Math.max(0, Math.round(a1 + b1 - ab)); c.fromStartKm = t.distances[0][i + 2] / 1000; c.snap = t.destinations && t.destinations[i + 2] ? t.destinations[i + 2].distance : 0; });
-        cand = cand.filter((c) => !(c.snap > 2500) && c.detour != null);
+        cand = cand.filter((c) => !(c.snap > 2500));
       } catch (e) {
         const ab = haversineM(A, B) / 1000;
         cand.forEach((c) => { const a1 = haversineM(A, [c.lat, c.lon]) / 1000, b1 = haversineM([c.lat, c.lon], B) / 1000; c.detour = Math.round(Math.max(0, a1 + b1 - ab) * 1.3 / 80 * 60); c.fromStartKm = a1 * 1.2; c.est = true; });
       }
       setP(97, 'Ergebnisse werden aufbereitet …');
-      return { line, totalKm, totalMin, items: cand };
+      return { line, totalKm, totalMin, items: cand, failed };
     }
     function SfwMap({ A, B, line, items, selId, onSelect }) {
       const el = useRef(null), mapRef = useRef(null), grp = useRef(null), viaRef = useRef(null);
@@ -19416,7 +19420,7 @@ var qrcode = function() {
       const [kinds, setKinds] = useState([]); const [maxD, setMaxD] = useState(30); const [sortBy, setSortBy] = useState('route'); const [selId, setSelId] = useState(null);
       const cancelRef = useRef(false);
       const prev = (trip.stages || [])[index - 1];
-      const run = async () => {
+      const run = async (force) => {
         cancelRef.current = false; setErr(''); setRes(null); setPr({ pct: 1, label: 'Start …', busy: true });
         const setP = (pct, label) => setPr({ pct, label, busy: true });
         try {
@@ -19425,10 +19429,10 @@ var qrcode = function() {
           let B = parseGps(stage.hotel && stage.hotel.gps); if (!B && stage.toCity) B = await sfGeocode(stage.toCity);
           if (!A || !B) throw new Error('Start oder Ziel nicht gefunden. Bitte Ortsnamen prüfen oder GPS beim Hotel eintragen.');
           const key = `${A.map((x) => x.toFixed(3))}|${B.map((x) => x.toFixed(3))}`;
-          const cached = sfwGet(key);
+          const cached = force === true ? null : sfwGet(key);
           if (cached) { setP(100, 'Aus dem Zwischenspeicher geladen'); cached.A = A; cached.B = B; setRes(cached); setSelId(cached.items[0] ? cached.items[0].id : null); setPr({ pct: 100, label: 'Fertig (aus Zwischenspeicher)', busy: false }); return; }
           const r = await sfwRun(A, B, setP, () => cancelRef.current);
-          r.A = A; r.B = B; sfwPut(key, r); setRes(r); setSelId(r.items[0] ? r.items[0].id : null); setPr({ pct: 100, label: 'Fertig', busy: false });
+          r.A = A; r.B = B; if (r.items.length && !r.failed) sfwPut(key, r); setRes(r); setSelId(r.items[0] ? r.items[0].id : null); setPr({ pct: 100, label: 'Fertig', busy: false });
         } catch (e) { if (e.message === '__cancel') setPr({ pct: 0, label: 'Abgebrochen', busy: false }); else { setErr(/nicht gefunden|Keine Route/.test(e.message) ? e.message : `Suche fehlgeschlagen (${String(e.message).slice(0, 200)}). Internet nötig.`); setPr({ pct: 0, label: '', busy: false }); } }
       };
       const shown = useMemo(() => { if (!res) return []; const b = res.items.filter((c) => c.detour <= maxD && (!kinds.length || kinds.includes(c.kind))); return [...b].sort(sortBy === 'route' ? (x, y) => x.fromStartKm - y.fromStartKm : (x, y) => x.detour - y.detour); }, [res, kinds, maxD, sortBy]);
@@ -19437,12 +19441,13 @@ var qrcode = function() {
       return (
         <div data-sfw className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div><div className="font-bold text-slate-900">Ziele auf dem Weg: {(prev && prev.toCity) || stage.fromCity || '?'} → {stage.toCity || '?'}</div><div className="text-xs text-slate-500">Sehenswertes entlang der Strecke, mit Umweg in Minuten</div></div>
-            <button type="button" data-readonly-allow onClick={run} disabled={p.busy} className="v18-btn pri disabled:opacity-50">{p.busy ? 'Suche läuft …' : res ? 'Neu suchen' : 'Ziele suchen'}</button>
+            <div><div className="font-bold text-slate-900">Ziele auf dem Weg: {(prev && prev.toCity) || stage.fromCity || '?'} → {stage.toCity || '?'}</div><div className="text-xs text-slate-500">Bekannte Orte entlang der Strecke (Wikidata), mit Umweg in Minuten</div></div>
+            <button type="button" data-readonly-allow onClick={() => run(!!res)} disabled={p.busy} className="v18-btn pri disabled:opacity-50">{p.busy ? 'Suche läuft …' : res ? 'Neu suchen' : 'Ziele suchen'}</button>
           </div>
           {(p.busy || (p.pct > 0 && p.pct < 100)) && <SfProgress pct={p.pct} label={p.label} onCancel={p.busy ? () => { cancelRef.current = true; } : null} />}
           {err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{err}</div>}
-          {res && res.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Auf dieser Strecke wurden keine bekannten Ziele gefunden.</div>}
+          {res && res.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Auf dieser Strecke wurden keine bekannten Ziele gefunden{res.failed ? ` (bei ${res.failed} Abschnitt(en) kam keine Antwort – bitte „Neu suchen“)` : ''}.</div>}
+          {res && res.items.length > 0 && res.failed > 0 && <div className="text-xs text-amber-900">Für {res.failed} Streckenabschnitt(e) kam keine Antwort, die Liste kann unvollständig sein. „Neu suchen“ versucht es erneut.</div>}
           {res && res.items.length > 0 && (
             <div className="space-y-3">
               <div className="text-xs text-slate-500">{Math.round(res.totalKm)} km · {sfFmtH(res.totalMin)} Fahrzeit direkt{p.label.includes('Zwischenspeicher') ? ' · gespeichertes Ergebnis' : ''}</div>
