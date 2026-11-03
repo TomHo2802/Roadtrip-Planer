@@ -172,3 +172,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v39
 - Dunkle Darstellung: bessere Lesbarkeit. Karten sind jetzt dunkel-transluzent statt hell, Texte heller und mit hohem Kontrast (geprüft nach WCAG-Richtwert 4,5:1 über alle Bereiche).
+
+## v40
+- Dunkle Darstellung: die dezenten Hintergrundfarben aus dem hellen Modus (gelb bei „Weg“, grün bei „Aktionen“, blau/grau bei Hotel, Warnhinweise usw.) bleiben erhalten, nur abgedunkelt und leicht transparent.

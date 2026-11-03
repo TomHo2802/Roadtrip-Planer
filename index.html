@@ -13922,7 +13922,7 @@ html[data-dark="1"] input,html[data-dark="1"] select,html[data-dark="1"] textare
 html[data-dark="1"] [class*="bg-amber-50"],html[data-dark="1"] [class*="bg-yellow-50"],html[data-dark="1"] [class*="bg-[#FFF"],html[data-dark="1"] [class*="bg-emerald-50"],html[data-dark="1"] [class*="bg-green-50"]{background:rgba(20,32,62,.6) !important}
 html[data-dark="1"] [class*="bg-slate-900"],html[data-dark="1"] [class*="bg-[#0"]{background:rgba(22,34,62,.7) !important}
 html[data-dark="1"] .leaflet-tile-pane{filter:invert(.92) hue-rotate(190deg) saturate(.7) brightness(.9)}
-html[data-dark="1"] .dk-bg{background:rgba(20,32,62,.78) !important;background-image:none !important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+html[data-dark="1"] .dk-bg{background-color:rgba(20,32,62,.78) !important;background-image:linear-gradient(color-mix(in srgb, var(--dk,#fff) calc(var(--dka,.07) * 100%), transparent),color-mix(in srgb, var(--dk,#fff) calc(var(--dka,.07) * 100%), transparent)) !important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 html[data-dark="1"] .dk-fg{color:#f5f8fe !important}
 html[data-dark="1"] .v18-mhead,html[data-dark="1"] .v18-bottom{background:rgba(26,39,68,.88) !important;backdrop-filter:blur(18px)}
 html[data-dark="1"] .v18-seg button.on,html[data-dark="1"] .v18-nav.on{background:rgba(143,180,255,.18) !important;color:#fff !important}
@@ -18967,7 +18967,7 @@ var qrcode = function() {
     function dkProcess(el) {
       if (!el || el.nodeType !== 1 || el.closest('.leaflet-container') || /^(SCRIPT|STYLE|IMG|SVG|PATH|CANVAS|INPUT|SELECT|TEXTAREA)$/i.test(el.tagName)) return;
       const cs = getComputedStyle(el); const keep = /(^|\s)bg-[a-z]+-[4-9]00(\s|$)|bg-\[#(1F4E8C|0|1[0-9A-F]{5}|173B6B)/i.test(String(el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className)) || el.matches('.v18-btn.pri');
-      if (!el.classList.contains('dk-bg') && !keep) { const bg = dkLum(cs.backgroundColor); if (bg && bg.a > 0.3 && bg.l > 0.6) el.classList.add('dk-bg'); }
+      if (!el.classList.contains('dk-bg') && !keep) { const bg = dkLum(cs.backgroundColor); if (bg && bg.a > 0.3 && bg.l > 0.6) { const m = String(cs.backgroundColor).match(/[\d.]+/g).map(Number); const mx = Math.max(m[0], m[1], m[2]), mn = Math.min(m[0], m[1], m[2]); const sat = mx ? (mx - mn) / mx : 0; if (sat < 0.06) { el.style.setProperty('--dk', '#fff'); el.style.setProperty('--dka', '.07'); } else { const d = mx - mn; let h = mx === m[0] ? ((m[1] - m[2]) / d) % 6 : mx === m[1] ? (m[2] - m[0]) / d + 2 : (m[0] - m[1]) / d + 4; h = (h * 60 + 360) % 360; el.style.setProperty('--dk', `hsl(${h.toFixed(0)}, 75%, 55%)`); el.style.setProperty('--dka', String(Math.min(0.30, 0.17 + sat * 0.4).toFixed(2))); } el.classList.add('dk-bg'); } }
       if (!el.classList.contains('dk-fg') && !keep) { const fg = dkLum(cs.color); if (fg && fg.l < 0.45) el.classList.add('dk-fg'); }
     }
     function dkFull() { document.querySelectorAll('body *').forEach(dkProcess); }
@@ -18977,7 +18977,7 @@ var qrcode = function() {
       dkObs = new MutationObserver((recs) => { recs.forEach((r) => { if (r.type === 'attributes') dkQueue.add(r.target); else r.addedNodes.forEach((n) => { if (n.nodeType === 1) { dkQueue.add(n); n.querySelectorAll && n.querySelectorAll('*').forEach((x) => dkQueue.add(x)); } }); }); if (!dkTimer) dkTimer = setTimeout(() => { dkTimer = null; const q = [...dkQueue]; dkQueue.clear(); q.forEach(dkProcess); }, 120); });
       dkObs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     }
-    function dkStop() { if (dkObs) { dkObs.disconnect(); dkObs = null; } dkQueue.clear(); document.querySelectorAll('.dk-bg,.dk-fg').forEach((e) => e.classList.remove('dk-bg', 'dk-fg')); }
+    function dkStop() { if (dkObs) { dkObs.disconnect(); dkObs = null; } dkQueue.clear(); document.querySelectorAll('.dk-bg,.dk-fg').forEach((e) => { e.classList.remove('dk-bg', 'dk-fg'); e.style.removeProperty('--dk'); e.style.removeProperty('--dka'); }); }
     function themeApply(m) {
       const dark = themeIsDark(m || themeGet()); const h = document.documentElement;
       if (dark) { h.setAttribute('data-dark', '1'); dkStart(); } else { h.removeAttribute('data-dark'); dkStop(); }
@@ -19015,7 +19015,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 39</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 40</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
