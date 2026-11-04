@@ -183,3 +183,12 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v42
 - Dunkelmodus: In „Weg“, „Hotel“ und „Vor Ort“ ist nur der Bereichshintergrund gelb, blau oder grün, die Kacheln darin sind neutral dunkel (wie im hellen Modus). Statusfarben (ja/nein, Buttons) bleiben erhalten.
+
+## v43
+
+- **Dunkelmodus:** Die Etappen-Bereiche (Weg / Hotel / Vor Ort) behalten ihren gelben, blauen bzw. grünen Hintergrund, die Kacheln darin sind einheitlich grau mit hellem, gut lesbarem Text.
+- **Neuer Reiter Planen → Übersicht:**
+  - **Reisetage im Überblick:** Zeitleiste mit allen Tagen, Fahrzeit, Hotelwechsel, freien Tagen, Aktionen und Wetter. Kennzahlen oben (Reisetage, Fahrzeit gesamt, Hotelwechsel, lange Fahrtage).
+  - **Fahrzeit-Warnung:** Grenze pro Tag einstellbar (Standard 5 Std., wird in der Reise gespeichert). Tage darüber werden rot markiert; Check-in-, Dunkelheits- und Mitternachtswarnungen werden pro Tag angezeigt.
+  - **Regenplan:** Pro Tag eine Ausweichliste (eigene Ideen, Übernahme aus den Aktionen vor Ort, Indoor-Suchlinks zum Hotel). Sagt die Wettervorhersage Regen (ab 60 %) voraus, wird der Tag markiert und die Liste automatisch geöffnet.
+  - **Gesamtkarte:** Alle Etappen in verschiedenen Farben, Hotels nummeriert; Ebenen (Etappen / Hotels / Stopps / Aktionen) und einzelne Etappen ein- und ausblendbar; „Straßenverlauf laden“ zeichnet die echte Route (sonst gestrichelte Luftlinie).

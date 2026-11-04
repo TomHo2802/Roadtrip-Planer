@@ -13967,16 +13967,14 @@ html[data-dark="1"] [class*="bg-amber-500"],html[data-dark="1"] [class*="bg-ambe
 html[data-dark="1"] a[class*="bg-emerald-"],html[data-dark="1"] a[class*="bg-green-"]{color:#fff !important;background-color:#15803d !important}
 /* Kacheln in den Bereichen neutral, nur der Bereich selbst ist farbig */
 html[data-dark="1"] details.stage-section div:is([class*="bg-amber-50"],[class*="bg-blue-50"],[class*="bg-emerald-50"],[class*="bg-teal-50"],[class*="bg-yellow-50"],[class*="bg-orange-50"]):not(.px-4){background-color:transparent !important;background-image:none !important}
-html[data-dark="1"] details.stage-section :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"]):not(summary){background-color:#1d2233 !important}
-html[data-dark="1"] details.stage-section.border-blue-200 :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"]):not(summary){background-color:#1a2c4a !important}
-html[data-dark="1"] details.stage-section.border-emerald-200 :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"]):not(summary){background-color:#153030 !important}
-html[data-dark="1"] details.stage-section.border-amber-200 .dk-n:not(summary){background-color:#1f2231 !important}
-html[data-dark="1"] details.stage-section.border-blue-200 .dk-n:not(summary){background-color:#1a2c4a !important}
-html[data-dark="1"] details.stage-section.border-emerald-200 .dk-n:not(summary){background-color:#153030 !important}
 html[data-dark="1"] details.stage-section.border-amber-200 [class*="bg-amber-100"]:not(summary){background-color:#3d3012 !important}
 html[data-dark="1"] details.stage-section.border-blue-200 [class*="bg-blue-100"]:not(summary),html[data-dark="1"] details.stage-section.border-blue-200 div[class*="bg-blue-50"].px-4{background-color:#1b3763 !important}
 html[data-dark="1"] details.stage-section.border-emerald-200 [class*="bg-emerald-100"]:not(summary){background-color:#14463a !important}
-html[data-dark="1"] details.stage-section :is(.bg-white,[class*="bg-slate-50"],.dk-n) {border-color:#34486a}
+
+html[data-dark="1"] details.stage-section :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"],.dk-n):not(summary):not(.rounded-full){background-color:#2c313c !important;border-color:#4a5262 !important}
+html[data-dark="1"] details.stage-section :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"],.dk-n):not(summary) :is(.text-slate-500,.text-slate-600,.text-gray-500,.text-gray-600,.text-slate-400){color:#c9d1de !important}
+html[data-dark="1"] details.stage-section :is(.bg-white,[class*="bg-slate-50"],.dk-n):not(summary) :is(h1,h2,h3,h4,.font-bold,.font-semibold,.text-slate-800,.text-slate-900,.text-gray-800,.text-gray-900){color:#f6f8fc !important}
+html[data-dark="1"] details.stage-section .bg-slate-900:not(summary){background-color:#2c313c !important;border:1px solid #4a5262 !important}
 </style></head>
 <body>
   <div id="root" aria-live="polite"></div>
@@ -19013,7 +19011,7 @@ var qrcode = function() {
     function V18Icon({ n, size = 20 }) { return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="v18-ico">{V18_ICONS[n]}</svg>; }
     const V18_GROUPS = [
       { id: 'today', label: 'Heute', tabs: [{ id: 'today', label: 'Heute' }] },
-      { id: 'plan', label: 'Planen', tabs: [{ id: 'stages', label: 'Etappen' }, { id: 'plan', label: 'Tagesplan' }, { id: 'map', label: 'Karte' }] },
+      { id: 'plan', label: 'Planen', tabs: [{ id: 'stages', label: 'Etappen' }, { id: 'plan', label: 'Tagesplan' }, { id: 'overview', label: 'Übersicht' }, { id: 'map', label: 'Karte' }] },
       { id: 'book', label: 'Buchungen & Budget', short: 'Buchungen', tabs: [{ id: 'basics', label: 'Flug & Mietwagen' }, { id: 'cards', label: 'Karten & Notfall' }, { id: 'finance', label: 'Budget' }] },
       { id: 'go', label: 'Unterwegs', tabs: [{ id: 'trip', label: 'Wo bin ich' }, { id: 'navi', label: '1-Klick Navi' }, { id: 'wx', label: 'Wetter' }, { id: 'ustools', label: 'US-Tools' }] },
       { id: 'more', label: 'Mehr', tabs: [{ id: 'org', label: 'Organisation' }, { id: 'cloud', label: 'Reisen & Daten' }] }
@@ -19077,7 +19075,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 42</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 43</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19867,6 +19865,206 @@ var qrcode = function() {
           {open === 'do' && <StageDoPanel trip={trip} stage={stage} index={index} onAddLocal={onAddLocal} />}
         </div>}
         </>
+      );
+    }
+
+    // ===== v43: Reise-Übersicht (Fahrzeit-Warnung, Zeitleiste, Regenplan, Gesamtkarte) =====
+    const OV_COLORS = ['#e4572e', '#2e86de', '#17a589', '#8e44ad', '#f39c12', '#c0392b', '#16a085', '#34495e', '#d35400', '#27ae60', '#e84393', '#6c5ce7'];
+    const OV_INDOOR = [['Museum', '🏛'], ['Aquarium', '🐠'], ['Einkaufszentrum', '🛍'], ['Kino', '🎬'], ['Café', '☕'], ['Spa', '♨️']];
+    const ovRainy = (w) => !!w && ((w.rain != null && w.rain >= 60) || (w.code >= 51 && w.code <= 67) || (w.code >= 80 && w.code <= 99));
+    const ovWeekday = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' }); };
+    const ovRainKey = (day) => String(day.dayInStage || 1);
+    const ovStageRain = (stage, day) => { const r = stage.rainPlan && stage.rainPlan[ovRainKey(day)]; return Array.isArray(r) ? r : []; };
+
+    function OvRainPlan({ trip, day, onSave }) {
+      const stage = day.stage; const items = ovStageRain(stage, day); const [name, setName] = useState('');
+      const acts = (stage.localAttractions || []).filter((a) => a.name && !items.some((x) => x.srcId && x.srcId === a.id));
+      const H = parseGps(stage.hotel && stage.hotel.gps);
+      const write = (next) => onSave({ ...trip, stages: (trip.stages || []).map((s) => (s.id === stage.id ? { ...s, rainPlan: { ...(s.rainPlan || {}), [ovRainKey(day)]: next } } : s)) }, '');
+      const add = (it) => write([...items, { id: `rp-${Date.now()}-${Math.floor(Math.random() * 1000)}`, ...it }]);
+      return (
+        <div data-ov-rainplan className="mt-2 rounded-xl border border-sky-300 bg-sky-50 p-3 space-y-2">
+          <div className="text-sm font-bold text-sky-900">☔ Regenplan für diesen Tag</div>
+          {items.length === 0 && <div className="text-xs text-slate-600">Noch keine Ausweichideen. Füge unten welche hinzu, damit du bei Regen nicht lange suchen musst.</div>}
+          <ul className="space-y-1">
+            {items.map((it) => (
+              <li key={it.id} data-ov-rain-item className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm">
+                <span className="flex-1 min-w-0 break-words text-slate-900">{it.name}</span>
+                {it.gps && <NavLink gps={it.gps} name={it.name} label="Navi" className="min-h-[32px] inline-flex items-center px-2 rounded-lg bg-blue-600 text-white text-xs font-bold" />}
+                <button type="button" aria-label="Entfernen" onClick={() => write(items.filter((x) => x.id !== it.id))} className="h-8 w-8 rounded-full border border-slate-300 text-slate-600">×</button>
+              </li>
+            ))}
+          </ul>
+          {acts.length > 0 && (
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-slate-700">Aus den Aktionen vor Ort übernehmen:</div>
+              <div className="flex flex-wrap gap-1.5">
+                {acts.map((a) => <button key={a.id || a.name} type="button" data-ov-rain-from onClick={() => add({ name: a.name, gps: a.gps || '', srcId: a.id })} className="px-2.5 min-h-[34px] rounded-full border border-slate-300 bg-white text-xs text-slate-900">+ {a.name.length > 38 ? a.name.slice(0, 36) + '…' : a.name}</button>)}
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input data-ov-rain-input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { add({ name: name.trim() }); setName(''); } }} placeholder="Eigene Idee, z. B. Aquarium" className="flex-1 min-w-0 h-10 px-3 rounded-lg border border-slate-300 text-sm bg-white text-slate-900" />
+            <button type="button" data-ov-rain-add disabled={!name.trim()} onClick={() => { add({ name: name.trim() }); setName(''); }} className="v18-btn pri sm disabled:opacity-40">Hinzufügen</button>
+          </div>
+          {H && (
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-slate-700">Indoor-Ideen in der Nähe des Hotels suchen:</div>
+              <div className="flex flex-wrap gap-1.5">
+                {OV_INDOOR.map(([q, ic]) => <a key={q} data-readonly-allow href={`https://www.google.com/maps/search/${encodeURIComponent(q)}/@${H[0]},${H[1]},13z`} target="_blank" rel="noopener noreferrer" className="px-2.5 min-h-[34px] inline-flex items-center rounded-full border border-sky-400 bg-white text-xs font-semibold text-sky-900">{ic} {q}</a>)}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function OvMap({ trip, focus, onFocusDone }) {
+      const stages = trip.stages || []; const elRef = useRef(null), mapRef = useRef(null), grpRef = useRef(null), boxRef = useRef(null);
+      const [lay, setLay] = useState({ route: true, hotel: true, stop: true, attr: false });
+      const [hidden, setHidden] = useState([]); const [road, setRoad] = useState({}); const [st, setSt] = useState({ busy: false, msg: '' });
+      const [fitKey, setFitKey] = useState(0);
+      const lib = typeof L !== 'undefined';
+      const data = useMemo(() => stages.map((s, i) => {
+        const H = parseGps(s.hotel && s.hotel.gps); const prev = stages[i - 1]; const A = prev ? parseGps(prev.hotel && prev.hotel.gps) : null;
+        const stops = ((s.routeToHotel && s.routeToHotel.stopsOnWay) || []).map((x) => ({ n: x.name, g: parseGps(x.gps) })).filter((x) => x.g && !(H && haversineM(H, x.g) < 300) && !/^\s*ankunft/i.test(x.n || ''));
+        const attrs = (s.localAttractions || []).map((a) => ({ n: a.name, g: parseGps(a.gps) })).filter((x) => x.g);
+        const pts = [A, ...stops.map((x) => x.g), H].filter(Boolean);
+        return { s, i, H, stops, attrs, pts, color: OV_COLORS[i % OV_COLORS.length] };
+      }), [stages]);
+      const sig = useMemo(() => data.map((d) => d.pts.map((p) => p.join(',')).join(';')).join('|'), [data]);
+      useEffect(() => { setRoad({}); }, [sig]);
+      useEffect(() => {
+        if (!lib || !elRef.current || mapRef.current) return;
+        const map = L.map(elRef.current, { zoomControl: true, scrollWheelZoom: false }).setView([27.8, -81.7], 6);
+        const ms = MAP_STYLES.esri; L.tileLayer(ms.url, { ...ms.opts, attribution: ms.attr }).addTo(map);
+        grpRef.current = L.layerGroup().addTo(map); mapRef.current = map; setTimeout(() => map.invalidateSize(), 200);
+        return () => { map.remove(); mapRef.current = null; };
+      }, []);
+      useEffect(() => {
+        const map = mapRef.current, g = grpRef.current; if (!map || !g) return; g.clearLayers(); const all = [];
+        const mk = (ll, html, size, title) => L.marker(ll, { icon: L.divIcon({ className: 'ov-mk', html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }), title: title || '' });
+        data.forEach((d) => {
+          if (hidden.includes(d.s.id)) return;
+          const lbl = `${d.i + 1}. ${hotelName(d.s)}`;
+          if (lay.route && d.pts.length > 1) { const line = road[d.s.id] || d.pts; L.polyline(line, { color: d.color, weight: 5, opacity: 0.85, dashArray: road[d.s.id] ? null : '8 8' }).addTo(g); }
+          if (lay.stop) d.stops.forEach((p) => { mk(p.g, `<div style="width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid ${d.color}"></div>`, 12, p.n).bindPopup(`🚩 ${p.n || 'Stopp'}<br><small>${d.s.fromCity || ''} → ${d.s.toCity || ''}</small>`).addTo(g); });
+          if (lay.attr) d.attrs.forEach((p) => { mk(p.g, `<div style="color:${d.color};font-size:17px;line-height:14px;text-shadow:0 0 2px #fff,0 0 2px #fff">★</div>`, 16, p.n).bindPopup(`★ ${p.n || 'Aktion'}<br><small>${hotelName(d.s)}</small>`).addTo(g); });
+          if (lay.hotel && d.H) mk(d.H, `<div style="width:28px;height:28px;border-radius:50%;background:${d.color};color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)">${d.i + 1}</div>`, 28, lbl).bindPopup(`🏨 <b>${lbl}</b><br><small>${d.s.dateRange || ''}</small>`).addTo(g);
+          d.pts.forEach((p) => all.push(p)); d.attrs.forEach((p) => lay.attr && all.push(p.g));
+        });
+        if (all.length) { try { map.fitBounds(L.latLngBounds(all), { padding: [30, 30], maxZoom: 12 }); } catch (e) {} }
+      }, [data, lay, hidden, road, fitKey]);
+      useEffect(() => {
+        if (!focus || !mapRef.current) return; const d = data.find((x) => x.s.id === focus); if (!d || !d.pts.length) { onFocusDone(); return; }
+        setHidden([]); const map = mapRef.current;
+        try { map.fitBounds(L.latLngBounds(d.pts), { padding: [40, 40], maxZoom: 13 }); } catch (e) {}
+        if (boxRef.current) boxRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); onFocusDone();
+      }, [focus]);
+      const loadRoads = async () => {
+        setSt({ busy: true, msg: 'Straßenverlauf wird geladen …' }); const out = {}; let ok = 0, fail = 0;
+        for (const d of data) {
+          if (d.pts.length < 2) continue; const pts = d.pts.slice(0, 40);
+          try {
+            const j = await fetchJsonTimeout(`https://router.project-osrm.org/route/v1/driving/${pts.map((p) => `${p[1]},${p[0]}`).join(';')}?overview=simplified&geometries=geojson`, {}, 15000);
+            if (j.code === 'Ok' && j.routes && j.routes[0]) { out[d.s.id] = j.routes[0].geometry.coordinates.map((c) => [c[1], c[0]]); ok++; } else fail++;
+          } catch (e) { fail++; }
+        }
+        setRoad(out); setSt({ busy: false, msg: ok ? `Straßenverlauf für ${ok} Etappe(n) geladen${fail ? `, ${fail} nicht erreichbar (gestrichelte Luftlinie)` : ''}.` : 'Routing-Dienst nicht erreichbar. Es bleibt bei der Luftlinie (gestrichelt).' });
+      };
+      const Chip = ({ k, label }) => <button type="button" data-readonly-allow data-ov-layer={k} aria-pressed={lay[k]} onClick={() => setLay({ ...lay, [k]: !lay[k] })} className={`h-9 px-3 rounded-full border text-sm font-semibold ${lay[k] ? 'bg-[#1F4E8C] border-[#1F4E8C] text-white' : 'bg-white border-slate-300 text-slate-800'}`}>{label}</button>;
+      return (
+        <section ref={boxRef} data-ov-map className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">🗺 Gesamtkarte der Reise</h2>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" data-readonly-allow data-ov-fit onClick={() => { setHidden([]); setFitKey((k) => k + 1); }} className="v18-btn sm">Alles zeigen</button>
+              <button type="button" data-readonly-allow data-ov-road disabled={st.busy} onClick={loadRoads} className="v18-btn sm">{st.busy ? 'Lädt …' : 'Straßenverlauf laden'}</button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2"><Chip k="route" label="Etappen" /><Chip k="hotel" label="Hotels" /><Chip k="stop" label="Stopps" /><Chip k="attr" label="Aktionen" /></div>
+          <div className="flex flex-wrap gap-1.5" data-ov-legend>
+            {data.map((d) => { const off = hidden.includes(d.s.id); return (
+              <button key={d.s.id} type="button" data-readonly-allow data-ov-stage={d.s.id} aria-pressed={!off} onClick={() => setHidden(off ? hidden.filter((x) => x !== d.s.id) : [...hidden, d.s.id])} className={`inline-flex items-center gap-1.5 px-2.5 min-h-[34px] rounded-full border text-xs font-semibold ${off ? 'opacity-50 border-slate-300 bg-white text-slate-700' : 'border-slate-400 bg-white text-slate-900'}`}>
+                <span style={{ background: d.color }} className="inline-block h-3 w-3 rounded-full" />{d.i + 1}. {d.s.toCity || hotelName(d.s)}
+              </button>); })}
+          </div>
+          {!lib ? <div className="text-sm text-amber-800 bg-amber-50 border border-amber-300 rounded-lg p-3">Die Kartenbibliothek ist offline nicht verfügbar. Sie wird beim nächsten Start mit Internet geladen.</div>
+            : <div ref={elRef} data-ov-canvas style={{ height: 'min(70vh, 520px)', minHeight: 320 }} className="rounded-xl overflow-hidden border border-slate-200" />}
+          {st.msg && <div data-ov-msg className="text-xs text-slate-700">{st.msg}</div>}
+          <div className="text-xs text-slate-600">Gestrichelt = Luftlinie zwischen Hotels und Stopps. Mit „Straßenverlauf laden“ wird die echte Strecke eingezeichnet (benötigt Internet).</div>
+        </section>
+      );
+    }
+
+    function TripOverview({ trip, onSave, todayIso }) {
+      useWx(); useEffect(() => { wxStore.ensure(trip); }, [(trip.stages || []).length]);
+      const meta = trip.meta || {}; const thr = Number(meta.maxDriveHours) > 0 ? Number(meta.maxDriveHours) : 5;
+      const [open, setOpen] = useState({}); const [focus, setFocus] = useState(null);
+      const rows = useMemo(() => buildDays(trip).map((d) => {
+        let tl = null; if (d.kind === 'travel') { try { tl = buildTimeline(trip, d); } catch (e) { tl = null; } }
+        const acts = d.dayInStage ? attractionsForDay(d.stage, d.dayInStage) : [];
+        const drive = tl ? tl.driveSum : 0; const prev = d.stageIdx > 0 ? (trip.stages || [])[d.stageIdx - 1] : null;
+        return { d, tl, acts, drive, over: drive > thr * 60, change: d.kind === 'travel' && d.stageIdx > 0, free: d.kind !== 'travel' && acts.length === 0 && d.kind !== 'checkout', prev };
+      }), [trip, thr]);
+      const total = rows.reduce((a, r) => a + r.drive, 0); const longest = rows.reduce((m, r) => (r.drive > (m ? m.drive : 0) ? r : m), null);
+      const nOver = rows.filter((r) => r.over).length, nFree = rows.filter((r) => r.free).length, nChange = rows.filter((r) => r.change).length;
+      const setThr = (v) => onSave({ ...trip, meta: { ...meta, maxDriveHours: Number(v) } }, '');
+      const Stat = ({ k, v, sub, warn }) => <div data-ov-stat={k} className={`rounded-xl border p-3 ${warn ? 'border-amber-400 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}><div className="text-xs font-semibold text-slate-600">{k}</div><div className="text-lg font-extrabold text-slate-900">{v}</div>{sub && <div className="text-xs text-slate-600">{sub}</div>}</div>;
+      return (
+        <div data-ov-root className="space-y-4">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900">📅 Reisetage im Überblick</h2>
+              <label className="flex items-center gap-2 text-sm text-slate-800">Fahrzeit-Warnung ab
+                <select data-ov-thr data-readonly-allow value={thr} onChange={(e) => setThr(e.target.value)} className="h-10 px-2 rounded-lg border border-slate-300 bg-white text-slate-900">{[2, 3, 4, 5, 6, 7, 8, 10].map((h) => <option key={h} value={h}>{h} Std./Tag</option>)}</select>
+              </label>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Stat k="Reisetage" v={rows.length} sub={`${(trip.stages || []).length} Etappen`} />
+              <Stat k="Fahrzeit gesamt" v={fmtDurMin(total)} sub={longest && longest.drive ? `längster Tag: ${fmtDurMin(longest.drive)}` : ''} />
+              <Stat k="Hotelwechsel" v={nChange} sub={`${nFree} freie(r) Tag(e)`} />
+              <Stat k="Lange Fahrtage" v={nOver} sub={`über ${thr} Std.`} warn={nOver > 0} />
+            </div>
+          </section>
+          <section className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+            {rows.length === 0 && <div className="text-sm text-slate-700">Noch keine Reisetage. Trage in den Etappen Datum und Nächte ein.</div>}
+            <ol className="space-y-2">
+              {rows.map((r) => {
+                const { d } = r; const st = d.stage; const w = wxStore.get(st, d.iso); const rainy = ovRainy(w); const items = ovStageRain(st, d); const isOpen = open[d.iso] != null ? open[d.iso] : false;
+                const warns = r.tl ? r.tl.warnings : []; const color = OV_COLORS[d.stageIdx % OV_COLORS.length]; const isToday = d.iso === todayIso;
+                const title = d.kind === 'travel' ? `${r.prev ? hotelName(r.prev) : (st.fromCity || 'Start')} → ${hotelName(st)}` : d.kind === 'checkout' ? `Check-out ${hotelName(st)}` : `Aufenthalt ${hotelName(st)}`;
+                return (
+                  <li key={d.iso} data-ov-day={d.iso} style={{ borderLeftColor: color }} className={`rounded-xl border border-slate-200 border-l-[6px] bg-white p-3 ${isToday ? 'ring-2 ring-blue-500' : ''}`}>
+                    <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
+                      <div className="w-24 shrink-0"><div className="text-sm font-extrabold text-slate-900">{ovWeekday(d.iso)}</div><div className="text-xs text-slate-600">Etappe {d.stageIdx + 1}{isToday ? ' · heute' : ''}</div></div>
+                      <div className="flex-1 min-w-[180px]">
+                        <div className="text-sm font-semibold text-slate-900 break-words">{title}</div>
+                        <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
+                          {d.kind === 'travel' && <span data-ov-badge="drive" className={`px-2 py-0.5 rounded-full font-bold ${r.over ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-900'}`}>🚗 {fmtDurMin(r.drive)}{r.over ? ' · zu lang' : ''}</span>}
+                          {r.change && <span data-ov-badge="change" className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold">🏨 Hotelwechsel</span>}
+                          {d.kind === 'travel' && d.stageIdx === 0 && <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold">✈️ Anreise</span>}
+                          {r.free && <span data-ov-badge="free" className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold">🌴 Freier Tag</span>}
+                          {r.acts.length > 0 && <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-900 font-semibold">★ {r.acts.length} Aktion(en)</span>}
+                          {w && <span data-ov-badge="wx" className={`px-2 py-0.5 rounded-full font-semibold ${rainy ? 'bg-sky-700 text-white' : 'bg-slate-200 text-slate-900'}`}>{WMO(w.code)[0]} {Math.round(w.tmax)}°/{Math.round(w.tmin)}°{w.rain != null ? ` · ${w.rain} %` : ''}{rainy ? ' · Regen' : ''}</span>}
+                          {items.length > 0 && <span className="px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 font-semibold">☔ {items.length} Ausweich</span>}
+                        </div>
+                        {warns.map((t, i) => <div key={i} data-ov-warn className="mt-1 text-xs text-amber-900 bg-amber-50 border border-amber-300 rounded-md px-2 py-1">⚠️ {t}</div>)}
+                        {r.over && <div data-ov-over className="mt-1 text-xs text-red-900 bg-red-50 border border-red-300 rounded-md px-2 py-1">Fahrzeit {fmtDurMin(r.drive)} liegt über deiner Grenze von {thr} Std. Zwischenstopp, früher starten oder die Etappe teilen.</div>}
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button type="button" data-readonly-allow data-ov-focus onClick={() => setFocus(st.id)} title="Auf der Karte zeigen" className="h-9 w-9 rounded-full border border-slate-300 bg-white text-base">🗺</button>
+                        <button type="button" data-readonly-allow data-ov-rain-toggle aria-expanded={isOpen} onClick={() => setOpen({ ...open, [d.iso]: !isOpen })} className={`h-9 px-3 rounded-full border text-xs font-bold ${rainy && !isOpen ? 'border-sky-600 bg-sky-700 text-white' : 'border-slate-300 bg-white text-slate-900'}`}>☔ Regenplan</button>
+                      </div>
+                    </div>
+                    {(isOpen || (rainy && items.length > 0 && open[d.iso] == null)) && <OvRainPlan trip={trip} day={d} onSave={onSave} />}
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+          <OvMap trip={trip} focus={focus} onFocusDone={() => setFocus(null)} />
+        </div>
       );
     }
 
@@ -21430,6 +21628,7 @@ Quelle: ${lt.url}` : '') }] } });
             =============================================================== */}
             {activeTab === 'map' && (<div data-ro-ok><RoadtripMap trip={tripData} onSave={saveTripData} /></div>)}
             {activeTab === 'today' && (<div data-ro-ok><TodayView trip={tripData} onSave={saveTripData} todayIso={todayIso} goTab={setActiveTab} /></div>)}
+            {activeTab === 'overview' && (<div data-ro-ok><TripOverview trip={tripData} onSave={saveTripData} todayIso={todayIso} /></div>)}
             {activeTab === 'plan' && (<div data-ro-ok><PlanView trip={tripData} onSave={saveTripData} todayIso={todayIso} /></div>)}
             {activeTab === 'org' && (<div data-ro-ok><OrgView trip={tripData} onSave={saveTripData} /></div>)}
             {activeTab === 'wx' && (<div data-ro-ok><WeatherView trip={tripData} todayIso={todayIso} /></div>)}
