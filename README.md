@@ -192,3 +192,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
   - **Fahrzeit-Warnung:** Grenze pro Tag einstellbar (Standard 5 Std., wird in der Reise gespeichert). Tage darüber werden rot markiert; Check-in-, Dunkelheits- und Mitternachtswarnungen werden pro Tag angezeigt.
   - **Regenplan:** Pro Tag eine Ausweichliste (eigene Ideen, Übernahme aus den Aktionen vor Ort, Indoor-Suchlinks zum Hotel). Sagt die Wettervorhersage Regen (ab 60 %) voraus, wird der Tag markiert und die Liste automatisch geöffnet.
   - **Gesamtkarte:** Alle Etappen in verschiedenen Farben, Hotels nummeriert; Ebenen (Etappen / Hotels / Stopps / Aktionen) und einzelne Etappen ein- und ausblendbar; „Straßenverlauf laden“ zeichnet die echte Route (sonst gestrichelte Luftlinie).
+
+## v44
+
+- **Dunkelmodus:** Der Abstands-Schieberegler in „Nächste Etappe finden“ ist wieder gut sichtbar (Spur, Füllung, beide Punkte, Skala).
+- **Regenplan leichter zu finden:** Der Button „☔ Regenplan“ steht jetzt auch an jedem Tag im Tagesplan (Planen → Tagesplan), zusätzlich zur Übersicht. Die Übersicht hat einen Hinweis dazu.
