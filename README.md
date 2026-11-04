@@ -180,3 +180,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Dunkel überarbeitet: kein Glaseffekt mehr, ruhige Flächen in Dunkelblau/Grau, klare Ränder, sehr gut lesbare Schrift (Kontrast geprüft).
 - In der Etappe sind „Weg zum Hotel“ (Gold), „Hotel“ (Blau) und „Aktionen vor Ort“ (Grün) deutlich voneinander abgesetzt (Farbe, Randstreifen, Kopfzeile).
 - Demo-Reise „Florida Rundreise (Demo)“ ist ins Programm eingebaut (anonymisiert: keine echten Namen, Kartendaten oder Buchungscodes). Öffnen: Startbildschirm „Demo-Reise ausprobieren“ oder Mehr → Reisen & Daten → „Demo-Reise“. Die Demo darf beliebig geändert werden. Zurücksetzen auf den Ursprungszustand: gelbes „Zurücksetzen“ in der Seitenleiste oder Mehr → Reisen & Daten. Echte Reisen bleiben unberührt (sie werden gesichert und stehen in der Liste „Meine Reisen“).
+
+## v42
+- Dunkelmodus: In „Weg“, „Hotel“ und „Vor Ort“ ist nur der Bereichshintergrund gelb, blau oder grün, die Kacheln darin sind neutral dunkel (wie im hellen Modus). Statusfarben (ja/nein, Buttons) bleiben erhalten.

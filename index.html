@@ -13944,9 +13944,6 @@ html[data-dark="1"] details.stage-section>summary[class*="bg-blue-"]{background:
 html[data-dark="1"] details.stage-section>summary[class*="bg-emerald-"]{background:#15513f !important;color:#d9fbef !important}
 html[data-dark="1"] details.stage-section>summary *{color:inherit !important}
 html[data-dark="1"] details.stage-section>summary span.rounded-full{color:#fff !important}
-html[data-dark="1"] details.stage-section.border-amber-200 :is(.bg-white,[class*="bg-slate-50"],[class*="bg-amber-50"],[class*="bg-amber-100"]){background-color:#352c14 !important;border-color:#6b5420 !important}
-html[data-dark="1"] details.stage-section.border-blue-200 :is(.bg-white,[class*="bg-slate-50"],[class*="bg-blue-50"],[class*="bg-blue-100"]){background-color:#183052 !important;border-color:#2e558f !important}
-html[data-dark="1"] details.stage-section.border-emerald-200 :is(.bg-white,[class*="bg-slate-50"],[class*="bg-emerald-50"],[class*="bg-emerald-100"]){background-color:#133a32 !important;border-color:#2a6f5c !important}
 /* von JS markierte helle Flächen/dunkle Texte */
 html[data-dark="1"] .dk-bg{background-color:color-mix(in srgb, var(--dk,#fff) calc(var(--dka,.04) * 100%), #16233a) !important;background-image:none !important}
 html[data-dark="1"] .dk-fg{color:#f1f5fb !important}
@@ -13968,6 +13965,18 @@ html[data-dark="1"] details.stage-section.border-blue-200>summary span.rounded-f
 html[data-dark="1"] details.stage-section.border-emerald-200>summary span.rounded-full{background:#27b48a !important;color:#04261d !important}
 html[data-dark="1"] [class*="bg-amber-500"],html[data-dark="1"] [class*="bg-amber-600"]{background-color:#e2a72e !important;color:#1c1500 !important}
 html[data-dark="1"] a[class*="bg-emerald-"],html[data-dark="1"] a[class*="bg-green-"]{color:#fff !important;background-color:#15803d !important}
+/* Kacheln in den Bereichen neutral, nur der Bereich selbst ist farbig */
+html[data-dark="1"] details.stage-section div:is([class*="bg-amber-50"],[class*="bg-blue-50"],[class*="bg-emerald-50"],[class*="bg-teal-50"],[class*="bg-yellow-50"],[class*="bg-orange-50"]):not(.px-4){background-color:transparent !important;background-image:none !important}
+html[data-dark="1"] details.stage-section :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"]):not(summary){background-color:#1d2233 !important}
+html[data-dark="1"] details.stage-section.border-blue-200 :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"]):not(summary){background-color:#1a2c4a !important}
+html[data-dark="1"] details.stage-section.border-emerald-200 :is(.bg-white,[class*="bg-slate-50"],[class*="bg-slate-100"],[class*="bg-gray-50"]):not(summary){background-color:#153030 !important}
+html[data-dark="1"] details.stage-section.border-amber-200 .dk-n:not(summary){background-color:#1f2231 !important}
+html[data-dark="1"] details.stage-section.border-blue-200 .dk-n:not(summary){background-color:#1a2c4a !important}
+html[data-dark="1"] details.stage-section.border-emerald-200 .dk-n:not(summary){background-color:#153030 !important}
+html[data-dark="1"] details.stage-section.border-amber-200 [class*="bg-amber-100"]:not(summary){background-color:#3d3012 !important}
+html[data-dark="1"] details.stage-section.border-blue-200 [class*="bg-blue-100"]:not(summary),html[data-dark="1"] details.stage-section.border-blue-200 div[class*="bg-blue-50"].px-4{background-color:#1b3763 !important}
+html[data-dark="1"] details.stage-section.border-emerald-200 [class*="bg-emerald-100"]:not(summary){background-color:#14463a !important}
+html[data-dark="1"] details.stage-section :is(.bg-white,[class*="bg-slate-50"],.dk-n) {border-color:#34486a}
 </style></head>
 <body>
   <div id="root" aria-live="polite"></div>
@@ -19019,7 +19028,7 @@ var qrcode = function() {
     function dkProcess(el) {
       if (!el || el.nodeType !== 1 || el.closest('.leaflet-container') || /^(SCRIPT|STYLE|IMG|SVG|PATH|CANVAS|INPUT|SELECT|TEXTAREA)$/i.test(el.tagName)) return;
       const cs = getComputedStyle(el); const keep = /(^|\s)bg-[a-z]+-[4-9]00(\s|$)|bg-\[#(1F4E8C|0|1[0-9A-F]{5}|173B6B)/i.test(String(el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className)) || el.matches('.v18-btn.pri');
-      if (!el.classList.contains('dk-bg') && !keep) { const bg = dkLum(cs.backgroundColor); if (bg && bg.a > 0.3 && bg.l > 0.6) { const m = String(cs.backgroundColor).match(/[\d.]+/g).map(Number); const mx = Math.max(m[0], m[1], m[2]), mn = Math.min(m[0], m[1], m[2]); const sat = mx ? (mx - mn) / mx : 0; if (sat < 0.06) { el.style.setProperty('--dk', '#fff'); el.style.setProperty('--dka', '.04'); } else { const d = mx - mn; let h = mx === m[0] ? ((m[1] - m[2]) / d) % 6 : mx === m[1] ? (m[2] - m[0]) / d + 2 : (m[0] - m[1]) / d + 4; h = (h * 60 + 360) % 360; el.style.setProperty('--dk', `hsl(${h.toFixed(0)}, 62%, 46%)`); el.style.setProperty('--dka', String(Math.min(0.42, 0.22 + sat * 0.5).toFixed(2))); } el.classList.add('dk-bg'); } }
+      if (!el.classList.contains('dk-bg') && !keep) { const bg = dkLum(cs.backgroundColor); if (bg && bg.a > 0.3 && bg.l > 0.6) { const m = String(cs.backgroundColor).match(/[\d.]+/g).map(Number); const mx = Math.max(m[0], m[1], m[2]), mn = Math.min(m[0], m[1], m[2]); const sat = mx ? (mx - mn) / mx : 0; if (sat < 0.06) { el.style.setProperty('--dk', '#fff'); el.style.setProperty('--dka', '.04'); el.classList.add('dk-n'); } else { const d = mx - mn; let h = mx === m[0] ? ((m[1] - m[2]) / d) % 6 : mx === m[1] ? (m[2] - m[0]) / d + 2 : (m[0] - m[1]) / d + 4; h = (h * 60 + 360) % 360; el.style.setProperty('--dk', `hsl(${h.toFixed(0)}, 62%, 46%)`); el.style.setProperty('--dka', String(Math.min(0.42, 0.22 + sat * 0.5).toFixed(2))); } el.classList.add('dk-bg'); } }
       if (!el.classList.contains('dk-fg') && !keep) { const fg = dkLum(cs.color); if (fg && fg.l < 0.45) el.classList.add('dk-fg'); }
     }
     function dkFull() { document.querySelectorAll('body *').forEach(dkProcess); }
@@ -19029,7 +19038,7 @@ var qrcode = function() {
       dkObs = new MutationObserver((recs) => { recs.forEach((r) => { if (r.type === 'attributes') dkQueue.add(r.target); else r.addedNodes.forEach((n) => { if (n.nodeType === 1) { dkQueue.add(n); n.querySelectorAll && n.querySelectorAll('*').forEach((x) => dkQueue.add(x)); } }); }); if (!dkTimer) dkTimer = setTimeout(() => { dkTimer = null; const q = [...dkQueue]; dkQueue.clear(); q.forEach(dkProcess); }, 120); });
       dkObs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     }
-    function dkStop() { if (dkObs) { dkObs.disconnect(); dkObs = null; } dkQueue.clear(); document.querySelectorAll('.dk-bg,.dk-fg').forEach((e) => { e.classList.remove('dk-bg', 'dk-fg'); e.style.removeProperty('--dk'); e.style.removeProperty('--dka'); }); }
+    function dkStop() { if (dkObs) { dkObs.disconnect(); dkObs = null; } dkQueue.clear(); document.querySelectorAll('.dk-bg,.dk-fg').forEach((e) => { e.classList.remove('dk-bg', 'dk-fg', 'dk-n'); e.style.removeProperty('--dk'); e.style.removeProperty('--dka'); }); }
     function themeApply(m) {
       const dark = themeIsDark(m || themeGet()); const h = document.documentElement;
       if (dark) { h.setAttribute('data-dark', '1'); dkStart(); } else { h.removeAttribute('data-dark'); dkStop(); }
@@ -19068,7 +19077,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 41</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 42</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
