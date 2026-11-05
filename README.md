@@ -197,3 +197,12 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 - **Dunkelmodus:** Der Abstands-Schieberegler in „Nächste Etappe finden“ ist wieder gut sichtbar (Spur, Füllung, beide Punkte, Skala).
 - **Regenplan leichter zu finden:** Der Button „☔ Regenplan“ steht jetzt auch an jedem Tag im Tagesplan (Planen → Tagesplan), zusätzlich zur Übersicht. Die Übersicht hat einen Hinweis dazu.
+
+## v45
+
+- **Reise-Assistent (Wizard):** Button „Reise-Assistent“ in der Seitenleiste und oben im Reiter Etappen. Er führt in zwei Phasen durch die Planung:
+  - **Grundrahmen:** 1. Reise & Zeitraum, 2. Reisende & Budget, 3. An- & Abreise (inkl. maximaler Fahrzeit pro Tag).
+  - **Etappen:** 4. Route festlegen (Orte und Nächte, Datum werden automatisch berechnet, Nächte-Bilanz gegen die Reisedauer), 5. Etappen im Detail (Strecke, Fahrzeit, Hotel; Assistenten für Ziele, Hotels und Vor-Ort-Aktionen öffnen sich direkt in der Etappe, ein Button bringt zurück), 6. Prüfen & fertig (Check mit Direktsprung).
+  - Jeder Schritt wird beim Weitergehen gespeichert; „Später weitermachen“ merkt sich die Stelle. Bestehende Hotels, Aktionen und Datumszusätze bleiben erhalten.
+- **Neue Reise:** Der bisherige Startdialog legt keine Tages-Etappen mehr an, sondern öffnet danach den Reise-Assistenten bei „Route festlegen“.
+- **Fix:** Neue Etappen mit leeren Hotelfeldern wurden bei gesetztem Reisezeitraum fälschlich als „Datum außerhalb der Reise“ abgelehnt.
