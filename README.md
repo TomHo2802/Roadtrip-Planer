@@ -206,3 +206,12 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
   - Jeder Schritt wird beim Weitergehen gespeichert; „Später weitermachen“ merkt sich die Stelle. Bestehende Hotels, Aktionen und Datumszusätze bleiben erhalten.
 - **Neue Reise:** Der bisherige Startdialog legt keine Tages-Etappen mehr an, sondern öffnet danach den Reise-Assistenten bei „Route festlegen“.
 - **Fix:** Neue Etappen mit leeren Hotelfeldern wurden bei gesetztem Reisezeitraum fälschlich als „Datum außerhalb der Reise“ abgelehnt.
+
+## v46
+
+- **Reise-Assistent vereinfacht (5 statt 6 Schritte):**
+  - **Reise & Zeitraum:** Erster Tag und Zahl der Übernachtungen eintragen (oder Enddatum). Die Etappen ergeben sich daraus: eine Etappe pro Nacht.
+  - **Reisende & Start:** Reisende, Budget, Start/Ziel und maximale Fahrzeit auf einer Seite.
+  - **Etappen benennen:** Nur noch die Orte eintragen. Verlängerst du eine Etappe mit „+“, fragt der Assistent, welche andere Etappe mit einer Nacht dafür entfallen soll; die Reisedauer bleibt gleich. Mit „−“ wird die freie Nacht zu einer neuen Etappe.
+  - **Hotel & Aktivitäten:** Pro Etappe ein Hotel (auch bei mehreren Nächten). Bei Etappen mit mehreren Nächten werden die einzelnen Tage nur mit Aktivitäten geplant, jeweils pro Tag mit Datum; Aktivitäten lassen sich auf einen anderen Tag verschieben.
+  - **Prüfen & fertig:** wie bisher, zusätzlich Hinweis auf fehlende Orte.
