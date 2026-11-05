@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 48</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 49</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20534,6 +20534,33 @@ var qrcode = function() {
         </div>
       );
     }
+
+    // v49: Etappenkette nach Änderung (Datum, Startort, überzählige Etappen)
+    const chainFix = (oldStages, edited, startDate) => {
+      const nn = (s) => Math.max(0, parseInt(s.nights, 10) || 0);
+      let list = oldStages.map((s) => (s.id === edited.id ? edited : s));
+      const total = oldStages.reduce((a, s) => a + nn(s), 0);
+      let removed = [];
+      let over = list.reduce((a, s) => a + nn(s), 0) - total;
+      const idx = list.findIndex((s) => s.id === edited.id);
+      while (over > 0) {
+        let k = -1;
+        for (let i = list.length - 1; i > idx; i--) { if (nn(list[i]) > 0) { k = i; break; } }
+        if (k < 0) break;
+        const s = list[k];
+        if (nn(s) <= over) { over -= nn(s); removed.push(s); list = list.filter((_, i) => i !== k); }
+        else { list = list.map((x, i) => (i === k ? { ...x, nights: nn(x) - over } : x)); over = 0; }
+      }
+      const iso = /^\d{4}-\d{2}-\d{2}$/.test(startDate || '') ? startDate : null;
+      let cur = iso;
+      list = list.map((s, i) => {
+        let o = { ...s };
+        if (i > 0 && i > idx && list[i - 1].toCity) o.fromCity = list[i - 1].toCity;
+        if (cur) { const end = isoAdd(cur, nn(s)); const nr = wzRange(cur, end); o.dateRange = String(s.dateRange || '').startsWith(nr) ? s.dateRange : nr; cur = end; }
+        return o;
+      });
+      return { stages: list, removed };
+    };
 
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
@@ -24464,10 +24491,10 @@ Quelle: ${lt.url}` : '') }] } });
                   </button>
                   <button
                     onClick={() => {
-                      const updatedStages = (tripData.stages || []).map((s) =>
-                        s.id === editingStageModal.id ? editingStageModal : s
-                      );
-                      saveTripData({ ...tripData, stages: updatedStages }, `Etappe „${editingStageModal.toCity}“ gespeichert!`);
+                      const cf = chainFix(tripData.stages || [], editingStageModal, (tripData.meta || {}).startDate);
+                      if (cf.removed.length && !window.confirm('Durch die zusätzlichen Nächte werden überzählige Etappen entfernt:\n' + cf.removed.map((r) => '• ' + (r.fromCity || '?') + ' → ' + (r.toCity || '?')).join('\n') + '\n\nDazu gespeicherte Hotel- und Aktivitätsdaten gehen verloren. Fortfahren?')) return;
+                      const updatedStages = cf.stages;
+                      saveTripData({ ...tripData, stages: updatedStages }, `Etappe „${editingStageModal.toCity}“ gespeichert!` + (cf.removed.length ? ' ' + cf.removed.length + ' Etappe(n) entfernt.' : ''));
                       setEditingStageModal(null);
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-xs"
