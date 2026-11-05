@@ -215,3 +215,10 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
   - **Etappen benennen:** Nur noch die Orte eintragen. Verlängerst du eine Etappe mit „+“, fragt der Assistent, welche andere Etappe mit einer Nacht dafür entfallen soll; die Reisedauer bleibt gleich. Mit „−“ wird die freie Nacht zu einer neuen Etappe.
   - **Hotel & Aktivitäten:** Pro Etappe ein Hotel (auch bei mehreren Nächten). Bei Etappen mit mehreren Nächten werden die einzelnen Tage nur mit Aktivitäten geplant, jeweils pro Tag mit Datum; Aktivitäten lassen sich auf einen anderen Tag verschieben.
   - **Prüfen & fertig:** wie bisher, zusätzlich Hinweis auf fehlende Orte.
+
+## v47
+
+- **Etappen wieder wie in v43:** Der Startdialog „Neue Reise“ legt wieder eine Etappe pro Reisetag an (Vorschau, Bestätigung und Datumsformat wie in v43) und öffnet den Reise-Assistenten nicht mehr automatisch. Der Assistent bleibt über den Button „Reise-Assistent“ erreichbar; im Schritt „Etappen benennen“ legt „Etappe(n) für freie Nächte anlegen“ bei Bedarf Etappen an.
+- **Etappe als eigene Seite:** In der Etappenliste zeigt jede Etappe nur noch eine Zeile mit Weg, Hotel und Aktionen und den Button „Etappe öffnen“. Die geöffnete Etappe hat oben die Reiter Weg / Hotel / Vor Ort / Alles, „← Alle Etappen“ und Vorherige/Nächste. Die Assistenten (Ziele, Hotels, Unternehmungen) stehen direkt im jeweiligen Abschnitt. Der Reise-Assistent und die Etappen-Übersicht öffnen ebenfalls diese Seite.
+- **Weniger Hauptpunkte:** Die Navigation hat nur noch Planen, Buchen und Unterwegs (dort jetzt auch „Heute“). Organisation und Reisen & Daten liegen unter dem Zahnrad „Einstellungen“ in der Seitenleiste bzw. „Optionen“ in der unteren Leiste am Handy.
+- **Dunkelmodus:** Die Kostenkacheln im Budget waren kaum lesbar und sind jetzt grau mit hellem Text; die Nummer im Hotel-Abschnitt hat mehr Kontrast.
