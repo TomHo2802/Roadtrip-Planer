@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 47</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 48</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20477,6 +20477,64 @@ var qrcode = function() {
       );
     }
 
+    // ===== v48: An- und Rückreise (Reisedauer, Zeitverschiebung) =====
+    const HL_HOME_TZ = 'Europe/Berlin';
+    const hlOffset = (tz, ms) => { try { const p = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date(ms)); const g = (t) => Number(p.find((x) => x.type === t).value); return (Date.UTC(g('year'), g('month') - 1, g('day'), g('hour'), g('minute'), g('second')) - ms) / 60000; } catch (e) { return 0; } };
+    const hlLocalToUtc = (y, m, d, hh, mm, tz) => { const base = Date.UTC(y, m - 1, d, hh, mm); let ms = base - hlOffset(tz, base) * 60000; ms = base - hlOffset(tz, ms) * 60000; return ms; };
+    const hlParseFlight = (f) => {
+      const dm = String(f.departureDate || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); const tm = (s) => { const m = String(s || '').match(/(\d{1,2}):(\d{2})/); return m ? [Number(m[1]), Number(m[2])] : null; };
+      const dt = tm(f.departureTime), at = tm(f.arrivalTime); const plus = (String(f.arrivalTime || '').match(/\(\+(\d)\)/) || [0, 0])[1];
+      if (!dm || !dt || !at) return null; return { y: Number(dm[3]), m: Number(dm[2]), d: Number(dm[1]), dt, at, plus: Number(plus) };
+    };
+    const hlHM = (min) => { const m = Math.round(Math.abs(min)); return `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')} min` : ''}`; };
+    const hlDM = (y, m, d) => `${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}.`;
+
+    function HomeLegCard({ kind, trip, stage, onSave }) {
+      const out = kind === 'out'; const meta = trip.meta || {}; const homeTz = meta.homeTz || HL_HOME_TZ;
+      const outF = (trip.flights || []).find((f) => /^hin/i.test(f.direction || '')); const home = meta.startLocation || (outF && String(outF.from || '').replace(/^[A-Z]{3}\s*\(([^)]*)\).*$/, '$1').trim()) || 'Heimatort'; const loc = stageLoc(stage) || [...(trip.stages || [])].reverse().map(stageLoc).find(Boolean); const destTz = loc ? tzFor(loc[0], loc[1]) : homeTz;
+      const all = trip.flights || []; const isOut = (f) => /^hin/i.test(f.direction || ''); const isBack = (f) => /^r(ü|ue)ck/i.test(f.direction || '');
+      const flights = all.filter(out ? isOut : isBack).slice().sort((a, b) => { const A = hlParseFlight(a), B = hlParseFlight(b); return A && B ? (Date.UTC(A.y, A.m - 1, A.d, ...A.dt) - Date.UTC(B.y, B.m - 1, B.d, ...B.dt)) : 0; });
+      const first = flights.length ? hlParseFlight(flights[0]) : null; const lastF = flights.length ? hlParseFlight(flights[flights.length - 1]) : null;
+      let dur = null, arrLocal = null, ref = null;
+      const tzFrom = out ? homeTz : destTz, tzTo = out ? destTz : homeTz;
+      if (first && lastF) {
+        const dep = hlLocalToUtc(first.y, first.m, first.d, first.dt[0], first.dt[1], tzFrom);
+        const arrBase = Date.UTC(lastF.y, lastF.m - 1, lastF.d + lastF.plus);
+        const ad = new Date(arrBase); const arr = hlLocalToUtc(ad.getUTCFullYear(), ad.getUTCMonth() + 1, ad.getUTCDate(), lastF.at[0], lastF.at[1], tzTo);
+        dur = (arr - dep) / 60000; arrLocal = { d: ad, t: lastF.at }; ref = dep;
+      }
+      const refMs = ref != null ? ref : (() => { const s = out ? meta.startDate : meta.endDate; return /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? Date.parse(s + 'T12:00:00Z') : Date.now(); })();
+      const diff = hlOffset(destTz, refMs) - hlOffset(homeTz, refMs);
+      const sign = diff > 0 ? '+' : diff < 0 ? '−' : '±';
+      const homeShort = String(home).replace(/\s*\(.*$/, '').trim() || home; const diffTxt = diff === 0 ? 'keine Zeitverschiebung' : `${sign}${hlHM(diff)} gegenüber ${homeShort}`;
+      const hint = diff === 0 ? '' : out ? (diff < 0 ? `Nach der Landung die Uhr ${hlHM(diff)} zurückstellen.` : `Nach der Landung die Uhr ${hlHM(diff)} vorstellen.`) : (diff < 0 ? `Zu Hause die Uhr ${hlHM(diff)} vorstellen.` : `Zu Hause die Uhr ${hlHM(diff)} zurückstellen.`);
+      const ov = (stage.homeLeg && stage.homeLeg[kind]) || {}; const [vals, setVals] = useState({ dur: ov.duration || '', tz: ov.tz || '', note: ov.note || '' });
+      const save = () => { const cur = (stage.homeLeg && stage.homeLeg[kind]) || {}; if ((cur.duration || '') === vals.dur && (cur.tz || '') === vals.tz && (cur.note || '') === vals.note) return; onSave({ ...trip, stages: (trip.stages || []).map((s) => (s.id === stage.id ? { ...s, homeLeg: { ...(s.homeLeg || {}), [kind]: { duration: vals.dur, tz: vals.tz, note: vals.note } } } : s)) }, ''); };
+      const sel = out ? `${home} → ${stage.fromCity && stage.fromCity !== home ? stage.fromCity : (stage.toCity || '')}` : `${(meta.endLocation || stage.toCity || 'Ziel')} → ${home}`;
+      return (
+        <div data-homeleg={kind} className="m-3 sm:m-4 rounded-xl border border-slate-300 bg-white p-3 sm:p-4 space-y-2">
+          <div className="text-sm font-bold text-slate-900">{out ? '✈️ Anreise' : '✈️ Rückreise'} · {sel}</div>
+          {flights.length === 0 && <div className="text-xs text-slate-700">Noch keine {out ? 'Hinflüge' : 'Rückflüge'} eingetragen (Buchungen → Flug & Mietwagen). Dann berechnet der Planer Reisedauer und Ankunft automatisch.</div>}
+          <ul className="space-y-1">
+            {flights.map((f) => <li key={f.id} className="text-sm text-slate-900 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">{[f.flightNumber, [String(f.from || '').split(' ')[0], String(f.to || '').split(' ')[0]].join(' → ')].filter(Boolean).join(' · ')} · {String(f.departureDate || '').slice(0, 6)} {String(f.departureTime || '').replace(' Uhr', '')} → {String(f.arrivalTime || '').replace(' Uhr', '')}</li>)}
+          </ul>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <div data-homeleg-dur className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"><div className="text-xs font-semibold text-slate-600">Reisedauer (Flug inkl. Umstieg)</div><div className="font-bold text-slate-900">{ov.duration || (dur != null ? `ca. ${hlHM(dur)}` : 'noch unbekannt')}</div></div>
+            <div data-homeleg-tz className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"><div className="text-xs font-semibold text-slate-600">Zeitverschiebung</div><div className="font-bold text-slate-900">{ov.tz || diffTxt}</div>{!ov.tz && hint && <div className="text-xs text-slate-700">{hint}</div>}</div>
+          </div>
+          {arrLocal && <div data-homeleg-arr className="text-sm text-slate-900">{out ? `Ankunft in ${stage.fromCity === home ? (stage.toCity || 'Ziel') : (stage.toCity || 'Ziel')}` : `Ankunft in ${home}`}: <b>{hlDM(arrLocal.d.getUTCFullYear(), arrLocal.d.getUTCMonth() + 1, arrLocal.d.getUTCDate())} um {String(arrLocal.t[0]).padStart(2, '0')}:{String(arrLocal.t[1]).padStart(2, '0')} Uhr Ortszeit</b></div>}
+          <details className="text-sm"><summary className="cursor-pointer font-semibold text-slate-800">Angaben anpassen</summary>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <label className="block text-xs font-semibold text-slate-800">Reisedauer<input data-homeleg-in="dur" type="text" value={vals.dur} onChange={(e) => setVals({ ...vals, dur: e.target.value })} onBlur={save} placeholder={dur != null ? `ca. ${hlHM(dur)}` : 'z. B. 11 h 20 min'} className="mt-1 w-full h-10 px-2 rounded-lg border border-slate-300 bg-white text-slate-900" /></label>
+              <label className="block text-xs font-semibold text-slate-800">Zeitverschiebung<input data-homeleg-in="tz" type="text" value={vals.tz} onChange={(e) => setVals({ ...vals, tz: e.target.value })} onBlur={save} placeholder={diffTxt} className="mt-1 w-full h-10 px-2 rounded-lg border border-slate-300 bg-white text-slate-900" /></label>
+              <label className="block text-xs font-semibold text-slate-800">Notiz<input data-homeleg-in="note" type="text" value={vals.note} onChange={(e) => setVals({ ...vals, note: e.target.value })} onBlur={save} placeholder="z. B. Check-in 3 Std. vorher" className="mt-1 w-full h-10 px-2 rounded-lg border border-slate-300 bg-white text-slate-900" /></label>
+            </div>
+          </details>
+          {ov.note && <div className="text-xs text-slate-700">Notiz: {ov.note}</div>}
+        </div>
+      );
+    }
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
@@ -21621,7 +21679,7 @@ Quelle: ${lt.url}` : '') }] } });
                             <div style={{ order: 2 }} className="p-3 sm:p-5 space-y-6">
                               {/* 1. DER WEG ZUM HOTEL */}
                               <details className={`stage-section rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden ${stageTab === 'way' || stageTab === 'all' ? '' : 'hidden'}`} open>
-                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="way" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />
+                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="way" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />{sIdx === 0 && <HomeLegCard kind="out" trip={tripData} stage={stage} onSave={saveTripData} />}{sIdx === (tripData.stages || []).length - 1 && <HomeLegCard kind="back" trip={tripData} stage={stage} onSave={saveTripData} />}
                                 <div className="rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden">
                                 <div className="bg-amber-100/80 px-4 py-2.5 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2">
                                   <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 flex-wrap">

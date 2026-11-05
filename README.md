@@ -222,3 +222,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - **Etappe als eigene Seite:** In der Etappenliste zeigt jede Etappe nur noch eine Zeile mit Weg, Hotel und Aktionen und den Button „Etappe öffnen“. Die geöffnete Etappe hat oben die Reiter Weg / Hotel / Vor Ort / Alles, „← Alle Etappen“ und Vorherige/Nächste. Die Assistenten (Ziele, Hotels, Unternehmungen) stehen direkt im jeweiligen Abschnitt. Der Reise-Assistent und die Etappen-Übersicht öffnen ebenfalls diese Seite.
 - **Weniger Hauptpunkte:** Die Navigation hat nur noch Planen, Buchen und Unterwegs (dort jetzt auch „Heute“). Organisation und Reisen & Daten liegen unter dem Zahnrad „Einstellungen“ in der Seitenleiste bzw. „Optionen“ in der unteren Leiste am Handy.
 - **Dunkelmodus:** Die Kostenkacheln im Budget waren kaum lesbar und sind jetzt grau mit hellem Text; die Nummer im Hotel-Abschnitt hat mehr Kontrast.
+
+## v48
+
+- **An- und Rückreise:** Auf der Etappenseite (Reiter „Weg“) zeigt die erste Etappe die **Anreise** vom Heimatort und die letzte Etappe die **Rückreise** zum Heimatort. Aus den eingetragenen Flügen (Buchungen → Flug & Mietwagen, „Hinflug“ bzw. „Rückflug“) berechnet der Planer die Reisedauer inklusive Umstieg, die Ankunft in Ortszeit und die **Zeitverschiebung** (inklusive Sommer-/Winterzeit). Reisedauer, Zeitverschiebung und eine Notiz lassen sich unter „Angaben anpassen“ überschreiben. Der Heimatort kommt aus „Start / Abflughafen“ im Reise-Assistenten, sonst aus dem ersten Hinflug.
