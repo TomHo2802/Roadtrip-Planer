@@ -17046,9 +17046,9 @@ var qrcode = function() {
       };
       visit(data,previousData);
     };
-    const makeDailyStages = (start,end,from,to,rate=1.09) => Array.from({length:tripDayCount(start,end)},(_,i)=>({
+    const makeDailyStages = (start,end,from,to,rate=1.09) => Array.from({length:Math.max(1,tripDayCount(start,end)-1)},(_,i)=>({
       id:`stage-${Date.now()}-${i}-${freshId().slice(0,8)}`, fromCity:i===0?(from||'Startort'):(to||from||'Weiteres Ziel'),
-      toCity:to||'Ziel eintragen', dateRange:isoDay(start,i), nights:i<tripDayCount(start,end)-1?1:0,
+      toCity:to||'Ziel eintragen', dateRange:isoDay(start,i), nights:1,
       routeToHotel:{distanceKm:'',duration:'',routeDescription:'',stopsOnWay:[]},
       hotel:{name:'',bookingLink:'',hotelLink:'',rating:'',address:'',gps:'',checkIn:'',checkOut:'',breakfast:'',parking:'',cancelUntil:'',priceOldEur:'',priceNewEur:'',priceUsd:'',prepaid:'',creditCard:'',paidBy:'',splitAmong:[],parkingGarageName:'',parkingGarageAddress:'',parkingGarageGps:'',remarks:'',chargeAnnounced:'',cardCharged:'',bookingCode:''},
       localAttractions:[]
@@ -20535,22 +20535,12 @@ var qrcode = function() {
       );
     }
 
-    // v49: Etappenkette nach Änderung (Datum, Startort, überzählige Etappen)
-    const chainFix = (oldStages, edited, startDate) => {
+    // v49: Etappenkette nach Änderung (Datum, Startort, Reisedauer-Hinweis)
+    const chainFix = (oldStages, edited, meta) => {
       const nn = (s) => Math.max(0, parseInt(s.nights, 10) || 0);
+      const startDate = (meta || {}).startDate;
+      const idx = oldStages.findIndex((s) => s.id === edited.id);
       let list = oldStages.map((s) => (s.id === edited.id ? edited : s));
-      const total = oldStages.reduce((a, s) => a + nn(s), 0);
-      let removed = [];
-      let over = list.reduce((a, s) => a + nn(s), 0) - total;
-      const idx = list.findIndex((s) => s.id === edited.id);
-      while (over > 0) {
-        let k = -1;
-        for (let i = list.length - 1; i > idx; i--) { if (nn(list[i]) > 0) { k = i; break; } }
-        if (k < 0) break;
-        const s = list[k];
-        if (nn(s) <= over) { over -= nn(s); removed.push(s); list = list.filter((_, i) => i !== k); }
-        else { list = list.map((x, i) => (i === k ? { ...x, nights: nn(x) - over } : x)); over = 0; }
-      }
       const iso = /^\d{4}-\d{2}-\d{2}$/.test(startDate || '') ? startDate : null;
       let cur = iso;
       list = list.map((s, i) => {
@@ -20559,7 +20549,19 @@ var qrcode = function() {
         if (cur) { const end = isoAdd(cur, nn(s)); const nr = wzRange(cur, end); o.dateRange = String(s.dateRange || '').startsWith(nr) ? s.dateRange : nr; cur = end; }
         return o;
       });
-      return { stages: list, removed };
+      let newMeta = null, notice = '';
+      if (iso) {
+        const nights = list.reduce((a, s) => a + nn(s), 0);
+        const endIso = /^\d{4}-\d{2}-\d{2}$/.test(meta.endDate || '') ? meta.endDate : null;
+        const planned = parseInt(meta.plannedDays, 10) || (endIso ? tripDayCount(iso, endIso) : 0);
+        if (planned) {
+          const days = Math.max(nights + 1, planned);
+          const newEnd = isoAdd(iso, days - 1);
+          if (nights + 1 > planned) notice = `Die angegebene Reisedauer von ${planned} Tagen wurde überschritten. Die Reise verlängert sich auf ${nights + 1} Tage (bis ${wzDM(newEnd)}${newEnd.slice(0, 4)}).`;
+          if (newEnd !== meta.endDate || meta.plannedDays !== planned) newMeta = { ...meta, endDate: newEnd, plannedDays: planned };
+        }
+      }
+      return { stages: list, meta: newMeta, notice };
     };
 
     function App() {
@@ -24491,10 +24493,9 @@ Quelle: ${lt.url}` : '') }] } });
                   </button>
                   <button
                     onClick={() => {
-                      const cf = chainFix(tripData.stages || [], editingStageModal, (tripData.meta || {}).startDate);
-                      if (cf.removed.length && !window.confirm('Durch die zusätzlichen Nächte werden überzählige Etappen entfernt:\n' + cf.removed.map((r) => '• ' + (r.fromCity || '?') + ' → ' + (r.toCity || '?')).join('\n') + '\n\nDazu gespeicherte Hotel- und Aktivitätsdaten gehen verloren. Fortfahren?')) return;
-                      const updatedStages = cf.stages;
-                      saveTripData({ ...tripData, stages: updatedStages }, `Etappe „${editingStageModal.toCity}“ gespeichert!` + (cf.removed.length ? ' ' + cf.removed.length + ' Etappe(n) entfernt.' : ''));
+                      const cf = chainFix(tripData.stages || [], editingStageModal, tripData.meta || {});
+                      saveTripData({ ...tripData, stages: cf.stages, ...(cf.meta ? { meta: cf.meta } : {}) }, `Etappe „${editingStageModal.toCity}“ gespeichert!`);
+                      if (cf.notice) window.alert(cf.notice);
                       setEditingStageModal(null);
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-xs"
@@ -25375,7 +25376,7 @@ Quelle: ${lt.url}` : '') }] } });
                   <div className="mt-4 h-2 rounded-full bg-white/20"><div className="h-2 rounded-full bg-emerald-400 transition-all" style={{ width: `${((wizardStep + 1) / 3) * 100}%` }} /></div>
                 </div>
                 <div className="p-5 sm:p-6 space-y-4">
-                  {wizardStep === 0 && <><label className="block text-sm font-semibold">Reisename<input autoFocus type="text" value={wizardData.title} onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })} placeholder="z. B. Sommer-Roadtrip" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><label className="text-sm font-semibold">Startdatum<input type="date" value={wizardData.startDate} onChange={(e) => wzStart(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Reisetage<input type="number" min="1" max="120" value={wizardData.days} onChange={(e) => wzDays(e.target.value)} placeholder="z. B. 14" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Enddatum<input type="date" min={wizardData.startDate || undefined} value={wizardData.endDate} onChange={(e) => wzEnd(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label></div><p className="text-xs text-slate-500">Gib entweder das Enddatum oder die Anzahl der Reisetage ein, das jeweils andere wird berechnet (Start- und Endtag zählen mit).</p><div aria-live="polite" className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950">{tripDayCount(wizardData.startDate,wizardData.endDate)>0 ? `Vorschau: ${tripDayCount(wizardData.startDate,wizardData.endDate)} Etappen – je eine pro Kalendertag, Start- und Endtag inklusive.` : 'Bitte Start- und Enddatum eingeben, um die Etappenanzahl zu sehen.'}{tripDayCount(wizardData.startDate,wizardData.endDate)>120 && <span className="block text-rose-800">Maximal 120 Tage pro Reise.</span>}</div></>}
+                  {wizardStep === 0 && <><label className="block text-sm font-semibold">Reisename<input autoFocus type="text" value={wizardData.title} onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })} placeholder="z. B. Sommer-Roadtrip" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><label className="text-sm font-semibold">Startdatum<input type="date" value={wizardData.startDate} onChange={(e) => wzStart(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Reisetage<input type="number" min="1" max="120" value={wizardData.days} onChange={(e) => wzDays(e.target.value)} placeholder="z. B. 14" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Enddatum<input type="date" min={wizardData.startDate || undefined} value={wizardData.endDate} onChange={(e) => wzEnd(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label></div><p className="text-xs text-slate-500">Gib entweder das Enddatum oder die Anzahl der Reisetage ein, das jeweils andere wird berechnet (Start- und Endtag zählen mit).</p><div aria-live="polite" className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950">{tripDayCount(wizardData.startDate,wizardData.endDate)>0 ? `Vorschau: ${Math.max(1,tripDayCount(wizardData.startDate,wizardData.endDate)-1)} Etappen mit je einer Übernachtung. Der letzte Tag ist die Rückreise (keine Übernachtung).` : 'Bitte Start- und Enddatum eingeben, um die Etappenanzahl zu sehen.'}{tripDayCount(wizardData.startDate,wizardData.endDate)>120 && <span className="block text-rose-800">Maximal 120 Tage pro Reise.</span>}</div></>}
                   {wizardStep === 1 && <><label className="block text-sm font-semibold">Startort / Abflughafen<input type="text" value={wizardData.startLocation} onChange={(e) => setWizardData({ ...wizardData, startLocation: e.target.value })} placeholder="z. B. München (MUC)" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Zielregion / Land oder erste Etappe<input type="text" value={wizardData.destination} onChange={(e) => setWizardData({ ...wizardData, destination: e.target.value })} placeholder="z. B. Florida / Miami" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Fahrzeug / Mietwagen (optional)<input type="text" value={wizardData.vehicle} onChange={(e) => setWizardData({ ...wizardData, vehicle: e.target.value })} placeholder="z. B. Mietwagen / SUV" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><p className="text-xs text-slate-500">Bei Angabe eines Ziels wird eine erste Etappe ohne Hotel angelegt. Weitere Details können später ergänzt werden.</p></>}
                   {wizardStep === 2 && <><label className="block text-sm font-semibold">Anzahl Reisende<input type="number" min="1" max="20" value={wizardData.people} onChange={(e) => setWizardData({ ...wizardData, people: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Anzahl Reisende, z.B. 2" /></label><div className="space-y-2"><div className="text-sm font-semibold">Namen der Reisenden</div><div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{Array.from({ length: Math.max(1, Math.min(20, parseInt(wizardData.people, 10) || 1)) }, (_, i) => <input key={i} type="text" aria-label={`Name Reisende ${i + 1}`} value={(wizardData.names || [])[i] || ''} onChange={(e) => { const nm = [...(wizardData.names || [])]; nm[i] = e.target.value; setWizardData({ ...wizardData, names: nm }); }} placeholder={`Reisende ${i + 1}`} className="w-full px-3 py-2 rounded-lg border border-slate-300" />)}</div></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-sm font-semibold">Budget (optional)<input type="number" min="0" step="0.01" value={wizardData.budget} onChange={(e) => setWizardData({ ...wizardData, budget: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Budget, z.B. 5000" /></label><label className="text-sm font-semibold">Währung<select value={wizardData.currency} onChange={(e) => setWizardData({ ...wizardData, currency: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"><option value="EUR">EUR (€)</option><option value="USD">USD ($)</option><option value="GBP">GBP (£)</option><option value="CHF">CHF</option></select></label></div><div className="rounded-xl bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">Die Eingaben werden in den Reisedaten gespeichert. Namen, die du leer lässt, werden als „Reisende 1, 2 …“ angelegt und lassen sich später ändern.</div></>}
                 </div>

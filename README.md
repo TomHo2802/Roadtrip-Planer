@@ -228,6 +228,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - **An- und Rückreise:** Auf der Etappenseite (Reiter „Weg“) zeigt die erste Etappe die **Anreise** vom Heimatort und die letzte Etappe die **Rückreise** zum Heimatort. Aus den eingetragenen Flügen (Buchungen → Flug & Mietwagen, „Hinflug“ bzw. „Rückflug“) berechnet der Planer die Reisedauer inklusive Umstieg, die Ankunft in Ortszeit und die **Zeitverschiebung** (inklusive Sommer-/Winterzeit). Reisedauer, Zeitverschiebung und eine Notiz lassen sich unter „Angaben anpassen“ überschreiben. Der Heimatort kommt aus „Start / Abflughafen“ im Reise-Assistenten, sonst aus dem ersten Hinflug.
 
 ## v49
-- Beim Speichern einer Etappe (Grunddaten bearbeiten) werden alle folgenden Etappen neu durchgerechnet: Das Datum folgt aus Reisebeginn + Nächten (z. B. 05.11. + 2 Nächte → nächste Etappe ab 07.11.).
+- Beim Speichern einer Etappe (Grunddaten bearbeiten) werden alle folgenden Etappen neu durchgerechnet: Datum = Reisebeginn + Nächte (z. B. 05.11. + 2 Nächte → nächste Etappe ab 07.11.).
 - Der Startort jeder folgenden Etappe wird automatisch auf den Zielort der vorherigen gesetzt.
-- Bekommt eine Etappe mehr Nächte, bleibt die Reisedauer gleich: überzählige Etappen am Ende werden entfernt (mit Rückfrage, welche entfallen) bzw. die letzte Etappe wird gekürzt.
+- Der Rückreisetag bekommt keine eigene Etappe mehr (keine Übernachtung); neue Reisen legen Tage − 1 Etappen an. Die Rückreise steht in der letzten Etappe.
+- Wird die im Startdialog angegebene Reisedauer durch zusätzliche Nächte überschritten, erscheint eine Meldung; die Reise verlängert sich (Enddatum wird angepasst), es wird nichts gelöscht.
