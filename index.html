@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 50</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 51</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -21725,10 +21725,10 @@ Quelle: ${lt.url}` : '') }] } });
                                 </div>
                                 <div className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
                                   <span>{stage.dateRange}</span>
-                                  <span>•</span>
+                                  {!(sIdx === (tripData.stages || []).length - 1 && (tripData.stages || []).length > 1 && !(parseInt(stage.nights, 10) > 0)) && <><span>•</span>
                                   <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-semibold">
                                     {nightsCount} {nightsCount === 1 ? 'Übernachtung' : 'Übernachtungen'}
-                                  </span>
+                                  </span></>}
                                   <span>•</span>
                                   <span className="text-[#173B6B] font-medium">{h.name}</span>
                                 </div>
