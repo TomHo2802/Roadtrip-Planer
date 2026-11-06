@@ -241,3 +241,9 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v51
 - Die Rückreise-Etappe zeigt in der Kopfzeile keine Übernachtung mehr an.
+
+## v52
+- Sehenswürdigkeiten-Suche (Vor Ort und Auf dem Weg): Treffer werden jetzt nach Art des Ortes (Wikidata: Sehenswürdigkeit, Museum, Schloss, Park, Strand, Nationalpark …) gefiltert und nach Bekanntheit sortiert. Unbekannte Objekte ohne passende Art werden ausgeblendet.
+- Die Liste zeigt zuerst die 10 besten Treffer, „Mehr anzeigen“ lädt jeweils 10 weitere nach (Karte folgt der Liste).
+- Neu: „Nach Namen suchen“ in beiden Suchen – findet auch bekannte Orte, die in der Vorschlagsliste fehlen (mit Foto, Entfernung und Übernahme in die Etappe).
+- Alte gespeicherte Suchergebnisse werden nicht mehr verwendet; mit „Neu suchen“ gibt es die verbesserte Liste.

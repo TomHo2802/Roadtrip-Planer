@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 51</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 52</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19476,12 +19476,12 @@ var qrcode = function() {
       const pad = 0.12;
       const one = async (pts) => {
         const S = Math.min(...pts.map((p) => p[0])) - pad, N = Math.max(...pts.map((p) => p[0])) + pad, W = Math.min(...pts.map((p) => p[1])) - pad, Ea = Math.max(...pts.map((p) => p[1])) + pad;
-        const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d ?shop WHERE { SERVICE wikibase:box { ?item wdt:P625 ?loc . bd:serviceParam wikibase:cornerSouthWest "Point(${W.toFixed(4)} ${S.toFixed(4)})"^^geo:wktLiteral . bd:serviceParam wikibase:cornerNorthEast "Point(${Ea.toFixed(4)} ${N.toFixed(4)})"^^geo:wktLiteral . } ?item wikibase:sitelinks ?sl . BIND(EXISTS { VALUES ?shopT { wd:Q31374404 wd:Q11315 wd:Q216107 wd:Q330284 wd:Q1127689 } ?item wdt:P31 ?shopT } AS ?shop) FILTER(?sl >= 12 || ?shop) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 300`;
-        let j; for (let tr = 0; tr < 2 && !j; tr++) { try { j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 30000); } catch (e) { lastErr = e.message; if (tr === 0) await new Promise((r) => setTimeout(r, 1500)); } }
+        const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d ?shop ?tour WHERE { SERVICE wikibase:box { ?item wdt:P625 ?loc . bd:serviceParam wikibase:cornerSouthWest "Point(${W.toFixed(4)} ${S.toFixed(4)})"^^geo:wktLiteral . bd:serviceParam wikibase:cornerNorthEast "Point(${Ea.toFixed(4)} ${N.toFixed(4)})"^^geo:wktLiteral . } ?item wikibase:sitelinks ?sl . BIND(EXISTS { VALUES ?shopT { wd:Q31374404 wd:Q11315 wd:Q216107 wd:Q330284 wd:Q1127689 } ?item wdt:P31 ?shopT } AS ?shop) ${RT_TOURQ} FILTER(?sl >= 12 || ?shop) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 300`;
+        let j; for (let tr = 0; tr < 2 && !j; tr++) { try { j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(tr === 0 ? q : rtNoTour(q))}`, 30000); } catch (e) { lastErr = e.message; if (tr === 0) await new Promise((r) => setTimeout(r, 1500)); } }
         if (!j) failed++; else ((j.results && j.results.bindings) || []).forEach((r) => {
           const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return; const id = r.item.value.split('/').pop(); const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
           const prev = found.get(id) || {}; const d = (r.d && r.d.value) || prev.d || '';
-          found.set(id, { id, name, shop: prev.shop || (r.shop && r.shop.value === 'true'), lat: Number(mm[2]), lon: Number(mm[1]), sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d });
+          found.set(id, { id, name, tour: prev.tour || (r.tour && r.tour.value === 'true'), hasFlag: !!r.tour || prev.hasFlag, shop: prev.shop || (r.shop && r.shop.value === 'true'), lat: Number(mm[2]), lon: Number(mm[1]), sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d });
         });
         done++; setP(14 + 60 * done / nSeg, `Orte entlang der Strecke (${done} von ${nSeg}) …`);
       };
@@ -19489,7 +19489,7 @@ var qrcode = function() {
       if (failed === nSeg) throw new Error(`Wikidata nicht erreichbar (${lastErr || 'keine Antwort'})`);
       // nur Orte nahe an der Strecke, sinnvolle Arten
       setP(76, 'Treffer werden geprüft …');
-      let cand = [...found.values()].map((c) => ({ ...c, kind: c.shop ? 'shopping' : sfwKindOf(c.d), off: Math.min(...line.slice(1).map((p, i) => sfwDistKm([c.lat, c.lon], line[i], p))) })).filter((c) => c.kind && c.off <= (c.kind === 'stadt' ? 12 : 8) && haversineM(A, [c.lat, c.lon]) > 3000 && haversineM(B, [c.lat, c.lon]) > 3000);
+      let cand = [...found.values()].map((c) => ({ ...c, sl: c.sl + (c.tour ? 40 : 0), kind: c.shop ? 'shopping' : (c.tour && (!sfwKindOf(c.d) || sfwKindOf(c.d) === 'stadt') ? 'sehensw' : sfwKindOf(c.d)), off: Math.min(...line.slice(1).map((p, i) => sfwDistKm([c.lat, c.lon], line[i], p))) })).filter((c) => c.kind && !(c.hasFlag && !c.tour && !c.shop && c.sl < 35) && c.off <= (c.kind === 'stadt' ? 12 : 8) && haversineM(A, [c.lat, c.lon]) > 3000 && haversineM(B, [c.lat, c.lon]) > 3000);
       cand.sort((a, b) => b.sl - a.sl); cand = cand.slice(0, 60); chk();
       if (!cand.length) return { line, totalKm, totalMin, items: [], failed };
       setP(82, 'Umwege werden berechnet …');
@@ -19581,7 +19581,7 @@ var qrcode = function() {
       const [p, setPr] = useState({ pct: 0, label: '', busy: false });
       const [res, setRes] = useState(null); const [err, setErr] = useState('');
       const [kinds, setKinds] = useState([]); const [maxD, setMaxD] = useState(30); const [sortBy, setSortBy] = useState('route'); const [selId, setSelId] = useState(null);
-      const cancelRef = useRef(false);
+      const [lim, setLim] = useState(10); const cancelRef = useRef(false);
       const prev = (trip.stages || [])[index - 1];
       const run = async (force) => {
         cancelRef.current = false; setErr(''); setRes(null); setPr({ pct: 1, label: 'Start …', busy: true });
@@ -19591,7 +19591,7 @@ var qrcode = function() {
           let A = parseGps(prev && prev.hotel && prev.hotel.gps); if (!A) { const nm = (prev && prev.toCity) || stage.fromCity; if (nm) A = await sfGeocode(nm); }
           let B = parseGps(stage.hotel && stage.hotel.gps); if (!B && stage.toCity) B = await sfGeocode(stage.toCity);
           if (!A || !B) throw new Error('Start oder Ziel nicht gefunden. Bitte Ortsnamen prüfen oder GPS beim Hotel eintragen.');
-          const key = `${A.map((x) => x.toFixed(3))}|${B.map((x) => x.toFixed(3))}`;
+          const key = `w2|${A.map((x) => x.toFixed(3))}|${B.map((x) => x.toFixed(3))}`;
           const cached = force === true ? null : sfwGet(key);
           if (cached) { setP(100, 'Aus dem Zwischenspeicher geladen'); cached.A = A; cached.B = B; setRes(cached); setSelId(cached.items[0] ? cached.items[0].id : null); setPr({ pct: 100, label: 'Fertig (aus Zwischenspeicher)', busy: false }); return; }
           const r = await sfwRun(A, B, setP, () => cancelRef.current);
@@ -19599,7 +19599,8 @@ var qrcode = function() {
         } catch (e) { if (e.message === '__cancel') setPr({ pct: 0, label: 'Abgebrochen', busy: false }); else { setErr(/nicht gefunden|Keine Route/.test(e.message) ? e.message : `Suche fehlgeschlagen (${String(e.message).slice(0, 200)}). Internet nötig.`); setPr({ pct: 0, label: '', busy: false }); } }
       };
       const shown = useMemo(() => { if (!res) return []; const b = res.items.filter((c) => c.detour <= maxD && (!kinds.length || kinds.includes(c.kind))); return [...b].sort(sortBy === 'route' ? (x, y) => x.fromStartKm - y.fromStartKm : (x, y) => x.detour - y.detour); }, [res, kinds, maxD, sortBy]);
-      useEffect(() => { if (shown.length && !shown.some((c) => c.id === selId)) setSelId(shown[0].id); }, [shown]);
+      useEffect(() => { if (shown.length && !shown.some((c) => c.id === selId)) setSelId(shown[0].id); setLim(10); }, [shown]);
+      const vis = shown.slice(0, lim);
       const counts = {}; (res ? res.items : []).forEach((c) => { counts[c.kind] = (counts[c.kind] || 0) + 1; });
       return (
         <div data-sfw className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 space-y-3">
@@ -19607,6 +19608,7 @@ var qrcode = function() {
             <div><div className="font-bold text-slate-900">Ziele auf dem Weg: {(prev && prev.toCity) || stage.fromCity || '?'} → {stage.toCity || '?'}</div><div className="text-xs text-slate-500">Bekannte Orte entlang der Strecke (Wikidata), mit Umweg in Minuten</div></div>
             <button type="button" data-readonly-allow onClick={() => run(!!res)} disabled={p.busy} className="v18-btn pri disabled:opacity-50">{p.busy ? 'Suche läuft …' : res ? 'Neu suchen' : 'Ziele suchen'}</button>
           </div>
+          <RtNameSearch mode="way" getAB={async () => { let A = parseGps(prev && prev.hotel && prev.hotel.gps); if (!A) { const nm = (prev && prev.toCity) || stage.fromCity; if (nm) A = await sfGeocode(nm); } let B = parseGps(stage.hotel && stage.hotel.gps); if (!B && stage.toCity) B = await sfGeocode(stage.toCity); return [A, B]; }} pick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddStop(stage.id, x, t); }} />
           {(p.busy || (p.pct > 0 && p.pct < 100)) && <SfProgress pct={p.pct} label={p.label} onCancel={p.busy ? () => { cancelRef.current = true; } : null} />}
           {err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{err}</div>}
           {res && res.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Auf dieser Strecke wurden keine bekannten Ziele gefunden{res.failed ? ` (bei ${res.failed} Abschnitt(en) kam keine Antwort – bitte „Neu suchen“)` : ''}.</div>}
@@ -19621,12 +19623,12 @@ var qrcode = function() {
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                 <label className="flex items-center gap-3 font-semibold min-w-[240px]">Umweg höchstens <b data-sfw-maxd className="text-[#1F4E8C] w-14">{maxD} min</b><input data-readonly-allow type="range" min="0" max="90" step="5" value={maxD} onChange={(e) => setMaxD(Number(e.target.value))} aria-label="Maximaler Umweg in Minuten" className="flex-1 accent-[#1F4E8C]" /></label>
                 <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">Sortierung:{[['route', 'In Fahrtreihenfolge'], ['detour', 'Kleinster Umweg']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={sortBy === k} onClick={() => setSortBy(k)} className={`h-8 px-2.5 rounded-lg border text-xs font-semibold ${sortBy === k ? 'bg-[#E8EEF7] border-[#BCCDE6] text-[#173B6B]' : 'bg-white border-slate-300 text-slate-600'}`}>{l}</button>)}</span>
-                <span data-sfw-count className="text-xs text-slate-500">{shown.length} von {res.items.length} Zielen</span>
+                <span data-sfw-count className="text-xs text-slate-500">{vis.length} von {shown.length} passenden Zielen</span>
               </div>
               {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Nichts passt zu den Filtern. Erhöhe den Umweg oder nimm einen Filter heraus.</div>}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-                <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[480px] lg:overflow-y-auto lg:pr-1">{shown.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} onPick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddStop(stage.id, x, t); }} />)}</ul><div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div></div>
-                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4"><SfwMap key={`${res.A}|${res.B}`} A={res.A} B={res.B} line={res.line} items={shown} selId={selId} onSelect={asMapSelect(setSelId)} /></div>
+                <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[480px] lg:overflow-y-auto lg:pr-1">{vis.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} onPick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddStop(stage.id, x, t); }} />)}</ul>{shown.length > vis.length && <button type="button" data-readonly-allow data-sfw-morebtn onClick={() => setLim(lim + 10)} className="mt-2 v18-btn w-full">Mehr anzeigen ({shown.length - vis.length} weitere)</button>}<div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div></div>
+                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4"><SfwMap key={`${res.A}|${res.B}`} A={res.A} B={res.B} line={res.line} items={vis} selId={selId} onSelect={asMapSelect(setSelId)} /></div>
               </div>
             </div>
           )}
@@ -19799,35 +19801,36 @@ var qrcode = function() {
     // ---- ③ Vor Ort ----
     async function asDoRun(P, Rkm, setP, cancelled) {
       setP(5, 'Orte in der Umgebung werden gesucht …');
-      const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d ?shop WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${P[1].toFixed(5)} ${P[0].toFixed(5)})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Rkm}" . } ?item wikibase:sitelinks ?sl . BIND(EXISTS { VALUES ?shopT { wd:Q31374404 wd:Q11315 wd:Q216107 wd:Q330284 wd:Q1127689 } ?item wdt:P31 ?shopT } AS ?shop) FILTER(?sl >= 6 || ?shop) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 250`;
+      const q = `SELECT ?item ?itemLabel ?loc ?sl ?img ?d ?shop ?tour WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${P[1].toFixed(5)} ${P[0].toFixed(5)})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Rkm}" . } ?item wikibase:sitelinks ?sl . BIND(EXISTS { VALUES ?shopT { wd:Q31374404 wd:Q11315 wd:Q216107 wd:Q330284 wd:Q1127689 } ?item wdt:P31 ?shopT } AS ?shop) ${RT_TOURQ} FILTER(?sl >= 6 || ?shop) OPTIONAL { ?item wdt:P18 ?img } OPTIONAL { ?item schema:description ?d . FILTER(lang(?d) IN ("de","en")) } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?sl) LIMIT 250`;
       const stop = asProgressTicker(setP, 10, 85, 'Sehenswürdigkeiten werden geladen …'); let j, last = '';
-      try { for (let tr = 0; tr < 2 && !j; tr++) { try { j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 35000); } catch (e) { last = e.message; if (cancelled()) throw new Error('__cancel'); } } } finally { stop(); }
+      try { for (let tr = 0; tr < 2 && !j; tr++) { try { j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(tr === 0 ? q : rtNoTour(q))}`, 35000); } catch (e) { last = e.message; if (cancelled()) throw new Error('__cancel'); } } } finally { stop(); }
       if (!j) throw new Error(`Wikidata nicht erreichbar (${last || 'keine Antwort'})`); if (cancelled()) throw new Error('__cancel');
       setP(90, 'Ergebnisse werden aufbereitet …'); const map = new Map();
       ((j.results && j.results.bindings) || []).forEach((r) => {
         const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return; const id = r.item.value.split('/').pop(); const name = r.itemLabel && r.itemLabel.value; if (!name || /^Q\d+$/.test(name)) return;
-        const d = (r.d && r.d.value) || ''; const shop = r.shop && r.shop.value === 'true'; if (!shop && asBadWord.test(d.toLowerCase())) return; const kind = shop ? 'shopping' : sfwKindOf(d); if (!kind || kind === 'stadt') return;
+        const d = (r.d && r.d.value) || ''; const shop = r.shop && r.shop.value === 'true'; const tour = r.tour && r.tour.value === 'true'; const flag = !!r.tour; if (!shop && !tour && asBadWord.test(d.toLowerCase())) return; let kind = shop ? 'shopping' : sfwKindOf(d); if (tour && (!kind || kind === 'stadt')) kind = 'sehensw'; if (!kind || kind === 'stadt') return; if (flag && !tour && !shop && (Number(r.sl.value) || 0) < 30) return;
         const prev = map.get(id) || {}; const lat = Number(mm[2]), lon = Number(mm[1]);
-        map.set(id, { id, name, lat, lon, sl: Number(r.sl.value) || 0, img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d, kind, dist: haversineM(P, [lat, lon]) / 1000 });
+        map.set(id, { id, name, lat, lon, sl: (Number(r.sl.value) || 0) + (tour ? 40 : 0), img: (r.img && r.img.value ? r.img.value.replace(/^http:/, 'https:') + '?width=360' : '') || prev.img || '', d, kind, dist: haversineM(P, [lat, lon]) / 1000 });
       });
       return { items: [...map.values()].filter((c) => c.dist > 0.05).sort((a, b) => b.sl - a.sl).slice(0, 80) };
     }
     function StageDoPanel({ trip, stage, index, onAddLocal }) {
       const [p, setPr] = useState({ pct: 0, label: '', busy: false }); const [res, setRes] = useState(null); const [err, setErr] = useState(''); const [P, setPt] = useState(null);
-      const [kinds, setKinds] = useState([]); const [maxKm, setMaxKm] = useState(25); const [sortBy, setSortBy] = useState('pop'); const [selId, setSelId] = useState(null); const [day, setDay] = useState(0); const cancelRef = useRef(false);
+      const [kinds, setKinds] = useState([]); const [maxKm, setMaxKm] = useState(25); const [sortBy, setSortBy] = useState('pop'); const [selId, setSelId] = useState(null); const [day, setDay] = useState(0); const [lim, setLim] = useState(10); const cancelRef = useRef(false);
       const nights = Math.max(1, parseInt(stage.nights, 10) || 1); const have = new Set((stage.localAttractions || []).map((a) => (a.name || '').toLowerCase()));
       const run = async (force) => {
         cancelRef.current = false; setErr(''); setRes(null); setPr({ pct: 1, label: 'Start …', busy: true }); const setP = (pct, label) => setPr({ pct, label, busy: true });
         try {
           setP(3, 'Ort wird bestimmt …'); const C = await asCenter(stage); if (!C) throw new Error('Ort nicht gefunden. Bitte Zielort prüfen oder GPS beim Hotel eintragen.'); setPt(C);
-          const key = `do|${C[0].toFixed(3)}|${C[1].toFixed(3)}`; const cached = force === true ? null : sfwGet(key);
+          const key = `do2|${C[0].toFixed(3)}|${C[1].toFixed(3)}`; const cached = force === true ? null : sfwGet(key);
           if (cached) { setRes(cached); setPr({ pct: 100, label: 'Fertig (aus Zwischenspeicher)', busy: false }); return; }
           const r = await asDoRun(C, 50, setP, () => cancelRef.current); if (r.items.length) sfwPut(key, r); setRes(r); setPr({ pct: 100, label: 'Fertig', busy: false });
         } catch (e) { if (e.message === '__cancel') setPr({ pct: 0, label: 'Abgebrochen', busy: false }); else { setErr(/nicht gefunden/.test(e.message) ? e.message : `Suche fehlgeschlagen (${String(e.message).slice(0, 200)}). Internet nötig.`); setPr({ pct: 0, label: '', busy: false }); } }
       };
       const KK = Object.keys(SFW_KINDS).filter((k) => k !== 'stadt');
       const shown = useMemo(() => { if (!res) return []; const b = res.items.filter((c) => c.dist <= maxKm && (!kinds.length || kinds.includes(c.kind))); return [...b].sort(sortBy === 'dist' ? (x, y) => x.dist - y.dist : (x, y) => y.sl - x.sl); }, [res, kinds, maxKm, sortBy]);
-      useEffect(() => { if (shown.length && !shown.some((c) => c.id === selId)) setSelId(shown[0].id); }, [shown]);
+      useEffect(() => { if (shown.length && !shown.some((c) => c.id === selId)) setSelId(shown[0].id); setLim(10); }, [shown]);
+      const vis = shown.slice(0, lim);
       const counts = {}; (res ? res.items : []).forEach((c) => { counts[c.kind] = (counts[c.kind] || 0) + 1; });
       return (
         <div data-as-dopanel className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 space-y-3">
@@ -19835,6 +19838,7 @@ var qrcode = function() {
             <div><div className="font-bold text-slate-900">Unternehmungen rund um {stage.toCity || 'das Etappenziel'}</div><div className="text-xs text-slate-500">Bekannte Orte im Umkreis (Wikidata/Wikipedia), mit Foto und Beschreibung.</div></div>
             <button type="button" data-readonly-allow data-as-drun onClick={() => run(!!res)} disabled={p.busy} className="v18-btn pri disabled:opacity-50">{res ? 'Neu suchen' : 'Vorschläge suchen'}</button>
           </div>
+          <RtNameSearch mode="do" have={have} getCenter={() => asCenter(stage)} pick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddLocal(stage.id, x, t, day); }} />
           {(p.busy || (p.pct > 0 && p.pct < 100)) && <SfProgress pct={p.pct} label={p.label} onCancel={p.busy ? () => { cancelRef.current = true; } : null} />}
           {err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{err}</div>}
           {res && res.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Im Umkreis wurden keine bekannten Ziele gefunden.</div>}
@@ -19847,12 +19851,12 @@ var qrcode = function() {
                 <label className="flex items-center gap-2 font-semibold">Umkreis bis <b data-as-dokm className="text-[#1F4E8C] w-14">{maxKm} km</b><input data-readonly-allow type="range" min="5" max="50" step="5" value={maxKm} onChange={(e) => setMaxKm(+e.target.value)} className="v20-range" aria-label="Umkreis" /></label>
                 <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">Sortierung:{[['pop', 'Bekanntheit'], ['dist', 'Entfernung']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={sortBy === k} onClick={() => setSortBy(k)} className={`h-8 px-2.5 rounded-full border font-semibold ${sortBy === k ? 'bg-[#E8EEF7] border-[#1F4E8C] text-[#173B6B]' : 'bg-white border-slate-300 text-slate-700'}`}>{l}</button>)}</span>
                 {nights >= 2 && <label className="inline-flex items-center gap-1.5">Übernehmen für<select data-readonly-allow data-as-day value={day} onChange={(e) => setDay(+e.target.value)} className="h-8 px-2 rounded border border-slate-300 text-sm"><option value={0}>automatisch</option>{Array.from({ length: nights }, (_, i) => <option key={i} value={i + 1}>Tag {i + 1}</option>)}</select></label>}
-                <span data-as-docount className="text-xs text-slate-500">{shown.length} von {res.items.length} Zielen</span>
+                <span data-as-docount className="text-xs text-slate-500">{vis.length} von {shown.length} passenden Zielen</span>
               </div>
               {shown.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Nichts passt zu den Filtern. Erhöhe den Umkreis oder nimm einen Filter heraus.</div>}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-                <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[520px] lg:overflow-y-auto lg:pr-1">{shown.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} meta={<><b>{c.dist.toFixed(1).replace('.', ',')} km</b> vom Zentrum{c.kind === 'museum' ? ' · auch bei Regen' : ''}{have.has(c.name.toLowerCase()) ? ' · bereits in der Etappe' : ''}</>} pickLabel="Zu Aktionen hinzufügen" onPick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddLocal(stage.id, x, t, day); }} />)}</ul></div>
-                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">{P && <AsMap key={P.join()} P={P} items={shown} selId={selId} onSelect={asMapSelect(setSelId)} nameOf={(c) => `${c.name} (${c.dist.toFixed(1)} km)`} />}</div>
+                <div className="order-2 lg:order-1 min-w-0"><ul className="space-y-2 p-0 m-0 lg:max-h-[520px] lg:overflow-y-auto lg:pr-1">{vis.map((c) => <SfwCard key={c.id} c={c} selected={c.id === selId} onSelect={() => setSelId(c.id)} meta={<><b>{c.dist.toFixed(1).replace('.', ',')} km</b> vom Zentrum{c.kind === 'museum' ? ' · auch bei Regen' : ''}{have.has(c.name.toLowerCase()) ? ' · bereits in der Etappe' : ''}</>} pickLabel="Zu Aktionen hinzufügen" onPick={async (x) => { let t = null; try { t = await sfwLongText(x); } catch (e) {} onAddLocal(stage.id, x, t, day); }} />)}</ul>{shown.length > vis.length && <button type="button" data-readonly-allow data-as-more onClick={() => setLim(lim + 10)} className="mt-2 v18-btn w-full">Mehr anzeigen ({shown.length - vis.length} weitere)</button>}</div>
+                <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">{P && <AsMap key={P.join()} P={P} items={vis} selId={selId} onSelect={asMapSelect(setSelId)} nameOf={(c) => `${c.name} (${c.dist.toFixed(1)} km)`} />}</div>
               </div>
             </div>
           )}
@@ -20632,6 +20636,48 @@ var qrcode = function() {
         }
       }, [trip.meta && trip.meta.title, (trip.stages || []).length]);
       return null;
+    }
+
+    // v52: bessere Trefferqualität (Wikidata-Typen), Top-10 + Mehr, Namenssuche
+    const RT_TOURQ = 'BIND(EXISTS { VALUES ?tt { wd:Q570116 wd:Q33506 wd:Q23413 wd:Q16560 wd:Q16970 wd:Q2977 wd:Q32815 wd:Q34627 wd:Q44539 wd:Q44613 wd:Q46169 wd:Q473972 wd:Q179049 wd:Q40080 wd:Q34038 wd:Q23397 wd:Q8502 wd:Q8072 wd:Q35509 wd:Q22698 wd:Q167346 wd:Q1107656 wd:Q43501 wd:Q2281788 wd:Q194195 wd:Q2416723 wd:Q839954 wd:Q4989906 wd:Q12280 wd:Q39715 wd:Q179700 wd:Q1081138 wd:Q57821 wd:Q1785071 wd:Q24354 wd:Q483110 wd:Q811534 wd:Q1075 wd:Q15700834 wd:Q41176 wd:Q2065736 } ?item wdt:P31/wdt:P279* ?tt } AS ?tour)';
+    const rtNoTour = (q) => q.replace(RT_TOURQ, '').replace(' ?tour WHERE', ' WHERE');
+    async function rtNameSearch(q) {
+      const found = new Map();
+      for (const lang of ['de', 'en']) {
+        let j; try { j = await fetchJsonT(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(q)}&language=${lang}&uselang=${lang}&type=item&limit=20&format=json&origin=*`, 12000); } catch (e) { if (lang === 'en' && !found.size) throw e; continue; }
+        (j.search || []).forEach((r) => { if (!found.has(r.id)) found.set(r.id, r); });
+      }
+      const ids = [...found.keys()].slice(0, 50); if (!ids.length) return [];
+      const e = await fetchJsonT(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${encodeURIComponent(ids.join('|'))}&props=${encodeURIComponent('claims|sitelinks|labels|descriptions')}&languages=${encodeURIComponent('de|en')}&format=json&origin=*`, 15000);
+      const out = [];
+      ids.forEach((id) => {
+        const en = e.entities && e.entities[id]; if (!en || !en.claims) return;
+        const pc = en.claims.P625 && en.claims.P625[0] && en.claims.P625[0].mainsnak && en.claims.P625[0].mainsnak.datavalue; if (!pc || !pc.value) return;
+        const lb = en.labels || {}, ds = en.descriptions || {}; const name = (lb.de || lb.en || {}).value || found.get(id).label; if (!name) return;
+        const d = (ds.de || ds.en || {}).value || found.get(id).description || '';
+        const f = en.claims.P18 && en.claims.P18[0] && en.claims.P18[0].mainsnak && en.claims.P18[0].mainsnak.datavalue;
+        out.push({ id, name, d, lat: pc.value.latitude, lon: pc.value.longitude, sl: Object.keys(en.sitelinks || {}).length, img: f && f.value ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(f.value)}?width=360` : '', kind: sfwKindOf(d) || 'sehensw' });
+      });
+      return out.sort((a, b) => b.sl - a.sl);
+    }
+    function RtNameSearch({ mode, getCenter, getAB, pick, have }) {
+      const [q, setQ] = useState(''); const [st, setSt] = useState(''); const [res, setRes] = useState(null); const [ref, setRef] = useState(null);
+      const go = async (ev) => {
+        ev.preventDefault(); const t = q.trim(); if (t.length < 2) return; setSt('Suche läuft …'); setRes(null);
+        try {
+          let items = await rtNameSearch(t);
+          if (mode === 'do') { const C = ref || await getCenter(); setRef(C); if (C) items = items.map((c) => ({ ...c, dist: haversineM(C, [c.lat, c.lon]) / 1000 })).filter((c) => c.dist <= 400); }
+          else { const AB = ref || await getAB(); setRef(AB); if (AB && AB[0] && AB[1]) { const [A, B] = AB; const ab = haversineM(A, B) / 1000; items = items.map((c) => { const a1 = haversineM(A, [c.lat, c.lon]) / 1000, b1 = haversineM([c.lat, c.lon], B) / 1000; return { ...c, detour: Math.round(Math.max(0, a1 + b1 - ab) * 1.3 / 80 * 60), fromStartKm: a1 * 1.2, est: true }; }); } else items = items.map((c) => ({ ...c, detour: 0, fromStartKm: 0, est: true })); }
+          setRes(items.slice(0, 12)); setSt(items.length ? '' : 'Nichts gefunden. Anderen Namen oder eine andere Schreibweise versuchen.');
+        } catch (e) { setSt('Suche nicht möglich (Internet nötig).'); }
+      };
+      return (
+        <div data-name-search className="space-y-2">
+          <form onSubmit={go} className="flex gap-2"><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nach Namen suchen, z. B. Everglades" aria-label="Nach Namen suchen" className="flex-1 min-w-0 h-10 px-3 rounded-lg border border-slate-300 text-sm" /><button type="submit" data-readonly-allow className="v18-btn">Suchen</button></form>
+          {st && <div className="text-xs text-slate-600">{st}</div>}
+          {res && res.length > 0 && <div className="space-y-2"><div className="flex items-center justify-between text-xs"><b className="text-slate-900">Treffer für „{q.trim()}“</b><button type="button" data-readonly-allow onClick={() => { setRes(null); setSt(''); }} className="underline text-[#1F4E8C] font-semibold">Treffer ausblenden</button></div><ul className="space-y-2 p-0 m-0">{res.map((c) => <SfwCard key={c.id} c={c} selected={false} onSelect={() => {}} meta={mode === 'do' ? <><b>{c.dist.toFixed(1).replace('.', ',')} km</b> vom Zentrum{have && have.has(c.name.toLowerCase()) ? ' · bereits in der Etappe' : ''}</> : undefined} pickLabel={mode === 'do' ? 'Zu Aktionen hinzufügen' : undefined} onPick={pick} />)}</ul></div>}
+        </div>
+      );
     }
 
     function App() {
