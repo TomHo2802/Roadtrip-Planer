@@ -232,3 +232,9 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Der Startort jeder folgenden Etappe wird automatisch auf den Zielort der vorherigen gesetzt.
 - Der Rückreisetag bekommt keine eigene Etappe mehr (keine Übernachtung); neue Reisen legen Tage − 1 Etappen an. Die Rückreise steht in der letzten Etappe.
 - Wird die im Startdialog angegebene Reisedauer durch zusätzliche Nächte überschritten, erscheint eine Meldung; die Reise verlängert sich (Enddatum wird angepasst), es wird nichts gelöscht.
+
+## v50
+- Die letzte Etappe (Rückreise) bleibt erhalten. Sie hat keine Übernachtung: Hotel und „Vor Ort“ sind für sie ausgeblendet; „Punkte auf dem Weg“ und die Rückreise-Angaben bleiben.
+- Neue Reisen legen Etappen pro Kalendertag an; die letzte ist die Rückreise zum Startort.
+- Entfernung (km) und voraussichtliche Fahrzeit lassen sich pro Etappe („Entfernung & Fahrzeit ermitteln“ im Abschnitt Weg) oder für alle offenen Etappen auf einmal (oben in der Etappen-Liste) berechnen. Benötigt Internet; vorhandene Angaben werden bei „für alle“ nicht überschrieben.
+- Bestehende Planungen ohne Rückreise-Etappe: einmalige Rückfrage, ob sie ergänzt werden soll (Start = letztes Ziel, Ziel = Startort). Bestehende Etappen bleiben unverändert.

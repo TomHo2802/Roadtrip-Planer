@@ -17048,7 +17048,7 @@ var qrcode = function() {
     };
     const makeDailyStages = (start,end,from,to,rate=1.09) => Array.from({length:Math.max(1,tripDayCount(start,end)-1)},(_,i)=>({
       id:`stage-${Date.now()}-${i}-${freshId().slice(0,8)}`, fromCity:i===0?(from||'Startort'):(to||from||'Weiteres Ziel'),
-      toCity:to||'Ziel eintragen', dateRange:isoDay(start,i), nights:1,
+      toCity:(i>0&&i===tripDayCount(start,end)-1)?(from||'Heimatort'):(to||'Ziel eintragen'), dateRange:isoDay(start,i), nights:i<tripDayCount(start,end)-1?1:0,
       routeToHotel:{distanceKm:'',duration:'',routeDescription:'',stopsOnWay:[]},
       hotel:{name:'',bookingLink:'',hotelLink:'',rating:'',address:'',gps:'',checkIn:'',checkOut:'',breakfast:'',parking:'',cancelUntil:'',priceOldEur:'',priceNewEur:'',priceUsd:'',prepaid:'',creditCard:'',paidBy:'',splitAmong:[],parkingGarageName:'',parkingGarageAddress:'',parkingGarageGps:'',remarks:'',chargeAnnounced:'',cardCharged:'',bookingCode:''},
       localAttractions:[]
@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 49</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 50</div>
                 <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20435,13 +20435,13 @@ var qrcode = function() {
       );
     }
 
-    function StageListFoot({ stage, onOpen }) {
+    function StageListFoot({ stage, onOpen, ret }) {
       const rt = stage.routeToHotel || {}, h = stage.hotel || {}; const n = (stage.localAttractions || []).length; const km = spShort(rt.distanceKm), du = spShort(rt.duration);
       return (
         <div data-stage-foot className="px-4 py-3 flex flex-wrap items-center gap-2 text-xs">
           <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-950 border border-amber-300 font-semibold">① Weg: {km || du ? [km, du].filter(Boolean).join(' · ') : 'offen'}</span>
-          <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-950 border border-blue-300 font-semibold">② Hotel: {h.name || 'offen'}</span>
-          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-semibold">③ Vor Ort: {n ? `${n} Aktion${n === 1 ? '' : 'en'}` : 'offen'}</span>
+          {ret ? <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-900 border border-slate-300 font-semibold">Rückreise · ohne Übernachtung</span> : <><span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-950 border border-blue-300 font-semibold">② Hotel: {h.name || 'offen'}</span>
+          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-semibold">③ Vor Ort: {n ? `${n} Aktion${n === 1 ? '' : 'en'}` : 'offen'}</span></>}
           <button type="button" data-readonly-allow data-stage-open onClick={onOpen} className="ml-auto v18-btn pri">Etappe öffnen →</button>
         </div>
       );
@@ -20451,7 +20451,8 @@ var qrcode = function() {
       const i = stages.findIndex((s) => s.id === openId); if (i < 0) return null;
       const s = stages[i]; const rt = s.routeToHotel || {}, h = s.hotel || {}; const n = (s.localAttractions || []).length; const km = spShort(rt.distanceKm), du = spShort(rt.duration);
       const nights = Math.max(1, parseInt(s.nights, 10) || 1);
-      const tabs = [['way', '① Weg', [km, du].filter(Boolean).join(' · ') || 'offen'], ['hotel', '② Hotel', h.name || 'offen'], ['do', '③ Vor Ort', n ? `${n} Aktion${n === 1 ? '' : 'en'}` : 'offen'], ['all', 'Alles', 'alle Abschnitte']];
+      const isRet = rtIsRet(stages, i); useEffect(() => { if (isRet && (tab === 'hotel' || tab === 'do')) setTab('way'); }, [isRet, tab]);
+      const tabs = [['way', isRet ? '① Rückreise' : '① Weg', [km, du].filter(Boolean).join(' · ') || 'offen'], ...(isRet ? [] : [['hotel', '② Hotel', h.name || 'offen'], ['do', '③ Vor Ort', n ? `${n} Aktion${n === 1 ? '' : 'en'}` : 'offen']]), ['all', 'Alles', 'alle Abschnitte']];
       return (
         <div data-stage-pagebar className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 space-y-3 no-print">
           <div className="flex flex-wrap items-center gap-2">
@@ -20563,6 +20564,75 @@ var qrcode = function() {
       }
       return { stages: list, meta: newMeta, notice };
     };
+
+    // v50: Rückreise-Etappe, Strecken (km / Fahrzeit) und Migration bestehender Planungen
+    const rtIsRet = (stages, i) => !!stages && stages.length > 1 && i === stages.length - 1 && !(parseInt((stages[i] || {}).nights, 10) > 0);
+    const rtStageName = (s) => `${s.fromCity || '?'} → ${s.toCity || '?'}`;
+    async function rtRoute(A, B) {
+      const j = await fetchJsonTimeout(`https://router.project-osrm.org/route/v1/driving/${A[1]},${A[0]};${B[1]},${B[0]}?overview=false`, {}, 15000);
+      const r = j && j.routes && j.routes[0]; if (!r) throw new Error('Keine Route');
+      const km = Math.round(r.distance / 1000), hrs = (r.duration / 3600).toFixed(1).replace('.', ',');
+      return { distanceKm: `${km} km (${Math.round(km * 0.621)} mi)`, duration: `${hrs} h` };
+    }
+    async function rtCalcStage(stages, i) {
+      const s = stages[i], prev = stages[i - 1];
+      let A = parseGps(prev && prev.hotel && prev.hotel.gps); if (!A) { const nm = s.fromCity || (prev && prev.toCity); if (nm) A = await sfGeocode(nm); }
+      let B = parseGps(s.hotel && s.hotel.gps); if (!B && s.toCity) B = await sfGeocode(s.toCity);
+      if (!A || !B) throw new Error('Ort nicht gefunden');
+      return rtRoute(A, B);
+    }
+    function RouteCalcBar({ trip, stage, index, onSave }) {
+      const [st, setSt] = useState('');
+      const run = async () => {
+        setSt('Berechne …');
+        try { const r = await rtCalcStage(trip.stages || [], index); const stages = (trip.stages || []).map((s) => (s.id === stage.id ? { ...s, routeToHotel: { ...(s.routeToHotel || { routeDescription: '', stopsOnWay: [] }), ...r } } : s)); onSave({ ...trip, stages }, `Strecke: ${r.distanceKm} · ${r.duration}`); setSt(''); }
+        catch (e) { setSt('Nicht möglich: ' + (/Ort/.test(e.message) ? 'Ortsnamen prüfen.' : 'Internet nötig.')); }
+      };
+      return (
+        <div data-route-calc className="px-3 py-2 flex flex-wrap items-center gap-2 text-xs">
+          <button type="button" onClick={run} className="v18-btn sm">Entfernung &amp; Fahrzeit ermitteln</button>
+          <span className="text-slate-600">{(stage.routeToHotel || {}).distanceKm ? '' : 'Noch keine Angabe.'} {st}</span>
+        </div>
+      );
+    }
+    function RouteCalcAll({ trip, onSave }) {
+      const [st, setSt] = useState('');
+      const stages = trip.stages || []; const open = stages.filter((s) => !(s.routeToHotel && s.routeToHotel.distanceKm && s.routeToHotel.duration)).length;
+      if (!stages.length) return null;
+      const run = async () => {
+        let cur = stages, fail = 0;
+        for (let i = 0; i < cur.length; i++) {
+          const s = cur[i]; if (s.routeToHotel && s.routeToHotel.distanceKm && s.routeToHotel.duration) continue;
+          setSt(`Berechne Etappe ${i + 1} von ${cur.length} …`);
+          try { const r = await rtCalcStage(cur, i); cur = cur.map((x, k) => (k === i ? { ...x, routeToHotel: { ...(x.routeToHotel || { routeDescription: '', stopsOnWay: [] }), ...r } } : x)); } catch (e) { fail++; }
+        }
+        onSave({ ...trip, stages: cur }, fail ? `Strecken berechnet, ${fail} Etappe(n) nicht möglich.` : 'Strecken für alle Etappen berechnet'); setSt(fail ? `${fail} Etappe(n) nicht möglich (Ortsname oder Internet).` : 'Fertig.');
+      };
+      return (
+        <div data-route-all className="v18-edit-only no-print rounded-2xl border border-slate-200 bg-white p-3 flex flex-wrap items-center gap-3 text-sm">
+          <button type="button" onClick={run} disabled={!open || !!st && /Berechne/.test(st)} className="v18-btn disabled:opacity-50">Entfernung &amp; Fahrzeit für alle Etappen ermitteln</button>
+          <span className="text-slate-700">{open ? `${open} Etappe(n) ohne Angabe` : 'Alle Etappen haben km und Fahrzeit.'} {st}</span>
+        </div>
+      );
+    }
+    function RtMigrate({ trip, onSave }) {
+      useEffect(() => {
+        const m = trip.meta || {}, stages = trip.stages || [];
+        if (IS_READ_ONLY_COPY || m.returnStageAsked || stages.length < 1 || !m.startLocation || !/^\d{4}-\d{2}-\d{2}$/.test(m.startDate || '')) return;
+        if (window.__rtMigAsked === m.tripId + '|' + m.title) return; window.__rtMigAsked = m.tripId + '|' + m.title;
+        const last = stages[stages.length - 1];
+        if (rtIsRet(stages, stages.length - 1) || stages.length === 1 && !(parseInt(last.nights, 10) > 0)) return;
+        if (parseInt(last.nights, 10) > 0 && /^\d{4}-\d{2}-\d{2}$/.test(m.endDate || '')) {
+          const nights = stages.reduce((a, s) => a + (parseInt(s.nights, 10) || 0), 0);
+          const endIso = isoAdd(m.startDate, nights);
+          const ok = window.confirm(`Die Planung hat noch keine Etappe für die Rückreise.\n\nSoll eine letzte Etappe „${last.toCity || '?'} → ${m.startLocation}“ am ${endIso.slice(8, 10)}.${endIso.slice(5, 7)}.${endIso.slice(0, 4)} ergänzt werden? Sie hat keine Übernachtung, daher kein Hotel und keine Unternehmungen vor Ort; Punkte auf dem Weg sind möglich.\n\nBestehende Etappen bleiben unverändert.`);
+          const next = { ...trip, meta: { ...m, returnStageAsked: true } };
+          if (ok) { const ns = wzNewStage(last.toCity || '', m.startLocation, 0); ns.dateRange = wzRange(endIso, endIso); next.stages = [...stages, ns]; }
+          onSave(next, ok ? 'Rückreise-Etappe ergänzt' : 'Ok, keine Rückreise-Etappe');
+        }
+      }, [trip.meta && trip.meta.title, (trip.stages || []).length]);
+      return null;
+    }
 
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
@@ -21600,6 +21670,8 @@ Quelle: ${lt.url}` : '') }] } });
                   <div className="min-w-[220px] flex-1"><h2 className="text-base font-bold text-slate-900">🧭 Reise-Assistent</h2><p className="text-sm text-slate-700">{(tripData.stages || []).length ? 'Schritt für Schritt prüfen und ergänzen: Grundrahmen, Route, Hotels, Fahrzeiten.' : 'Plane Schritt für Schritt: erst den Grundrahmen, dann die einzelnen Etappen.'}</p></div>
                   <button type="button" data-wizard-card-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard'))} className="v18-btn pri">{(tripData.stages || []).length ? 'Assistent öffnen' : 'Planung starten'}</button>
                 </section>
+                <RtMigrate trip={tripData} onSave={saveTripData} />
+                <RouteCalcAll trip={tripData} onSave={saveTripData} />
                 <StageFinder trip={tripData} onPick={handleAddSuggestedStage} />
 
                 {openStageId && <StagePageBar stages={tripData.stages || []} openId={openStageId} tab={stageTab} setTab={setStageTab} onBack={() => setOpenStageId(null)} onOpen={(id) => openStagePage(id, stageTab)} />}
@@ -21702,13 +21774,13 @@ Quelle: ${lt.url}` : '') }] } });
                             </div>
                           </div>
 
-                          {isPage ? null : <StageListFoot stage={stage} onOpen={() => openStagePage(stage.id)} />}
+                          {isPage ? null : <StageListFoot ret={(sIdx === (tripData.stages || []).length - 1 && (tripData.stages || []).length > 1 && !(parseInt(stage.nights, 10) > 0))} stage={stage} onOpen={() => openStagePage(stage.id)} />}
 
                           {isExpanded && (
                             <div style={{ order: 2 }} className="p-3 sm:p-5 space-y-6">
                               {/* 1. DER WEG ZUM HOTEL */}
                               <details className={`stage-section rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden ${stageTab === 'way' || stageTab === 'all' ? '' : 'hidden'}`} open>
-                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="way" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />{sIdx === 0 && <HomeLegCard kind="out" trip={tripData} stage={stage} onSave={saveTripData} />}{sIdx === (tripData.stages || []).length - 1 && <HomeLegCard kind="back" trip={tripData} stage={stage} onSave={saveTripData} />}
+                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="way" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />{sIdx === 0 && <HomeLegCard kind="out" trip={tripData} stage={stage} onSave={saveTripData} />}{sIdx === (tripData.stages || []).length - 1 && <HomeLegCard kind="back" trip={tripData} stage={stage} onSave={saveTripData} />}<RouteCalcBar trip={tripData} stage={stage} index={sIdx} onSave={saveTripData} />
                                 <div className="rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden">
                                 <div className="bg-amber-100/80 px-4 py-2.5 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2">
                                   <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 flex-wrap">
@@ -21801,7 +21873,7 @@ Quelle: ${lt.url}` : '') }] } });
                               </div>
                               </details>
 
-                              <details className={`stage-section rounded-xl border border-blue-200 bg-white overflow-hidden ${stageTab === 'hotel' || stageTab === 'all' ? '' : 'hidden'}`} open>
+                              <details className={`stage-section rounded-xl border border-blue-200 bg-white overflow-hidden ${(stageTab === 'hotel' || stageTab === 'all') && !(sIdx === (tripData.stages || []).length - 1 && (tripData.stages || []).length > 1 && !(parseInt(stage.nights, 10) > 0)) ? '' : 'hidden'}`} open>
                                 <summary className="bg-blue-50 text-blue-950"><span className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center shrink-0">2</span><span className="min-w-0">Hotel & Unterkunft{stage.hotel?.name ? ` · ${stage.hotel.name}` : ''}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'hotel'); }} className="stage-edit-action" aria-label="Hotel bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="hotel" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />
                                 {stage.hotel && (<>
                               {/* 2. HOTEL / UNTERKUNFT (SCREENSHOT-TABELLE ODER ÜBERSICHTLICHE KOMPAKT-KARTE MIT ALLEN DATEN) */}
@@ -21996,7 +22068,7 @@ Quelle: ${lt.url}` : '') }] } });
                               </details>
 
                               {/* 3. SEHENSWÜRDIGKEITEN & AKTIONEN VOR ORT (MIT TAGES-REITERN BEI >= 2 ÜBERNACHTUNGEN) */}
-                              <details className={`stage-section rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden ${stageTab === 'do' || stageTab === 'all' ? '' : 'hidden'}`} open>
+                              <details className={`stage-section rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden ${(stageTab === 'do' || stageTab === 'all') && !(sIdx === (tripData.stages || []).length - 1 && (tripData.stages || []).length > 1 && !(parseInt(stage.nights, 10) > 0)) ? '' : 'hidden'}`} open>
                                 <summary className="bg-emerald-100 text-emerald-950"><span className="w-7 h-7 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center shrink-0">3</span><span className="min-w-0">Aktionen vor Ort · {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'activities'); }} className="stage-edit-action" aria-label="Aktionen vor Ort bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="do" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />
                                 <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden">
                                 <div className="bg-emerald-100/80 px-4 py-2.5 border-b border-emerald-200 flex flex-wrap items-center justify-between gap-2">
@@ -25376,7 +25448,7 @@ Quelle: ${lt.url}` : '') }] } });
                   <div className="mt-4 h-2 rounded-full bg-white/20"><div className="h-2 rounded-full bg-emerald-400 transition-all" style={{ width: `${((wizardStep + 1) / 3) * 100}%` }} /></div>
                 </div>
                 <div className="p-5 sm:p-6 space-y-4">
-                  {wizardStep === 0 && <><label className="block text-sm font-semibold">Reisename<input autoFocus type="text" value={wizardData.title} onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })} placeholder="z. B. Sommer-Roadtrip" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><label className="text-sm font-semibold">Startdatum<input type="date" value={wizardData.startDate} onChange={(e) => wzStart(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Reisetage<input type="number" min="1" max="120" value={wizardData.days} onChange={(e) => wzDays(e.target.value)} placeholder="z. B. 14" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Enddatum<input type="date" min={wizardData.startDate || undefined} value={wizardData.endDate} onChange={(e) => wzEnd(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label></div><p className="text-xs text-slate-500">Gib entweder das Enddatum oder die Anzahl der Reisetage ein, das jeweils andere wird berechnet (Start- und Endtag zählen mit).</p><div aria-live="polite" className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950">{tripDayCount(wizardData.startDate,wizardData.endDate)>0 ? `Vorschau: ${Math.max(1,tripDayCount(wizardData.startDate,wizardData.endDate)-1)} Etappen mit je einer Übernachtung. Der letzte Tag ist die Rückreise (keine Übernachtung).` : 'Bitte Start- und Enddatum eingeben, um die Etappenanzahl zu sehen.'}{tripDayCount(wizardData.startDate,wizardData.endDate)>120 && <span className="block text-rose-800">Maximal 120 Tage pro Reise.</span>}</div></>}
+                  {wizardStep === 0 && <><label className="block text-sm font-semibold">Reisename<input autoFocus type="text" value={wizardData.title} onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })} placeholder="z. B. Sommer-Roadtrip" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><label className="text-sm font-semibold">Startdatum<input type="date" value={wizardData.startDate} onChange={(e) => wzStart(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Reisetage<input type="number" min="1" max="120" value={wizardData.days} onChange={(e) => wzDays(e.target.value)} placeholder="z. B. 14" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Enddatum<input type="date" min={wizardData.startDate || undefined} value={wizardData.endDate} onChange={(e) => wzEnd(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label></div><p className="text-xs text-slate-500">Gib entweder das Enddatum oder die Anzahl der Reisetage ein, das jeweils andere wird berechnet (Start- und Endtag zählen mit).</p><div aria-live="polite" className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950">{tripDayCount(wizardData.startDate,wizardData.endDate)>0 ? `Vorschau: ${tripDayCount(wizardData.startDate,wizardData.endDate)} Etappen – je eine pro Kalendertag; der letzte Tag ist die Rückreise (ohne Übernachtung).` : 'Bitte Start- und Enddatum eingeben, um die Etappenanzahl zu sehen.'}{tripDayCount(wizardData.startDate,wizardData.endDate)>120 && <span className="block text-rose-800">Maximal 120 Tage pro Reise.</span>}</div></>}
                   {wizardStep === 1 && <><label className="block text-sm font-semibold">Startort / Abflughafen<input type="text" value={wizardData.startLocation} onChange={(e) => setWizardData({ ...wizardData, startLocation: e.target.value })} placeholder="z. B. München (MUC)" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Zielregion / Land oder erste Etappe<input type="text" value={wizardData.destination} onChange={(e) => setWizardData({ ...wizardData, destination: e.target.value })} placeholder="z. B. Florida / Miami" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Fahrzeug / Mietwagen (optional)<input type="text" value={wizardData.vehicle} onChange={(e) => setWizardData({ ...wizardData, vehicle: e.target.value })} placeholder="z. B. Mietwagen / SUV" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><p className="text-xs text-slate-500">Bei Angabe eines Ziels wird eine erste Etappe ohne Hotel angelegt. Weitere Details können später ergänzt werden.</p></>}
                   {wizardStep === 2 && <><label className="block text-sm font-semibold">Anzahl Reisende<input type="number" min="1" max="20" value={wizardData.people} onChange={(e) => setWizardData({ ...wizardData, people: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Anzahl Reisende, z.B. 2" /></label><div className="space-y-2"><div className="text-sm font-semibold">Namen der Reisenden</div><div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{Array.from({ length: Math.max(1, Math.min(20, parseInt(wizardData.people, 10) || 1)) }, (_, i) => <input key={i} type="text" aria-label={`Name Reisende ${i + 1}`} value={(wizardData.names || [])[i] || ''} onChange={(e) => { const nm = [...(wizardData.names || [])]; nm[i] = e.target.value; setWizardData({ ...wizardData, names: nm }); }} placeholder={`Reisende ${i + 1}`} className="w-full px-3 py-2 rounded-lg border border-slate-300" />)}</div></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-sm font-semibold">Budget (optional)<input type="number" min="0" step="0.01" value={wizardData.budget} onChange={(e) => setWizardData({ ...wizardData, budget: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Budget, z.B. 5000" /></label><label className="text-sm font-semibold">Währung<select value={wizardData.currency} onChange={(e) => setWizardData({ ...wizardData, currency: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"><option value="EUR">EUR (€)</option><option value="USD">USD ($)</option><option value="GBP">GBP (£)</option><option value="CHF">CHF</option></select></label></div><div className="rounded-xl bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">Die Eingaben werden in den Reisedaten gespeichert. Namen, die du leer lässt, werden als „Reisende 1, 2 …“ angelegt und lassen sich später ändern.</div></>}
                 </div>
