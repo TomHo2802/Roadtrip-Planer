@@ -306,3 +306,9 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Die obere Reiter-Leiste (z. B. Planen: Etappen / Tagesplan / Übersicht / Karte, Unterwegs: Heute / Wo bin ich / ...) bleibt beim Scrollen oben fixiert, auf Handy direkt unter der Kopfleiste.
 - Die mobile Kopfleiste ist jetzt wirklich fixiert (war vorher nicht fest).
 - Der Tagesplan unter "Heute" ist immer aufgeklappt.
+
+## v63
+**Hotel bearbeiten: Kalender und Uhrzeit-Auswahl**
+- Datumsfelder haben jetzt immer die Kalenderauswahl: Storno bis, Abbuchung angekündigt, Kreditkarte belastet. Bei "Storno bis" gibt es zusätzlich "Flexibel stornierbar". Ältere Texteinträge werden als "Bisher: …" angezeigt, bis ein Datum gewählt wird.
+- Uhrzeiten wählst du in 30-Minuten-Schritten: Check-in (ab / bis optional), Check-out und die Uhrzeit bei Aktionen vor Ort. Bestehende Werte wie "15 - 23 Uhr" werden richtig vorbelegt.
+- Storno-, Abbuchungs- und Belastungsdatum dürfen jetzt auch außerhalb des Reisezeitraums liegen (vorher kam eine Fehlermeldung). Für Etappen-, Flug- und Mietwagen-Daten gilt die Prüfung weiter.

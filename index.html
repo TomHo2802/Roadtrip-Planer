@@ -17113,7 +17113,7 @@ var qrcode = function() {
     const validateTripDateValues = (data, previousData = null) => {
       const start=data?.meta?.startDate||'', end=data?.meta?.endDate||'';
       if(start&&end&&end<start) throw new Error('Das Reiseende liegt vor dem Reisestart.');
-      const fields=new Set(['dateRange','departureDate','pickupDate','dropoffDate','cancelUntil','date','cardCharged','chargeAnnounced']);
+      const fields=new Set(['dateRange','departureDate','pickupDate','dropoffDate','date']);
       const visit=(value, previous, path=[])=>{
         if(Array.isArray(value)){value.forEach((item,index)=>visit(item,Array.isArray(previous)?previous[index]:undefined,[...path,index]));return;}
         if(!value||typeof value!=='object'){
@@ -19170,7 +19170,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 62</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 63</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -21162,6 +21162,45 @@ var qrcode = function() {
         }, { passive: true });
       } catch (e) {}
     })();
+
+    /* ===== v63: Datum mit Kalender, Uhrzeit in 30-Minuten-Schritten ===== */
+    const RT_T30 = Array.from({ length: 48 }, (_, i) => `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
+    const rtTimesIn = (v) => [...String(v || '').matchAll(/(\d{1,2})(?::(\d{2}))?/g)].map((m) => `${String(Number(m[1])).padStart(2, '0')}:${m[2] || '00'}`).filter((t) => Number(t.slice(0, 2)) < 24 && Number(t.slice(3)) < 60);
+    const RT_SEL_CLS = 'w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white';
+    function RtTimeSel({ value, onChange, suffix, className, empty }) {
+      const raw = String(value || ''); const t = rtTimesIn(raw)[0] || '';
+      const clean = raw.trim() === '' ? '' : (RT_T30.includes(t) && /^\s*\d{1,2}(:\d{2})?\s*(Uhr)?\s*$/.test(raw) ? t : null);
+      const out = (v) => (v ? v + (suffix || '') : '');
+      return (
+        <select data-time30 value={clean === null ? raw : clean} onChange={(e) => onChange(out(e.target.value))} className={className || RT_SEL_CLS}>
+          <option value="">{empty || '— Uhrzeit —'}</option>
+          {clean === null && <option value={raw}>{raw} (bisher)</option>}
+          {RT_T30.map((x) => <option key={x} value={x}>{x}{suffix || ''}</option>)}
+        </select>
+      );
+    }
+    function RtCheckIn({ value, onChange }) {
+      const ts = rtTimesIn(value); const from = ts[0] || '', to = ts[1] || '';
+      const set = (f, t) => onChange(f ? (t ? `${f} - ${t} Uhr` : `${f} Uhr`) : '');
+      const opt = (v) => (v && !RT_T30.includes(v) ? <option value={v}>{v}</option> : null);
+      return (
+        <div data-checkin className="grid grid-cols-2 gap-2">
+          <select data-time30 value={from} onChange={(e) => set(e.target.value, to)} className={RT_SEL_CLS} aria-label="Check-in ab"><option value="">ab …</option>{opt(from)}{RT_T30.map((x) => <option key={x} value={x}>ab {x}</option>)}</select>
+          <select data-time30 value={to} onChange={(e) => set(from, e.target.value)} disabled={!from} className={RT_SEL_CLS} aria-label="Check-in bis (optional)"><option value="">bis (optional)</option>{opt(to)}{RT_T30.map((x) => <option key={x} value={x}>bis {x}</option>)}</select>
+        </div>
+      );
+    }
+    function RtDateField({ value, onChange, flexible, className }) {
+      const v = String(value || ''); const iso = dateInputValue(v); const flex = /flexibel/i.test(v);
+      const legacy = v && !iso && !flex ? v : '';
+      return (
+        <div data-datefield>
+          <input type="date" value={iso} disabled={flex} onChange={(e) => onChange(e.target.value)} className={className || RT_SEL_CLS} />
+          {flexible && <label className="mt-1 flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={flex} onChange={(e) => onChange(e.target.checked ? 'Flexibel' : '')} />Flexibel stornierbar</label>}
+          {legacy && <div className="mt-1 text-[11px] text-slate-500">Bisher: {legacy}. Ein Datum wählen ersetzt den Eintrag.</div>}
+        </div>
+      );
+    }
 
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
@@ -24470,18 +24509,7 @@ Quelle: ${lt.url}` : '') }] } });
                       </div>
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Storno bis</label>
-                        <input
-                          type={dateInputValue(editingStageModal.hotel?.cancelUntil) ? 'date' : 'text'}
-                          {...(dateInputValue(editingStageModal.hotel?.cancelUntil) ? tripDateProps(tripData) : {})}
-                          value={dateInputValue(editingStageModal.hotel?.cancelUntil) || editingStageModal.hotel?.cancelUntil || ''}
-                          onChange={(e) =>
-                            setEditingStageModal({
-                              ...editingStageModal,
-                              hotel: { ...editingStageModal.hotel, cancelUntil: e.target.value }
-                            })
-                          }
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
-                        placeholder="Datum oder Eingabe, z.B. 09/27" />
+                        <RtDateField flexible value={editingStageModal.hotel?.cancelUntil} onChange={(v) => setEditingStageModal({ ...editingStageModal, hotel: { ...editingStageModal.hotel, cancelUntil: v } })} />
                       </div>
 
                       <div className="sm:col-span-2">
@@ -24515,31 +24543,11 @@ Quelle: ${lt.url}` : '') }] } });
 
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Check IN</label>
-                        <input
-                          type="text"
-                          value={editingStageModal.hotel?.checkIn || ''}
-                          onChange={(e) =>
-                            setEditingStageModal({
-                              ...editingStageModal,
-                              hotel: { ...editingStageModal.hotel, checkIn: e.target.value }
-                            })
-                          }
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
-                        placeholder="Check-in, z.B. 16:00 Uhr" />
+                        <RtCheckIn value={editingStageModal.hotel?.checkIn} onChange={(v) => setEditingStageModal({ ...editingStageModal, hotel: { ...editingStageModal.hotel, checkIn: v } })} />
                       </div>
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Check OUT</label>
-                        <input
-                          type="text"
-                          value={editingStageModal.hotel?.checkOut || ''}
-                          onChange={(e) =>
-                            setEditingStageModal({
-                              ...editingStageModal,
-                              hotel: { ...editingStageModal.hotel, checkOut: e.target.value }
-                            })
-                          }
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
-                        placeholder="Check-out, z.B. 11:00 Uhr" />
+                        <RtTimeSel suffix=" Uhr" empty="— Check-out —" value={editingStageModal.hotel?.checkOut} onChange={(v) => setEditingStageModal({ ...editingStageModal, hotel: { ...editingStageModal.hotel, checkOut: v } })} />
                       </div>
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Frühstück</label>
@@ -24666,32 +24674,11 @@ Quelle: ${lt.url}` : '') }] } });
                       {/* Hotel-Zahlende bleibt als Datenfeld erhalten; hier nicht angezeigt. */}
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Abb. angek.</label>
-                        <input
-                          type="text"
-                          value={editingStageModal.hotel?.chargeAnnounced || ''}
-                          onChange={(e) =>
-                            setEditingStageModal({
-                              ...editingStageModal,
-                              hotel: { ...editingStageModal.hotel, chargeAnnounced: e.target.value }
-                            })
-                          }
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
-                        placeholder="Angekündigte Kartenabbuchung" />
+                        <RtDateField value={editingStageModal.hotel?.chargeAnnounced} onChange={(v) => setEditingStageModal({ ...editingStageModal, hotel: { ...editingStageModal.hotel, chargeAnnounced: v } })} />
                       </div>
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Kred.K. belastet</label>
-                        <input
-                          type={dateInputValue(editingStageModal.hotel?.cardCharged) ? 'date' : 'text'}
-                          {...(dateInputValue(editingStageModal.hotel?.cardCharged) ? tripDateProps(tripData) : {})}
-                          value={dateInputValue(editingStageModal.hotel?.cardCharged) || editingStageModal.hotel?.cardCharged || ''}
-                          onChange={(e) =>
-                            setEditingStageModal({
-                              ...editingStageModal,
-                              hotel: { ...editingStageModal.hotel, cardCharged: e.target.value }
-                            })
-                          }
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
-                        placeholder="Datum oder Eingabe, z.B. 09/27" />
+                        <RtDateField value={editingStageModal.hotel?.cardCharged} onChange={(v) => setEditingStageModal({ ...editingStageModal, hotel: { ...editingStageModal.hotel, cardCharged: v } })} />
                       </div>
 
                       <div className="sm:col-span-2">
@@ -24859,17 +24846,7 @@ Quelle: ${lt.url}` : '') }] } });
                               }}
                               className="px-2.5 py-1.5 rounded border border-slate-300"
                             />
-                            <input
-                              type="text"
-                              placeholder="Uhrzeit / Dauer"
-                              value={act.time || ''}
-                              onChange={(e) => {
-                                const list = [...(editingStageModal.localAttractions || [])];
-                                list[aIdx] = { ...act, time: e.target.value };
-                                setEditingStageModal({ ...editingStageModal, localAttractions: list });
-                              }}
-                              className="px-2.5 py-1.5 rounded border border-slate-300"
-                            />
+                            <RtTimeSel value={act.time} empty="Uhrzeit" onChange={(v) => { const list = [...(editingStageModal.localAttractions || [])]; list[aIdx] = { ...act, time: v }; setEditingStageModal({ ...editingStageModal, localAttractions: list }); }} className="px-2.5 py-1.5 rounded border border-slate-300" />
                             <input
                               type="text"
                               placeholder="Ticket / Status (ja / nein / Vor Ort)"
