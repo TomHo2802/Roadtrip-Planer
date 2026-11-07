@@ -274,3 +274,11 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v57
 - Die Kreditkarte in der Hotel-Kachel ist wieder nur anzeigend und wird im Bearbeiten-Dialog gewählt (Frühstück, Parken, Vorab bez. bleiben per Klick umschaltbar).
 - Fehler behoben: Im Bearbeiten-Dialog wurde bei Hotels ohne Karte die erste Karte nur angezeigt, aber nicht gespeichert. Die Auswahl beginnt jetzt mit „— bitte wählen —“, und die gewählte Karte erscheint danach in der Kachel.
+
+## v58
+**Unterwegs auf dem Handy, für Google und Apple:**
+- **Heute** ist Startseite, sobald das heutige Datum in der Reise liegt. Oben "Als nächstes" mit Navigation, direkt darunter vier große Schnellzugriffe: Hotel, Parkplatz, Notfall, Wetter. Der Tagesplan ist einklappbar (heute standardmäßig eingeklappt), vergangene Punkte erscheinen grau.
+- **Navi** zeigt standardmäßig nur die aktuelle Etappe (außerhalb der Reise: alle). Schnellfilter Hotel / Parken / Stopps / Vor Ort, Suche, Auswahl "Alle Etappen".
+- **Kompakte Karten:** ein Name plus Knopf "Navigation". Mit "▾" erscheinen Google Maps, Apple Karten, GPS, Adresse und Copy GPS.
+- **Karten-Dienst:** automatisch (iPhone/iPad/Mac = Apple Karten, sonst Google Maps), umschaltbar auf Google oder Apple. Die Wahl gilt auch für "Navigation starten" und die Schnellzugriffe.
+- Mobil mehr Abstand unten, damit die untere Leiste nichts verdeckt.

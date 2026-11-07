@@ -510,6 +510,7 @@ html body .text-blue-600,html body .text-blue-700,html body .text-blue-800{color
 html body .bg-blue-50,html body .bg-blue-100{background-color:#E8EEF7}
 html body .border-blue-200,html body .border-blue-300,html body .border-blue-400{border-color:#BCCDE6}
 html body .ring-blue-200{--tw-ring-color:#BCCDE6}
+@media (max-width:767px){body{padding-bottom:calc(88px + env(safe-area-inset-bottom))}}
 /* ===== v19: ruhigere Optik ===== */
 :root{--v19-line:#E3E6EB}
 html body .font-mono{font-family:inherit!important;font-variant-numeric:tabular-nums}
@@ -18115,7 +18116,7 @@ var qrcode = function() {
 
     function NavLink({ gps, address, name, label, className }) {
       const g = Array.isArray(gps) ? llStr(gps) : (gps || '');
-      return <a href={getGoogleMapsUrl(g, address, name)} target="_blank" rel="noopener noreferrer" className={className || 'min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold'}>{label || 'Navi'}</a>;
+      return <a href={rtNavUrl(rtNaviSvc(), g, address, name)} target="_blank" rel="noopener noreferrer" className={className || 'min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold'}>{label || 'Navi'}</a>;
     }
 
     function DayCard({ trip, day, onSave, editable, nowMin, isToday }) {
@@ -18156,7 +18157,7 @@ var qrcode = function() {
               )}
               <ol className="space-y-1.5">
                 {tl.events.map((ev, i) => (
-                  <li key={i} className={`flex gap-3 rounded-lg border p-2 ${nextIdx === i ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                  <li key={i} className={`flex gap-3 rounded-lg border p-2 ${nextIdx === i ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'} ${nextIdx > i ? 'opacity-50 grayscale' : ''}`}>
                     <div className="w-14 shrink-0 text-center"><div className="text-base font-extrabold text-slate-900 tabular-nums">{fmtHM(ev.at)}</div>{nextIdx === i && <div className="text-[10px] font-bold text-emerald-700">als Nächstes</div>}</div>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-bold text-slate-900 break-words">{ev.kind === 'depart' ? '🚗 ' : ev.kind === 'arrive' ? '🏨 ' : '🚩 '}{ev.title}</div>
@@ -18243,6 +18244,7 @@ var qrcode = function() {
             <V18DayChips days={days} sel={day.iso} onSel={setSel} />
             {banner && <div className="text-xs rounded-lg bg-sky-50 border border-sky-200 text-sky-950 p-2">{banner}</div>}
             <V18NextCard trip={trip} day={day} isToday={isToday} nowMin={nowMin} />
+            <RtQuick stage={stage} goTab={goTab} />
           </section>
 
           {(flights.length > 0 || cars.length > 0) && (
@@ -18253,7 +18255,10 @@ var qrcode = function() {
             </section>
           )}
 
-          <DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} />
+          <details key={day.iso} data-day-sched open={!isToday} className="rt-sched">
+            <summary className="min-h-[48px] flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 cursor-pointer">Tagesplan {isToday ? 'heute' : fmtDayShort(day.iso)}<span className="text-xs font-semibold text-slate-500">auf-/zuklappen</span></summary>
+            <div className="mt-2"><DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} /></div>
+          </details>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
             <h3 className="text-sm font-bold text-slate-900">Unterkunft: {h.name || stage.toCity}</h3>
@@ -19086,7 +19091,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 57</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 58</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20847,12 +20852,125 @@ var qrcode = function() {
       );
     }
 
+    /* ===== v58: Unterwegs – Navi-Hub, Karten-Dienst (Google/Apple), Schnellzugriff ===== */
+    const RT_NAVI_KEY = 'roadtrip_navi_pref';
+    const rtIsApple = () => { try { const ua = navigator.userAgent || ''; return /iPhone|iPad|iPod|Macintosh/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch (e) { return false; } };
+    const rtNaviPref = () => { try { const v = localStorage.getItem(RT_NAVI_KEY); return v === 'google' || v === 'apple' ? v : 'auto'; } catch (e) { return 'auto'; } };
+    const rtNaviSet = (v) => { try { localStorage.setItem(RT_NAVI_KEY, v); } catch (e) {} try { window.dispatchEvent(new CustomEvent('rt-navi-pref')); } catch (e) {} };
+    const rtNaviSvc = () => { const p = rtNaviPref(); return p === 'auto' ? (rtIsApple() ? 'apple' : 'google') : p; };
+    const rtNavUrl = (svc, gps, address, name) => (svc === 'apple' ? getAppleMapsUrl(gps, address, name) : getGoogleMapsUrl(gps, address, name));
+    const RT_SVC_NAME = { google: 'Google Maps', apple: 'Apple Karten' };
+
+    function RtNaviPrefBar() {
+      const [p, setP] = useState(rtNaviPref);
+      const set = (v) => { rtNaviSet(v); setP(v); };
+      const eff = rtNaviSvc();
+      return (
+        <div data-navi-pref className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-semibold text-slate-700">Navigation mit:</span>
+          {[['auto', `Automatisch (${RT_SVC_NAME[rtIsApple() ? 'apple' : 'google']})`], ['google', 'Google Maps'], ['apple', 'Apple Karten']].map(([k, l]) => (
+            <button key={k} type="button" data-navi-pref-btn={k} aria-pressed={p === k} onClick={() => set(k)} className={`min-h-[36px] px-3 rounded-lg border font-semibold ${p === k ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-300'}`}>{l}</button>
+          ))}
+          <span className="sr-only">Aktiv: {RT_SVC_NAME[eff]}</span>
+        </div>
+      );
+    }
+
+    const RT_NAVI_TYPES = [['ALL', 'Alle', ''], ['Hotel / Unterkunft', 'Hotel', '🏨'], ['Parkhaus / Parkplatz', 'Parken', '🅿️'], ['Stopp unterwegs', 'Stopps', '🚩'], ['Vor Ort / Aktivität', 'Vor Ort', '🎯']];
+
+    function RtNaviCard({ pt, svc }) {
+      const [open, setOpen] = useState(false);
+      const ic = (RT_NAVI_TYPES.find((t) => t[0] === pt.type) || [])[2] || '📍';
+      return (
+        <div data-navi-card className="rounded-xl border border-slate-200 bg-white p-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-lg shrink-0" aria-hidden="true">{ic}</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-bold text-slate-900 truncate">{pt.name}</div>
+              <div className="text-[11px] text-slate-500 truncate">{pt.stageLabel}</div>
+            </div>
+            <a data-navi-go href={rtNavUrl(svc, pt.gps, pt.address, pt.name)} target="_blank" rel="noopener noreferrer" className="shrink-0 min-h-[44px] inline-flex items-center px-3 rounded-lg bg-blue-600 text-white text-sm font-bold">Navigation</a>
+            <button type="button" data-navi-more aria-expanded={open} aria-label="Mehr anzeigen" onClick={() => setOpen(!open)} className="shrink-0 min-h-[44px] min-w-[44px] rounded-lg border border-slate-300 text-slate-700 font-bold">{open ? '▴' : '▾'}</button>
+          </div>
+          {open && (
+            <div data-navi-extra className="mt-2 pt-2 border-t border-slate-100 space-y-2">
+              {pt.address && <p className="text-xs text-slate-600">{pt.address}</p>}
+              {pt.gps && <p className="text-xs font-mono text-blue-800 bg-blue-50 px-2 py-1 rounded border border-blue-200 inline-block">GPS: {pt.gps}</p>}
+              <div className="flex flex-wrap gap-2">
+                <a href={getGoogleMapsUrl(pt.gps, pt.address, pt.name)} target="_blank" rel="noopener noreferrer" className="flex-1 min-h-[44px] inline-flex items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-semibold">Google Maps</a>
+                <a href={getAppleMapsUrl(pt.gps, pt.address, pt.name)} target="_blank" rel="noopener noreferrer" className="flex-1 min-h-[44px] inline-flex items-center justify-center rounded-lg bg-slate-800 text-white text-xs font-semibold">Apple Karten</a>
+                {pt.gps && <button type="button" onClick={() => copyToClipboard(pt.gps, 'GPS für Offline-Navi kopiert')} className="min-h-[44px] px-3 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold">Copy GPS</button>}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function NaviHub({ points, trip, todayIso }) {
+      const days = useMemo(() => buildDays(trip), [trip]);
+      const td = days.find((d) => d.iso === todayIso);
+      const cur = td ? td.stageIdx + 1 : null;
+      const [st, setSt] = useState(cur || 'all');
+      const [type, setType] = useState('ALL');
+      const [q, setQ] = useState('');
+      const [, tick] = useState(0);
+      useEffect(() => { const f = () => tick((x) => x + 1); window.addEventListener('rt-navi-pref', f); return () => window.removeEventListener('rt-navi-pref', f); }, []);
+      const svc = rtNaviSvc();
+      const stageOf = (pt) => pt.stageIdx;
+      const base = points.filter((pt) => st === 'all' || stageOf(pt) === st);
+      const cnt = (t) => base.filter((pt) => t === 'ALL' || pt.type === t).length;
+      const ql = q.trim().toLowerCase();
+      const shown = base.filter((pt) => (type === 'ALL' || pt.type === type) && (!ql || (pt.name || '').toLowerCase().includes(ql) || (pt.address || '').toLowerCase().includes(ql) || (pt.stageLabel || '').toLowerCase().includes(ql)));
+      const stageNums = Array.from(new Set(points.map(stageOf))).sort((a, b) => a - b);
+      const labelOf = (n) => { const p = points.find((x) => stageOf(x) === n); return p ? p.stageLabel : `Etappe ${n}`; };
+      return (
+        <div className="space-y-3" data-navi-hub>
+          <section className="rounded-2xl border border-slate-200 bg-white p-3 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-base font-bold text-slate-900">📍 Navi · {shown.length} {shown.length === 1 ? 'Ziel' : 'Ziele'}</h2>
+              {st !== 'all' ? <button type="button" data-navi-all onClick={() => setSt('all')} className="min-h-[36px] px-3 rounded-lg border border-slate-300 text-xs font-semibold">Alle Etappen</button> : cur ? <button type="button" onClick={() => setSt(cur)} className="min-h-[36px] px-3 rounded-lg border border-emerald-600 text-emerald-800 text-xs font-semibold">Aktuelle Etappe</button> : null}
+            </div>
+            <select data-navi-stage value={st} onChange={(e) => setSt(e.target.value === 'all' ? 'all' : Number(e.target.value))} className="w-full min-h-[44px] px-3 rounded-lg border border-slate-300 bg-slate-50 text-sm font-semibold">
+              <option value="all">Alle Etappen ({points.length})</option>
+              {stageNums.map((n) => <option key={n} value={n}>{labelOf(n)}{cur === n ? ' · aktuell' : ''}</option>)}
+            </select>
+            <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Kategorie">
+              {RT_NAVI_TYPES.map(([k, l, ic]) => <button key={k} type="button" data-navi-type={k} aria-pressed={type === k} onClick={() => setType(k)} className={`shrink-0 min-h-[40px] px-3 rounded-full border text-xs font-semibold ${type === k ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-300'}`}>{ic} {l} ({cnt(k)})</button>)}
+            </div>
+            <input type="search" data-navi-search value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ort, Hotel oder Stopp suchen…" className="w-full min-h-[44px] px-3 rounded-lg border border-slate-300 text-sm" />
+            <RtNaviPrefBar />
+          </section>
+          <div className="space-y-2">
+            {shown.map((pt) => <RtNaviCard key={pt.id} pt={pt} svc={svc} />)}
+            {!shown.length && <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">Keine Ziele gefunden.{st !== 'all' ? ' Tipp: „Alle Etappen“ wählen.' : ''}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    function RtQuick({ stage, goTab }) {
+      const h = (stage && stage.hotel) || {}; const svc = rtNaviSvc();
+      const hasH = !!(parseGps(h.gps) || h.address);
+      const pk = parseGps(h.parkingGarageGps) || h.parkingGarageAddress;
+      const big = 'min-h-[76px] rounded-2xl border flex flex-col items-center justify-center gap-1 text-sm font-bold text-center px-2';
+      const on = 'bg-white border-slate-300 text-slate-900'; const off = 'bg-slate-100 border-slate-200 text-slate-400 pointer-events-none';
+      return (
+        <div data-quick className="grid grid-cols-2 gap-2">
+          <a data-quick-hotel href={hasH ? rtNavUrl(svc, h.gps, h.address, h.name) : undefined} target="_blank" rel="noopener noreferrer" aria-disabled={!hasH} className={`${big} ${hasH ? on : off}`}><span className="text-2xl" aria-hidden="true">🏨</span>Hotel</a>
+          <a data-quick-park href={pk ? rtNavUrl(svc, h.parkingGarageGps, h.parkingGarageAddress, h.parkingGarageName) : undefined} target="_blank" rel="noopener noreferrer" aria-disabled={!pk} className={`${big} ${pk ? on : off}`}><span className="text-2xl" aria-hidden="true">🅿️</span>Parkplatz</a>
+          <button type="button" data-quick-emerg onClick={() => goTab('cards')} className={`${big} bg-rose-50 border-rose-200 text-rose-900`}><span className="text-2xl" aria-hidden="true">🆘</span>Notfall</button>
+          <button type="button" data-quick-wx onClick={() => goTab('wx')} className={`${big} ${on}`}><span className="text-2xl" aria-hidden="true">⛅</span>Wetter</button>
+        </div>
+      );
+    }
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
       useEffect(() => { tripDataRef.current = tripData; }, [tripData]);
       // Tabs: 'stages' | 'basics' | 'cards' | 'finance' | 'navi' | 'ustools' | 'cloud'
-      const [activeTab, setActiveTab] = useState('stages');
+      const [activeTab, setActiveTab] = useState(() => { try { const n = new Date(); const iso = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; return buildDays(tripData).some((d) => d.iso === iso) ? 'today' : 'stages'; } catch (e) { return 'stages'; } });
       useEffect(() => {
         const activeMobileTab = document.querySelector(`nav[aria-label="Hauptnavigation"] [data-mobile-tab="${activeTab}"]`);
         activeMobileTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -23385,102 +23503,7 @@ Quelle: ${lt.url}` : '') }] } });
             {/* ===============================================================
                 TAB 5: 1-KLICK NAVI-ZENTRALE (EIGENER REITER)
             =============================================================== */}
-            {activeTab === 'navi' && (
-              <div className="space-y-6">
-                <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                    <div>
-                      <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                        📍 1-Klick Navi-Zentrale ({allGpsPoints.length} gespeicherte Ziele & Koordinaten)
-                      </h2>
-                      <p className="text-xs text-slate-500">
-                        Alle Koordinaten sind lokal in dieser Datei gespeichert (auch offline jederzeit kopierbar für Google Maps, Apple Maps oder Offline-Navis wie Organic Maps / Here WeGo)
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <select
-                        value={gpsFilterType}
-                        onChange={(e) => setGpsFilterType(e.target.value)}
-                        className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-slate-50 font-semibold"
-                      >
-                        <option value="ALL">Alle Kategorien ({allGpsPoints.length})</option>
-                        <option value="Hotel / Unterkunft">Nur Hotels</option>
-                        <option value="Parkhaus / Parkplatz">🅿️ Nur Parkhäuser</option>
-                        <option value="Stopp unterwegs">Nur Stopps unterwegs</option>
-                        <option value="Vor Ort / Aktivität">Nur Sehenswürdigkeiten vor Ort</option>
-                      </select>
-                      <input
-                        type="text"
-                        value={gpsSearchQuery}
-                        onChange={(e) => setGpsSearchQuery(e.target.value)}
-                        placeholder="Ort, Hotel oder Stopp suchen..."
-                        className="w-full sm:w-60 px-3 py-1.5 text-xs rounded-lg border border-slate-300"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {allGpsPoints
-                      .filter((pt) => {
-                        if (gpsFilterType !== 'ALL' && pt.type !== gpsFilterType) return false;
-                        if (!gpsSearchQuery.trim()) return true;
-                        const q = gpsSearchQuery.toLowerCase();
-                        return (
-                          (pt.name || '').toLowerCase().includes(q) ||
-                          (pt.address || '').toLowerCase().includes(q) ||
-                          (pt.stageLabel || '').toLowerCase().includes(q)
-                        );
-                      })
-                      .map((pt) => (
-                        <div key={pt.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col justify-between gap-2.5">
-                          <div>
-                            <div className="flex items-center justify-between gap-2">
-                              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${pt.badgeColor}`}>
-                                {pt.type}
-                              </span>
-                              <span className="text-[11px] text-slate-500 font-medium">{pt.stageLabel}</span>
-                            </div>
-                            <div className="mt-1.5 font-bold text-sm text-slate-900">📍 {pt.name}</div>
-                            {pt.address && <p className="text-xs text-slate-600 mt-0.5">{pt.address}</p>}
-                            {pt.gps && (
-                              <p className="text-xs font-mono text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 inline-block mt-1">
-                                GPS: {pt.gps}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-200/80">
-                            <a
-                              href={getGoogleMapsUrl(pt.gps, pt.address, pt.name)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="pointer-events-auto cursor-pointer flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 px-2.5 rounded-lg text-center"
-                            >
-                              Google Maps
-                            </a>
-                            <a
-                              href={getAppleMapsUrl(pt.gps, pt.address, pt.name)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="pointer-events-auto cursor-pointer flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-1.5 px-2.5 rounded-lg text-center"
-                            >
-                              Apple Maps
-                            </a>
-                            {pt.gps && (
-                              <button
-                                onClick={() => copyToClipboard(pt.gps, 'GPS für Offline-Navi kopiert')}
-                                className="compact-action pointer-events-auto bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold py-1.5 px-2.5 rounded-lg"
-                                title="Reine Koordinaten für Offline-Karten kopieren"
-                              >
-                                Copy GPS
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </section>
-              </div>
-            )}
+                        {activeTab === 'navi' && (<div data-ro-ok><NaviHub points={allGpsPoints} trip={tripData} todayIso={todayIso} /></div>)}
 
             {/* ===============================================================
                 TAB 6: US-TOOLS, SEPARATE KM/MEILEN-FENSTER & ETAPPEN-DISTANZEN
