@@ -327,3 +327,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v68
 - Dunkel-Modus: Ja / Nein haben klare, gedeckte Farben (grün und rot) mit gut lesbarer Schrift. Das gilt für die Umschalter Frühstück, Parken und Vorab bezahlt im Hotel und für die Kurzangaben in Unterwegs > Heute. Ein "ja" wird nicht mehr orange dargestellt.
+
+## v69
+- Dunkel-Modus: Der aktive Hauptbereich (Planen / Buchen / Unterwegs) in der Seitenleiste ist jetzt orange hervorgehoben, mit orangem Streifen links. In der unteren Handy-Leiste war er schon orange.
