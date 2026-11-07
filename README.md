@@ -293,3 +293,11 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Mobil: Kopf- und Fußleiste leicht durchscheinend, Sicherheitsbereich (Notch, Home-Balken) berücksichtigt, kein automatisches Hineinzoomen auf iPhones beim Tippen in Felder.
 - Emojis in der Oberfläche (Hotel, Parken, Notfall, Navi, Flagge usw.) sind durch einheitliche Linien-Icons ersetzt, auch im Dunkel-Modus.
 - Wetter- und Ausflugs-Symbole der Daten bleiben bewusst unverändert.
+
+## v61
+**App-Verhalten und klarere Seiten:**
+- Auf dem Handy öffnen sich Dialoge als Bottom-Sheet von unten (mit Griff). Nach unten wischen schließt sie. Auf großen Bildschirmen bleiben sie mittig.
+- Die Kopfleiste wird beim Scrollen kompakt und bekommt einen feinen Schatten.
+- Platzhalter-Balken statt "Lade …" bei Wetter und Wechselkurs.
+- Leere Zustände einheitlich mit Icon, Titel, kurzem Text und, wo sinnvoll, einem Knopf (Navi, Heute, Tagesplan, Packliste).
+- Lange Erklärtexte (z. B. beim Tagesplan) sind hinter "Hinweis anzeigen" eingeklappt.

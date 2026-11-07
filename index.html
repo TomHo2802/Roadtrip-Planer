@@ -13953,6 +13953,29 @@ html[data-dark="1"] .rt-ico{background:#1d3a4d!important;color:#9fd8d0!important
 html[data-dark="1"] [data-quick] .rt-ic{color:#7fd0c6}
 html[data-dark="1"] .rounded-2xl{box-shadow:none!important}
 html[data-dark="1"] .v18-mhead,html[data-dark="1"] .v18-bottom{background:rgba(17,28,46,.9)!important}
+/* ===== v61: Sheets, Kopfleiste, Skeleton, Leerzustände, Hinweise ===== */
+@keyframes rt-sheet{from{transform:translateY(100%)}to{transform:none}}
+@keyframes rt-fade{from{opacity:0}to{opacity:1}}
+@keyframes rt-shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
+@media (max-width:639px){
+ html body .fixed.inset-0[class*="bg-slate-950"],html body .fixed.inset-0[class*="bg-slate-900/70"]{align-items:flex-end!important;padding:0!important;animation:rt-fade .2s ease-out}
+ html body .fixed.inset-0[class*="bg-slate-950"]>*,html body .fixed.inset-0[class*="bg-slate-900/70"]>*{width:100%!important;max-width:none!important;margin:0!important;border-radius:20px 20px 0 0!important;max-height:92dvh;overflow-y:auto;animation:rt-sheet .28s cubic-bezier(.2,.8,.2,1);position:relative;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+ html body .fixed.inset-0[class*="bg-slate-950"]>*::before,html body .fixed.inset-0[class*="bg-slate-900/70"]>*::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:#CBD2DC;margin:8px auto 4px}
+}
+html.rt-scrolled .v18-mhead{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px;box-shadow:0 1px 0 var(--rt-line),0 6px 14px rgba(16,24,40,.06)}
+.v18-mhead{transition:padding .2s,box-shadow .2s}.v18-mhead .font-bold{transition:font-size .2s}
+html.rt-scrolled .v18-mhead .font-bold{font-size:15px}
+.rt-skel-wrap{display:flex;flex-direction:column;gap:8px;padding:4px 0}
+.rt-skel{height:12px;border-radius:6px;background:linear-gradient(90deg,#EDF0F4 0,#F7F8FA 100px,#EDF0F4 200px);background-size:400px 100%;animation:rt-shimmer 1.2s linear infinite}
+html[data-dark="1"] .rt-skel{background:linear-gradient(90deg,#1b2b46 0,#25395a 100px,#1b2b46 200px)!important;background-size:400px 100%!important}
+.rt-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:22px 16px;border-radius:var(--rt-r);border:1px dashed #CBD2DC;background:#fff}
+.rt-empty-t{font-weight:700;font-size:15px;color:var(--rt-ink)}.rt-empty-p{font-size:13px;color:var(--rt-mute);max-width:420px;margin:0}
+html[data-dark="1"] .rt-empty{background:#16233a!important;border-color:#2f4264!important}
+html[data-dark="1"] .rt-empty-t{color:#eef3fa}
+.rt-hint summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;min-height:32px;font-size:12px;font-weight:600;color:var(--rt-brand-d)}
+.rt-hint summary::-webkit-details-marker{display:none}
+.rt-hint p{font-size:12px;color:var(--rt-mute);margin:4px 0 0}
+html[data-dark="1"] .rt-hint summary{color:#7fd0c6}
 </style><style id="dark-theme">html[data-dark="1"]{color-scheme:dark}
 html[data-dark="1"] body{background:#0e1726 !important;color:#eef3fa !important}
 html[data-dark="1"] *{text-shadow:none !important}
@@ -18251,14 +18274,14 @@ var qrcode = function() {
         <div className="space-y-4">
           <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
             <h2 className="text-base sm:text-lg font-bold text-slate-900">Tagesplan</h2>
-            <p className="text-xs text-slate-500">Zeitleiste pro Tag mit Abfahrt, Fahrzeiten, Stopps und Ankunft. Abfahrt, Puffer und Aufenthaltsdauer änderst du direkt, alles wird gespeichert. Sonnenzeiten werden lokal berechnet.</p>
+            <RtHint>Zeitleiste pro Tag mit Abfahrt, Fahrzeiten, Stopps und Ankunft. Abfahrt, Puffer und Aufenthaltsdauer änderst du direkt, alles wird gespeichert. Sonnenzeiten werden lokal berechnet.</RtHint>
             <label className="block text-xs font-semibold text-slate-700">Etappe
               <select value={stageIdx} onChange={(e) => setStageIdx(Number(e.target.value))} className="mt-1 w-full min-h-[44px] px-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold">
                 {stages.map((s, i) => <option key={s.id} value={i}>{i + 1}. {i > 0 ? hotelName(stages[i - 1]) : (s.fromCity || 'Start')} → {hotelName(s)}{s.dateRange ? ` (${s.dateRange})` : ''}</option>)}
               </select>
             </label>
           </section>
-          {list.length === 0 && <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">Für diese Etappe ist kein gültiges Datum eingetragen. Trage unter „Etappen“ ein Datum ein, dann erscheint der Tagesplan.</div>}
+          {list.length === 0 && <Empty icon="calendar" title="Kein Datum" text="Für diese Etappe ist kein gültiges Datum eingetragen. Trage unter „Etappen“ ein Datum ein, dann erscheint der Tagesplan." />}
           {list.map((d) => <DayCard key={d.iso} trip={trip} day={d} onSave={onSave} editable={!IS_READ_ONLY_COPY} isToday={d.iso === todayIso} nowMin={-1} />)}
           {co && <DayCard key={co.iso} trip={trip} day={co} onSave={onSave} editable={false} isToday={co.iso === todayIso} nowMin={-1} />}
         </div>
@@ -18271,7 +18294,7 @@ var qrcode = function() {
       const [sel, setSel] = useState(() => { const t = days.find((d) => d.iso === todayIso); return (t || days[0] || {}).iso; });
       const [nowMin, setNowMin] = useState(() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); });
       useEffect(() => { const t = setInterval(() => { const d = new Date(); setNowMin(d.getHours() * 60 + d.getMinutes()); }, 30000); return () => clearInterval(t); }, []);
-      if (!days.length) return <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">Noch keine Etappen mit Datum vorhanden. Lege unter „Etappen“ Daten fest, dann zeigt dieser Tab den Tag.</div>;
+      if (!days.length) return <Empty icon="calendar" title="Noch kein Tag" text="Noch keine Etappen mit Datum vorhanden. Lege unter „Etappen“ Daten fest, dann zeigt dieser Tab den Tag." action="Zu den Etappen" onAction={() => goTab('stages')} />;
       let idx = days.findIndex((d) => d.iso === sel); if (idx < 0) idx = 0; const day = days[idx]; const stage = day.stage; const h = stage.hotel || {};
       const isToday = day.iso === todayIso; const first = days[0].iso, last = days[days.length - 1].iso;
       const banner = isToday ? null : todayIso < first ? `Die Reise beginnt in ${isoDiffDays(todayIso, first)} Tagen (${fmtDayShort(first)}). Du siehst gerade eine Vorschau.` : todayIso > last ? 'Die Reise ist beendet. Du siehst gerade einen Rückblick auf den gewählten Tag.' : 'Vorschau: Das ist nicht der heutige Tag.';
@@ -18385,7 +18408,7 @@ var qrcode = function() {
               </section>
             );
           })}
-          {!items.length && <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">Noch leer. Wähle oben eine Vorlage oder füge Gegenstände hinzu.</div>}
+          {!items.length && <Empty icon="bag" title="Packliste ist leer" text="Wähle oben eine Vorlage oder füge Gegenstände hinzu." />}
         </div>
       );
     }
@@ -18843,7 +18866,7 @@ var qrcode = function() {
                 <div className="text-sm font-bold text-slate-900">Etappe {i + 1} · {hotelName(s)}{s.toCity && hotelName(s) !== s.toCity ? ` (${s.toCity})` : ''}</div>
                 <div className="text-xs text-slate-500">{s.dateRange || ''}</div>
                 {!stageLoc(s) && <div className="text-xs text-slate-500">Keine Koordinaten bei dieser Unterkunft hinterlegt.</div>}
-                {stageLoc(s) && !e && <div className="text-xs text-slate-500">{wx.loading ? 'Lade …' : 'Noch keine Wetterdaten geladen.'}</div>}
+                {stageLoc(s) && !e && <div className="text-xs text-slate-500">{wx.loading ? <Skel lines={2} /> : 'Noch keine Wetterdaten geladen.'}</div>}
                 {e && have.length === 0 && <div className="text-xs rounded-lg bg-slate-50 border border-slate-200 p-2">Für {s.dateRange || 'diesen Zeitraum'} gibt es noch keine Vorhersage (höchstens 16 Tage voraus). Zur Orientierung: die nächsten Tage am Ort.</div>}
                 <div className="space-y-1.5">
                   {have.map((d) => <div key={d.iso} className="space-y-0.5"><div className="text-[11px] font-semibold text-slate-600">{fmtDayShort(d.iso)}</div><WxChip stage={s} iso={d.iso} /></div>)}
@@ -18973,7 +18996,7 @@ var qrcode = function() {
             <div className="flex items-center gap-2 flex-wrap"><input data-readonly-allow type="text" inputMode="decimal" value={eur} onChange={(e) => setEur(e.target.value)} className="w-28 min-h-[44px] px-3 rounded-lg border border-slate-300 text-sm" /><span className="text-sm">€ = <b>{usd.toFixed(2).replace('.', ',')} $</b></span></div>
             <div className="text-xs text-slate-600">Kurs im Planer: {cur ? `1 € = ${String(cur).replace('.', ',')} $` : 'nicht gesetzt'}{cur ? ` (Abweichung ${((fx.rate / cur - 1) * 100).toFixed(1).replace('.', ',')} %)` : ''}</div>
             {!IS_READ_ONLY_COPY && <button type="button" onClick={() => onSave({ ...trip, meta: { ...trip.meta, exchangeRate: Math.round(fx.rate * 10000) / 10000 } }, 'Kurs ins Budget übernommen')} className="min-h-[44px] px-4 rounded-xl bg-[#1F4E8C] text-white text-sm font-bold">Als Budget-Kurs übernehmen</button>}
-          </div> : <div className="text-sm text-slate-500">{busy ? 'Lade …' : 'Noch kein Kurs geladen.'}</div>}
+          </div> : <div className="text-sm text-slate-500">{busy ? <Skel lines={2} /> : 'Noch kein Kurs geladen.'}</div>}
           {err && <div className="text-xs rounded-lg bg-amber-50 border border-amber-300 p-2">{err}</div>}
         </section>
       );
@@ -19136,7 +19159,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 60</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 61</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20988,7 +21011,7 @@ var qrcode = function() {
           </section>
           <div data-navi-list className="space-y-2">
             {shown.map((pt) => <RtNaviCard key={pt.id} pt={pt} svc={svc} />)}
-            {!shown.length && <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">Keine Ziele gefunden.{st !== 'all' ? ' Tipp: „Alle Etappen“ wählen.' : ''}</div>}
+            {!shown.length && <Empty icon="pin" title="Keine Ziele gefunden" text={st !== 'all' ? 'In dieser Etappe passt nichts zu Filter oder Suche.' : 'Zu Filter oder Suche gibt es keine Ziele.'} action={st !== 'all' ? 'Alle Etappen anzeigen' : null} onAction={() => setSt('all')} />}
           </div>
         </div>
       );
@@ -21074,6 +21097,57 @@ var qrcode = function() {
       chev: <path d="M6 9l6 6 6-6" />,
     };
     function Ic({ n, size, className }) { return <svg viewBox="0 0 24 24" className={'rt-ic ' + (className || '')} width={size || undefined} height={size || undefined} aria-hidden="true">{RT_IC[n] || null}</svg>; }
+
+    /* ===== v61: App-Verhalten (Bottom-Sheets, Kopfleiste, Skeleton) und klare Seitenstruktur ===== */
+    Object.assign(RT_IC, {
+      info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.8v.1" /></>,
+      inbox: <><path d="M3 13l2.5-7h13L21 13v6H3z" /><path d="M3 13h5l1 2h6l1-2h5" /></>,
+    });
+    function Skel({ lines }) { return <div className="rt-skel-wrap" aria-busy="true" aria-label="Lädt">{Array.from({ length: lines || 3 }).map((_, i) => <div key={i} className="rt-skel" style={{ width: (92 - i * 14) + '%' }} />)}</div>; }
+    function Empty({ icon, title, text, action, onAction }) {
+      return (
+        <div data-empty className="rt-empty">
+          <span className="rt-ico"><Ic n={icon || 'inbox'} size={22} /></span>
+          {title && <div className="rt-empty-t">{title}</div>}
+          <p className="rt-empty-p">{text}</p>
+          {action && onAction && <button type="button" onClick={onAction} className="v18-btn pri sm">{action}</button>}
+        </div>
+      );
+    }
+    function RtHint({ children }) {
+      return (
+        <details className="rt-hint">
+          <summary><Ic n="info" />Hinweis anzeigen</summary>
+          <p>{children}</p>
+        </details>
+      );
+    }
+    (function rtAppBehaviour() {
+      if (window.__rtAppBeh) return; window.__rtAppBeh = true;
+      /* Kopfleiste wird beim Scrollen kompakt */
+      try { let on = false; window.addEventListener('scroll', () => { const s = (window.scrollY || 0) > 8; if (s !== on) { on = s; document.documentElement.classList.toggle('rt-scrolled', s); } }, { passive: true }); } catch (e) {}
+      /* Bottom-Sheet: nach unten wischen schließt (nur Handy-Breite, Start am oberen Rand des Fensters) */
+      try {
+        let st = null;
+        const panelOf = (t) => { const ov = t.closest && t.closest('.fixed.inset-0'); if (!ov || !/bg-slate-(950|900)/.test(ov.className)) return null; const p = ov.firstElementChild; return p && p.contains(t) ? { ov, p } : null; };
+        document.addEventListener('touchstart', (e) => {
+          if (window.innerWidth > 639) return; const hit = panelOf(e.target); if (!hit) return;
+          const r = hit.p.getBoundingClientRect(); const y = e.touches[0].clientY;
+          if (y - r.top > 40 || hit.p.scrollTop > 0) return; st = { ...hit, y0: y, dy: 0 };
+        }, { passive: true });
+        document.addEventListener('touchmove', (e) => { if (!st) return; st.dy = Math.max(0, e.touches[0].clientY - st.y0); st.p.style.transition = 'none'; st.p.style.transform = `translateY(${st.dy}px)`; }, { passive: true });
+        document.addEventListener('touchend', () => {
+          if (!st) return; const { ov, p, dy } = st; st = null;
+          if (dy > 110) {
+            p.style.transition = 'transform .18s ease-in'; p.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+              ov.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+              setTimeout(() => { if (document.body.contains(ov)) { const b = [...ov.querySelectorAll('button')].find((x) => /schließen|abbrechen|✕|×|zurück/i.test(x.innerText || x.getAttribute('aria-label') || '')); if (b) b.click(); else { p.style.transform = ''; } } }, 60);
+            }, 170);
+          } else { p.style.transition = 'transform .18s ease-out'; p.style.transform = ''; }
+        }, { passive: true });
+      } catch (e) {}
+    })();
 
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
