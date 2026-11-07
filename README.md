@@ -256,3 +256,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - **Karten & Notfall:** zeigt pro Karte nur noch Kreditrahmen und Konditionen; Belastungen und freier Rahmen stehen im Budget (Link „Belastungen im Budget“).
 - **Heute:** Die Notfallnummern-Liste ist durch einen Knopf zu „Karten & Notfall“ ersetzt.
 - Bewusst unverändert: „Nächste Etappe finden“ und die Vorschläge in der Karte (verschiedene Aufgaben, Merkliste), „In der Nähe“ (Tankstelle, Supermarkt usw., keine Sehenswürdigkeiten).
+
+## v54
+- **Buchungen:** Der Tab (früher „Flug & Mietwagen“) beginnt jetzt mit „Hotels (aus der Planung)“. Jede Etappe mit Übernachtung erscheint als Zeile: ohne Preis rot „Nicht gebucht“, mit Preis grün „Gebucht“. Der Preis lässt sich direkt in der Zeile eintragen; „In Etappe öffnen“ springt zum Hotel der Etappe.
+- **Reisen ohne Flug/Mietwagen:** Anreise und Rückreise in der ersten und letzten Etappe erscheinen nur, wenn unter Buchungen Flug- oder Mietwagen-Daten eingetragen sind. Mit Mietwagen steht dort Abholung bzw. Rückgabe, Reisedauer und Zeitverschiebung nur bei Flügen. Das Badge „Anreise“ in der Übersicht erscheint nur bei eingetragenem Hinflug.
+- **Packliste:** Neuer Knopf „Packliste vorschlagen“ (Rechner & Listen → Packliste). Erstellt aus Reisedauer, Jahreszeit/Temperatur (Vorhersage, sonst Schätzung), Flug oder Auto, Ziel, Aktivitäten und Mitreisenden eine Liste, je Person und gemeinsam. Vorhandene Einträge bleiben, nichts wird doppelt angelegt.

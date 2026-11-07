@@ -18286,7 +18286,8 @@ var qrcode = function() {
     };
     function PackView({ trip, onSave }) {
       const people = trip.participants || []; const items = (trip.packing && trip.packing.items) || [];
-      const [who, setWho] = useState('shared'); const [text, setText] = useState(''); const [tpl, setTpl] = useState(Object.keys(PACK_TEMPLATES)[0]);
+      const [who, setWho] = useState('shared'); const [text, setText] = useState(''); const [pinfo, setPinfo] = useState('');
+      const suggest = () => { const r = packSuggest(trip); const have = new Set(items.map((i) => (i.who || 'shared') + '|' + i.text)); const add2 = r.items.filter((x) => !have.has(x.who + '|' + x.text)).map((x) => ({ id: nid(), text: x.text, who: x.who, cat: x.cat, done: false })); if (add2.length) save([...items, ...add2]); setPinfo(add2.length ? `${add2.length} Einträge ergänzt. Grundlage: ${r.assump}.` : 'Es fehlt nichts: alle Vorschläge stehen schon in der Liste.'); }; const [tpl, setTpl] = useState(Object.keys(PACK_TEMPLATES)[0]);
       const save = (next) => onSave({ ...trip, packing: { ...(trip.packing || {}), items: next } }, '');
       const nid = () => `pk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       const add = () => { const t = text.trim(); if (!t) return; save([...items, { id: nid(), text: t, who, done: false }]); setText(''); };
@@ -18312,6 +18313,12 @@ var qrcode = function() {
               </label>
               <button type="button" onClick={addTpl} className="min-h-[44px] px-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold">Vorlage zur Auswahl „Für“ hinzufügen</button>
             </div>
+            <div className="rounded-xl border border-[#BCCDE6] bg-[#F5F8FC] p-3 space-y-2" data-pack-suggest>
+              <div className="text-sm font-bold text-[#173B6B]">Packliste für diese Reise</div>
+              <p className="text-xs text-slate-700">Erstellt eine Liste aus deinen Reisedaten: Dauer, Jahreszeit und Temperatur, Flug oder Auto, Ziele und Aktivitäten, Mitreisende. Vorhandene Einträge bleiben, nichts wird doppelt angelegt.</p>
+              <button type="button" data-readonly-allow data-pack-go onClick={suggest} className="v18-btn pri">Packliste vorschlagen</button>
+              {pinfo && <div data-pack-info className="text-xs text-slate-800">{pinfo}</div>}
+            </div>
           </section>
           {groups.map((g) => {
             const list = items.filter((i) => (i.who || 'shared') === g.id); if (!list.length) return null;
@@ -18321,7 +18328,7 @@ var qrcode = function() {
                   <button type="button" onClick={() => save(items.map((i) => (i.who === g.id ? { ...i, done: false } : i)))} className="text-xs text-slate-500 underline min-h-[32px]">alle zurücksetzen</button></div>
                 {list.map((i) => (
                   <div key={i.id} className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 flex-1 min-h-[40px] cursor-pointer"><input type="checkbox" checked={!!i.done} onChange={() => save(items.map((x) => (x.id === i.id ? { ...x, done: !x.done } : x)))} className="w-5 h-5" /><span className={`text-sm ${i.done ? 'line-through text-slate-400' : 'text-slate-900'}`}>{i.text}</span></label>
+                    <label className="flex items-center gap-2 flex-1 min-h-[40px] cursor-pointer"><input type="checkbox" checked={!!i.done} onChange={() => save(items.map((x) => (x.id === i.id ? { ...x, done: !x.done } : x)))} className="w-5 h-5" /><span className={`text-sm ${i.done ? 'line-through text-slate-400' : 'text-slate-900'}`}>{i.text}</span>{i.cat && <span className="text-[11px] px-1.5 rounded bg-slate-100 text-slate-700">{i.cat}</span>}</label>
                     <button type="button" aria-label="Entfernen" onClick={() => save(items.filter((x) => x.id !== i.id))} className="min-h-[36px] w-9 rounded-lg text-slate-400 hover:text-red-600">✕</button>
                   </div>
                 ))}
@@ -19014,7 +19021,7 @@ var qrcode = function() {
     function V18Icon({ n, size = 20 }) { return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="v18-ico">{V18_ICONS[n]}</svg>; }
     const V18_GROUPS = [
       { id: 'plan', label: 'Planen', tabs: [{ id: 'stages', label: 'Etappen' }, { id: 'plan', label: 'Tagesplan' }, { id: 'overview', label: 'Übersicht' }, { id: 'map', label: 'Karte' }] },
-      { id: 'book', label: 'Buchen', tabs: [{ id: 'basics', label: 'Flug & Mietwagen' }, { id: 'cards', label: 'Karten & Notfall' }, { id: 'finance', label: 'Budget' }] },
+      { id: 'book', label: 'Buchen', tabs: [{ id: 'basics', label: 'Buchungen' }, { id: 'cards', label: 'Karten & Notfall' }, { id: 'finance', label: 'Budget' }] },
       { id: 'go', label: 'Unterwegs', tabs: [{ id: 'today', label: 'Heute' }, { id: 'trip', label: 'Wo bin ich' }, { id: 'navi', label: '1-Klick Navi' }, { id: 'wx', label: 'Wetter' }, { id: 'ustools', label: 'Rechner & Listen' }] },
       { id: 'more', label: 'Einstellungen', short: 'Optionen', tabs: [{ id: 'cloud', label: 'Reisen & Daten' }] }
     ];
@@ -19079,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 53</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 54</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20069,7 +20076,7 @@ var qrcode = function() {
                         <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
                           {d.kind === 'travel' && <span data-ov-badge="drive" className={`px-2 py-0.5 rounded-full font-bold ${r.over ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-900'}`}>🚗 {fmtDurMin(r.drive)}{r.over ? ' · zu lang' : ''}</span>}
                           {r.change && <span data-ov-badge="change" className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold">🏨 Hotelwechsel</span>}
-                          {d.kind === 'travel' && d.stageIdx === 0 && <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold">✈️ Anreise</span>}
+                          {d.kind === 'travel' && d.stageIdx === 0 && (trip.flights || []).some((f) => rtFlightFilled(f) && /^hin/i.test(f.direction || '')) && <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold">✈️ Anreise</span>}
                           {r.free && <span data-ov-badge="free" className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold">🌴 Freier Tag</span>}
                           {r.acts.length > 0 && <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-900 font-semibold">★ {r.acts.length} Aktion(en)</span>}
                           {w && <span data-ov-badge="wx" className={`px-2 py-0.5 rounded-full font-semibold ${rainy ? 'bg-sky-700 text-white' : 'bg-slate-200 text-slate-900'}`}>{WMO(w.code)[0]} {Math.round(w.tmax)}°/{Math.round(w.tmin)}°{w.rain != null ? ` · ${w.rain} %` : ''}{rainy ? ' · Regen' : ''}</span>}
@@ -20515,11 +20522,13 @@ var qrcode = function() {
       const sel = out ? `${home} → ${stage.fromCity && stage.fromCity !== home ? stage.fromCity : (stage.toCity || '')}` : `${(meta.endLocation || stage.toCity || 'Ziel')} → ${home}`;
       return (
         <div data-homeleg={kind} className="m-3 sm:m-4 rounded-xl border border-slate-300 bg-white p-3 sm:p-4 space-y-2">
-          <div className="text-sm font-bold text-slate-900">{out ? '✈️ Anreise' : '✈️ Rückreise'} · {sel}</div>
-          {flights.length === 0 && <div className="text-xs text-slate-700">Noch keine {out ? 'Hinflüge' : 'Rückflüge'} eingetragen (Buchungen → Flug & Mietwagen). Dann berechnet der Planer Reisedauer und Ankunft automatisch.</div>}
+          <div className="text-sm font-bold text-slate-900">{flights.length ? '✈️ ' : '🚗 '}{out ? 'Anreise' : 'Rückreise'} · {sel}</div>
+          
           <ul className="space-y-1">
             {flights.map((f) => <li key={f.id} className="text-sm text-slate-900 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">{[f.flightNumber, [String(f.from || '').split(' ')[0], String(f.to || '').split(' ')[0]].join(' → ')].filter(Boolean).join(' · ')} · {String(f.departureDate || '').slice(0, 6)} {String(f.departureTime || '').replace(' Uhr', '')} → {String(f.arrivalTime || '').replace(' Uhr', '')}</li>)}
           </ul>
+          {(trip.rentalCars || []).filter(rtCarFilled).filter((c) => (out ? (c.pickupLocation || c.pickupDate) : (c.dropoffLocation || c.dropoffDate))).map((c) => <div key={c.id} data-homeleg-car className="text-sm text-slate-900 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">🚗 {out ? 'Mietwagen abholen' : 'Mietwagen zurückgeben'}: <b>{c.provider || 'Mietwagen'}</b>{' · ' + (out ? [c.pickupLocation, [c.pickupDate, c.pickupTime].filter(Boolean).join(' ')] : [c.dropoffLocation, [c.dropoffDate, c.dropoffTime].filter(Boolean).join(' ')]).filter(Boolean).join(' · ')}</div>)}
+          {flights.length > 0 && <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
             <div data-homeleg-dur className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"><div className="text-xs font-semibold text-slate-600">Reisedauer (Flug inkl. Umstieg)</div><div className="font-bold text-slate-900">{ov.duration || (dur != null ? `ca. ${hlHM(dur)}` : 'noch unbekannt')}</div></div>
             <div data-homeleg-tz className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"><div className="text-xs font-semibold text-slate-600">Zeitverschiebung</div><div className="font-bold text-slate-900">{ov.tz || diffTxt}</div>{!ov.tz && hint && <div className="text-xs text-slate-700">{hint}</div>}</div>
@@ -20532,6 +20541,7 @@ var qrcode = function() {
               <label className="block text-xs font-semibold text-slate-800">Notiz<input data-homeleg-in="note" type="text" value={vals.note} onChange={(e) => setVals({ ...vals, note: e.target.value })} onBlur={save} placeholder="z. B. Check-in 3 Std. vorher" className="mt-1 w-full h-10 px-2 rounded-lg border border-slate-300 bg-white text-slate-900" /></label>
             </div>
           </details>
+          </>}
           {ov.note && <div className="text-xs text-slate-700">Notiz: {ov.note}</div>}
         </div>
       );
@@ -20675,6 +20685,102 @@ var qrcode = function() {
           {res && res.length > 0 && <div className="space-y-2"><div className="flex items-center justify-between text-xs"><b className="text-slate-900">Treffer für „{q.trim()}“</b><button type="button" data-readonly-allow onClick={() => { setRes(null); setSt(''); }} className="underline text-[#1F4E8C] font-semibold">Treffer ausblenden</button></div><ul className="space-y-2 p-0 m-0">{res.map((c) => <SfwCard key={c.id} c={c} selected={false} onSelect={() => {}} meta={mode === 'do' ? <><b>{c.dist.toFixed(1).replace('.', ',')} km</b> vom Zentrum{have && have.has(c.name.toLowerCase()) ? ' · bereits in der Etappe' : ''}</> : undefined} pickLabel={mode === 'do' ? 'Zu Aktionen hinzufügen' : undefined} onPick={pick} />)}</ul></div>}
         </div>
       );
+    }
+
+    // v54: Buchungsübersicht Hotels, Packlisten-Vorschlag, Flug/Auto nur bei vorhandenen Daten
+    const rtFlightFilled = (f) => !!(f && (String(f.flightNumber || '').trim() || String(f.departureDate || '').trim() || String(f.from || '').trim()));
+    const rtCarFilled = (c) => !!(c && (String(c.provider || '').trim() || String(c.pickupLocation || '').trim() || String(c.pickupDate || '').trim()));
+    const rtHasLeg = (trip, kind) => {
+      const out = kind === 'out';
+      const fl = (trip.flights || []).filter(rtFlightFilled).some((f) => (out ? /^hin/i : /^r(ü|ue)ck/i).test(f.direction || ''));
+      const car = (trip.rentalCars || []).filter(rtCarFilled).some((c) => out ? (c.pickupLocation || c.pickupDate) : (c.dropoffLocation || c.dropoffDate));
+      return fl || car;
+    };
+    const rtHotelPrice = (h) => { h = h || {}; const n = Number(h.priceNewEur) || Number(h.priceOldEur) || 0; return n > 0 ? n : (Number(h.priceUsd) > 0 ? Number(h.priceUsd) : 0); };
+    function BookingHotels({ trip, onSave, goStage }) {
+      const stages = trip.stages || [];
+      const rows = stages.map((s, i) => ({ s, i })).filter(({ s, i }) => !rtIsRet(stages, i));
+      if (!rows.length) return null;
+      const booked = rows.filter(({ s }) => rtHotelPrice(s.hotel) > 0).length;
+      const sum = rows.reduce((a, { s }) => a + ((s.hotel && (Number(s.hotel.priceNewEur) || Number(s.hotel.priceOldEur))) || 0), 0);
+      const setPrice = (s, v) => { const n = Number(String(v).replace(',', '.')); const cur = Number((s.hotel || {}).priceNewEur) || 0; const nv = Number.isFinite(n) && n > 0 ? n : 0; if (nv === cur) return; onSave({ ...trip, stages: stages.map((x) => (x.id === s.id ? { ...x, hotel: { ...(x.hotel || {}), priceNewEur: nv, ...(nv === 0 ? { priceOldEur: 0 } : {}) } } : x)) }, nv ? 'Hotel als gebucht markiert' : 'Preis entfernt, Hotel nicht gebucht'); };
+      return (
+        <section data-book-hotels className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+            <div><h2 className="text-base sm:text-lg font-bold">Hotels (aus der Planung)</h2><p className="text-xs text-slate-300">Ein Preis bedeutet: gebucht. Ohne Preis gilt das Hotel als nicht gebucht.</p></div>
+            <span data-book-count className="text-sm font-bold">{booked} von {rows.length} gebucht{sum ? ` · ${formatEur(sum)}` : ''}</span>
+          </div>
+          <ul className="p-3 sm:p-4 space-y-2 m-0">
+            {rows.map(({ s, i }) => { const ok = rtHotelPrice(s.hotel) > 0; const name = (s.hotel && s.hotel.name) || ''; return (
+              <li key={s.id} data-book-hotel={ok ? 'booked' : 'open'} className={`list-none rounded-xl border-2 p-3 flex flex-wrap items-center gap-x-4 gap-y-2 ${ok ? 'border-emerald-500 bg-emerald-50' : 'border-red-400 bg-red-50'}`}>
+                <div className="min-w-[180px] flex-1">
+                  <div className="text-xs font-semibold text-slate-700">Etappe {i + 1} · {s.toCity || '?'} · {s.dateRange || ''}{s.nights ? ` · ${s.nights} ${Number(s.nights) === 1 ? 'Nacht' : 'Nächte'}` : ''}</div>
+                  <div className="text-sm font-bold text-slate-900 break-words">{name || 'Hotel noch nicht gewählt'}</div>
+                </div>
+                <span data-book-badge className={`px-2.5 py-1 rounded-full text-xs font-bold ${ok ? 'bg-emerald-700 text-white' : 'bg-red-700 text-white'}`}>{ok ? '✔ Gebucht' : '✖ Nicht gebucht'}</span>
+                <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">Preis €<input data-book-price type="number" min="0" step="1" defaultValue={rtHotelPrice(s.hotel) || ''} key={s.id + ':' + rtHotelPrice(s.hotel)} onBlur={(e) => setPrice(s, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-28 h-10 px-2 rounded-lg border border-slate-300 bg-white text-sm text-slate-900" /></label>
+                <button type="button" data-readonly-allow data-book-open onClick={() => goStage(s)} className="v18-btn sm">In Etappe öffnen</button>
+              </li>); })}
+          </ul>
+        </section>
+      );
+    }
+    function packSuggest(trip) {
+      const meta = trip.meta || {}, stages = trip.stages || [], people = trip.participants || [];
+      const nights = stages.reduce((a, s) => a + (parseInt(s.nights, 10) || 0), 0); const days = Math.max(1, nights + 1);
+      const acts = stages.flatMap((s) => (s.localAttractions || []).map((a) => `${a.name || ''} ${a.category || ''} ${a.notes || ''}`)).join(' ');
+      const txt = [meta.destination, meta.startLocation, meta.endLocation, meta.title, meta.subtitle, ...stages.map((s) => `${s.fromCity || ''} ${s.toCity || ''} ${(s.hotel || {}).address || ''}`)].join(' ').toLowerCase();
+      const all = `${txt} ${acts.toLowerCase()}`;
+      const hasFlight = (trip.flights || []).some(rtFlightFilled);
+      const hasRental = (trip.rentalCars || []).some(rtCarFilled);
+      const veh = String(meta.vehicle || '');
+      const hasCar = hasRental || /auto|pkw|wagen|wohnmobil|camper|motorrad|van|suv/i.test(veh) || (!hasFlight && !/bahn|zug|bus|rad|fahrrad|schiff/i.test(veh));
+      const usa = /usa|florida|miami|orlando|key west|everglades|kalifornien|california|new york|texas|las vegas|hawaii|arizona/.test(all);
+      const alps = /österreich|tirol|innsbruck|brenner|italien|gardasee|riva|limone|schweiz|südtirol|bozen|verona|trento/.test(all);
+      const eu = !usa && !/ägypten|thailand|türkei|dubai|bali|japan|mexiko|kanada|australien|marokko|südafrika/.test(all);
+      let lat = null; for (const s of stages) { const g = (typeof stageLoc === 'function') ? stageLoc(s) : null; if (g) { lat = g[0]; break; } }
+      if (lat == null) lat = usa ? 27 : alps ? 46 : 48;
+      const iso = /^\\d{4}-\\d{2}-\\d{2}$/.test(meta.startDate || '') ? meta.startDate : null; const month = iso ? Number(iso.slice(5, 7)) : (new Date().getMonth() + 1);
+      let est = 27 - 0.55 * (Math.abs(lat) - 20) + 12 * Math.cos((month - 7) * Math.PI / 6) * (Math.abs(lat) / 45);
+      let wxN = 0, wxT = 0, wxRain = 0, wxR = 0;
+      try { buildDays(trip).forEach((d) => { const w = wxStore.get(d.stage, d.iso); if (w && w.tmax != null) { wxN++; wxT += (Number(w.tmax) + Number(w.tmin)) / 2; } if (w && w.rain != null) { wxR++; wxRain += Number(w.rain); } }); } catch (e) {}
+      const temp = Math.round(wxN >= 3 ? wxT / wxN : est); const rainy = wxR >= 3 ? wxRain / wxR >= 45 : (temp < 22 || (lat < 30 && month >= 6 && month <= 9));
+      const beach = temp >= 22 || /strand|beach|baden|schnorchel|schwimm|meer\\b/.test(all);
+      const hike = /wander|trail|hike|nationalpark|national park|trekking|schlucht|canyon|everglades|berg/.test(all);
+      const wear = Math.min(days, 7) + 1; const items = []; const P = (cat, who, text) => items.push({ cat, who, text });
+      const ids = people.length ? people.map((p) => p.id) : ['shared'];
+      ids.forEach((w) => {
+        P('Dokumente', w, usa ? 'Reisepass (mind. 6 Monate gültig)' : eu ? 'Personalausweis / Reisepass' : 'Reisepass');
+        if (usa) P('Dokumente', w, 'ESTA-Bestätigung (digital + Ausdruck)');
+        P('Gesundheit', w, 'Persönliche Medikamente'); P('Gesundheit', w, 'Kulturbeutel (Zahnbürste, Zahnpasta, Deo, Shampoo)');
+        P('Kleidung', w, `Unterwäsche (ca. ${wear})`); P('Kleidung', w, `Socken (ca. ${wear})`); P('Kleidung', w, `T-Shirts / Oberteile (ca. ${wear})`); P('Kleidung', w, 'Schlafsachen'); P('Kleidung', w, 'Bequeme, eingelaufene Schuhe');
+        if (temp >= 24) { P('Kleidung', w, 'Kurze Hosen / Röcke (2–3)'); P('Kleidung', w, '1 lange Hose / leichter Pullover für klimatisierte Räume und Abende'); }
+        else if (temp >= 14) { P('Kleidung', w, 'Lange Hosen (2–3)'); P('Kleidung', w, 'Pullover / Fleece (2)'); P('Kleidung', w, 'Leichte Jacke'); if (temp >= 18) P('Kleidung', w, '1 kurze Hose für warme Tage'); }
+        else { P('Kleidung', w, 'Lange Hosen (3)'); P('Kleidung', w, 'Pullover / Fleece (3)'); P('Kleidung', w, 'Warme Jacke'); P('Kleidung', w, 'Mütze, Schal, Handschuhe'); if (temp <= 5) P('Kleidung', w, 'Thermounterwäsche'); P('Kleidung', w, 'Wasserdichte, warme Schuhe'); }
+        if (rainy) P('Kleidung', w, 'Regenjacke oder faltbarer Schirm');
+        if (temp >= 20) { P('Sonne', w, 'Sonnenbrille'); P('Sonne', w, 'Cap / Sonnenhut'); }
+        if (beach) { P('Strand', w, 'Badesachen (2)'); P('Strand', w, 'Flip-Flops / Sandalen'); }
+        if (hike) { P('Wandern', w, 'Wanderschuhe oder feste Trailschuhe'); P('Wandern', w, 'Trinkflasche'); }
+      });
+      const S = (cat, text) => P(cat, 'shared', text);
+      S('Dokumente', `Buchungsbestätigungen (Hotels${hasFlight ? ', Flüge' : ''}${hasRental ? ', Mietwagen' : ''}) offline gespeichert`);
+      if (hasCar || hasRental) S('Dokumente', 'Führerschein (alle Fahrer)');
+      if (usa && hasCar) S('Dokumente', 'Internationaler Führerschein (empfohlen)');
+      S('Dokumente', eu ? 'Europäische Krankenversichertenkarte (EHIC)' : 'Auslandskrankenversicherung (Nachweis)');
+      if ((trip.creditCards || []).length) S('Geld', 'Kreditkarten (getrennt aufbewahren) + Sperr-Notruf notiert');
+      S('Geld', usa ? 'Bargeld USD (kleine Scheine für Trinkgeld)' : (meta.currency && meta.currency !== 'EUR' ? `Bargeld ${meta.currency}` : 'Etwas Bargeld in kleinen Scheinen und Münzen'));
+      S('Technik', 'Handy + Ladekabel'); S('Technik', 'Powerbank'); S('Technik', 'Offline-Karten und diese App offline verfügbar');
+      if (usa) S('Technik', 'Reiseadapter Typ A/B (USA)'); else if (/england|london|schottland|irland|\\buk\\b/.test(all)) S('Technik', 'Reiseadapter Typ G (UK)'); else if (/schweiz/.test(all)) S('Technik', 'Reiseadapter Typ J (Schweiz)');
+      if (hasCar) { S('Technik', 'Handyhalterung fürs Auto'); S('Technik', 'KFZ-Ladegerät / USB-Adapter'); }
+      S('Gesundheit', 'Reiseapotheke (Schmerzmittel, Pflaster, Magen-Darm, Allergie)'); S('Gesundheit', 'Desinfektionsgel / Feuchttücher');
+      if (temp >= 20 || beach) S('Sonne', 'Sonnencreme (LSF 30–50)');
+      if (temp >= 22 && lat < 35) S('Gesundheit', 'Insektenschutz');
+      if (hasFlight) { S('Flug', 'Boardkarten / Airline-App'); S('Flug', 'Flüssigkeiten ≤ 100 ml im Beutel (Handgepäck)'); S('Flug', 'Nackenkissen, Kopfhörer, Ladekabel im Handgepäck'); }
+      if (hasCar) { S('Auto', 'Snacks und Getränke'); S('Auto', 'Müllbeutel'); S('Auto', 'Tagesrucksack für Ausflüge'); if (temp >= 22) { S('Auto', 'Kühltasche'); S('Auto', 'Sonnenblende'); } if (temp <= 4 && !hasRental) { S('Auto', 'Eiskratzer, Enteiser'); S('Auto', 'Winterreifen / Schneeketten prüfen'); } if (!usa) { S('Auto', 'Warnweste, Warndreieck, Verbandkasten'); S('Auto', 'Parkscheibe'); } if (alps) { S('Auto', 'Autobahn-Vignette (Österreich/Schweiz) bzw. Mautgeld/Kreditkarte für Italien'); } if (/florida|miami|orlando|key west/.test(all)) S('Auto', hasRental ? 'Kleingeld für Maut (SunPass im Mietwagen klären)' : 'Kleingeld / Kreditkarte für Maut'); }
+      if (days > 9) S('Kleidung', 'Waschmittel / Wäschebeutel (Reise länger als 9 Tage)');
+      if (beach) S('Strand', 'Strandtuch'); if (beach) S('Strand', 'Wasserfeste Handyhülle'); if (hike) S('Wandern', 'Pflaster / Blasenpflaster');
+      const assump = [`${days} Tage`, `Tagesmittel ca. ${temp} °C${wxN >= 3 ? ' (Vorhersage)' : ' (Schätzung)'}`, hasFlight ? 'Flug' : null, hasCar ? (hasRental ? 'Mietwagen' : 'Auto') : 'ohne Auto', beach ? 'Strand' : null, hike ? 'Wandern' : null, rainy ? 'Regen möglich' : null].filter(Boolean).join(' · ');
+      return { items, assump };
     }
 
     function App() {
@@ -21823,7 +21929,7 @@ Quelle: ${lt.url}` : '') }] } });
                             <div style={{ order: 2 }} className="p-3 sm:p-5 space-y-6">
                               {/* 1. DER WEG ZUM HOTEL */}
                               <details className={`stage-section rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden ${stageTab === 'way' || stageTab === 'all' ? '' : 'hidden'}`} open>
-                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="way" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />{sIdx === 0 && <HomeLegCard kind="out" trip={tripData} stage={stage} onSave={saveTripData} />}{sIdx === (tripData.stages || []).length - 1 && <HomeLegCard kind="back" trip={tripData} stage={stage} onSave={saveTripData} />}<RouteCalcBar trip={tripData} stage={stage} index={sIdx} onSave={saveTripData} />
+                                <summary className="bg-amber-100/80 text-amber-950"><span className="w-7 h-7 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">1</span><span className="min-w-0">Weg zum Hotel · {stage.fromCity || `Start Etappe ${sIdx + 1}`} → {stage.toCity || `Ziel Etappe ${sIdx + 1}`}</span><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openStageEditor(stage, 'route'); }} className="stage-edit-action" aria-label="Weg zum Hotel bearbeiten">✎ Bearbeiten</button></summary><StageSectionAssist kind="way" trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />{sIdx === 0 && rtHasLeg(tripData, 'out') && <HomeLegCard kind="out" trip={tripData} stage={stage} onSave={saveTripData} />}{sIdx === (tripData.stages || []).length - 1 && rtHasLeg(tripData, 'back') && <HomeLegCard kind="back" trip={tripData} stage={stage} onSave={saveTripData} />}<RouteCalcBar trip={tripData} stage={stage} index={sIdx} onSave={saveTripData} />
                                 <div className="rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden">
                                 <div className="bg-amber-100/80 px-4 py-2.5 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2">
                                   <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 flex-wrap">
@@ -22255,6 +22361,7 @@ Quelle: ${lt.url}` : '') }] } });
 
             {activeTab === 'basics' && (
               <div className="space-y-8">
+                <BookingHotels trip={tripData} onSave={saveTripData} goStage={(s) => { setActiveTab('stages'); setTimeout(() => window.dispatchEvent(new CustomEvent('rt-assist', { detail: { stageId: s.id, step: 'hotel' } })), 80); }} />
                 {/* FLÜGE */}
                 <section className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
                   <div className="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
