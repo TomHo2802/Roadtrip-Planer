@@ -19170,7 +19170,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 64</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 65</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -21182,11 +21182,15 @@ var qrcode = function() {
     function RtCheckIn({ value, onChange }) {
       const ts = rtTimesIn(value); const from = ts[0] || '', to = ts[1] || '';
       const set = (f, t) => onChange(f ? (t ? `${f} - ${t} Uhr` : `${f} Uhr`) : '');
-      const opt = (v) => (v && !RT_T30.includes(v) ? <option value={v}>{v}</option> : null);
+      const after = from ? RT_T30.filter((x) => x > from).concat(from !== '00:00' ? ['00:00'] : []) : [];
+      const fromOpt = from && !RT_T30.includes(from) ? <option value={from}>{from}</option> : null;
+      const toOpt = to && !after.includes(to) ? <option value={to}>{to}</option> : null;
+      const onFrom = (v) => { const keep = to && v && (to === '00:00' || to > v) ? to : ''; set(v, keep); };
       return (
-        <div data-checkin className="grid grid-cols-2 gap-1.5">
-          <select data-time30 value={from} onChange={(e) => set(e.target.value, to)} className={RT_SEL_CLS} aria-label="Check-in ab"><option value="">von</option>{opt(from)}{RT_T30.map((x) => <option key={x} value={x}>{x}</option>)}</select>
-          <select data-time30 value={to} onChange={(e) => set(from, e.target.value)} disabled={!from} className={RT_SEL_CLS} aria-label="Check-in bis (optional)"><option value="">bis</option>{opt(to)}{RT_T30.map((x) => <option key={x} value={x}>{x}</option>)}</select>
+        <div data-checkin className="grid items-center gap-1.5" style={{ gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)' }}>
+          <select data-time30 value={from} onChange={(e) => onFrom(e.target.value)} className={RT_SEL_CLS} aria-label="Check-in von"><option value="">von</option>{fromOpt}{RT_T30.map((x) => <option key={x} value={x}>{x}</option>)}</select>
+          <span aria-hidden="true" className="text-slate-500 font-bold">–</span>
+          <select data-time30 value={to} onChange={(e) => set(from, e.target.value)} disabled={!from} className={RT_SEL_CLS} aria-label="Check-in bis"><option value="">bis</option>{toOpt}{after.map((x) => <option key={x} value={x}>{x}</option>)}</select>
         </div>
       );
     }
