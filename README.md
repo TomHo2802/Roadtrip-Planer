@@ -318,3 +318,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v65
 - Check-in: zwischen "von" und "bis" steht ein Bindestrich. Die Auswahl bei "bis" beginnt direkt nach der "von"-Zeit (30 Minuten später) und reicht bis Mitternacht. Wird "von" später als "bis" gesetzt, wird "bis" geleert.
+
+## v66
+- Unterwegs > Heute: In der Unterkunfts-Karte stehen jetzt Frühstück, Parken und Bereits bezahlt als farbige Kurzangaben (grün = ja, rot = nein, gelb = möglich, grau = nicht eingetragen).
