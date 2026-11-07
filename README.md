@@ -301,3 +301,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Platzhalter-Balken statt "Lade …" bei Wetter und Wechselkurs.
 - Leere Zustände einheitlich mit Icon, Titel, kurzem Text und, wo sinnvoll, einem Knopf (Navi, Heute, Tagesplan, Packliste).
 - Lange Erklärtexte (z. B. beim Tagesplan) sind hinter "Hinweis anzeigen" eingeklappt.
+
+## v62
+- Die obere Reiter-Leiste (z. B. Planen: Etappen / Tagesplan / Übersicht / Karte, Unterwegs: Heute / Wo bin ich / ...) bleibt beim Scrollen oben fixiert, auf Handy direkt unter der Kopfleiste.
+- Die mobile Kopfleiste ist jetzt wirklich fixiert (war vorher nicht fest).
+- Der Tagesplan unter "Heute" ist immer aufgeklappt.
