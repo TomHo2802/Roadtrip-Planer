@@ -312,3 +312,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Datumsfelder haben jetzt immer die Kalenderauswahl: Storno bis, Abbuchung angekündigt, Kreditkarte belastet. Bei "Storno bis" gibt es zusätzlich "Flexibel stornierbar". Ältere Texteinträge werden als "Bisher: …" angezeigt, bis ein Datum gewählt wird.
 - Uhrzeiten wählst du in 30-Minuten-Schritten: Check-in (ab / bis optional), Check-out und die Uhrzeit bei Aktionen vor Ort. Bestehende Werte wie "15 - 23 Uhr" werden richtig vorbelegt.
 - Storno-, Abbuchungs- und Belastungsdatum dürfen jetzt auch außerhalb des Reisezeitraums liegen (vorher kam eine Fehlermeldung). Für Etappen-, Flug- und Mietwagen-Daten gilt die Prüfung weiter.
+
+## v64
+- Hotel bearbeiten: Check-in (von / bis) und Check-out sind gleich hoch und breit, die Uhrzeiten stehen ungekürzt und gut lesbar in den Feldern (z. B. 16:30, 22:00, 10:30).
