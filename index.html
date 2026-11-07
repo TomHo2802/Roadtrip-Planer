@@ -16981,7 +16981,7 @@ var qrcode = function() {
     const normalizeHotelLink = value => { const raw=String(value||'').trim(); if(!raw) return ''; const hasHttp=/^https?:\/\//i.test(raw); const looksLikeOtherScheme=/^[a-z][a-z\d+.-]*:/i.test(raw)&&!/^[^/?#]+:\d+(?:[/?#]|$)/.test(raw); if(!hasHttp&&looksLikeOtherScheme) return ''; const candidate=hasHttp?raw:`https://${raw}`; try { const url=new URL(candidate); return (url.protocol==='http:'||url.protocol==='https:')&&url.hostname?url.href:''; } catch { return ''; } };
     const normalizeTrip = value => {
       if (!value || typeof value !== 'object' || Array.isArray(value) || !value.meta || typeof value.meta !== 'object' || !Array.isArray(value.stages)) throw new Error('Erwartet werden Reisedaten mit meta und stages[].');
-      const out = { ...value, meta: { ...value.meta }, participants: Array.isArray(value.participants)?value.participants:[], customExpenses: Array.isArray(value.customExpenses)?value.customExpenses:[], creditCards: Array.isArray(value.creditCards)?value.creditCards:[], emergencyContacts: Array.isArray(value.emergencyContacts)?value.emergencyContacts:[], flights: Array.isArray(value.flights)?value.flights:[], rentalCars: Array.isArray(value.rentalCars)?value.rentalCars:[], stages: value.stages, checklist: Array.isArray(value.checklist)?value.checklist:[] };
+      const out = { ...value, meta: { ...value.meta }, participants: Array.isArray(value.participants)?value.participants:[], customExpenses: Array.isArray(value.customExpenses)?value.customExpenses:[], creditCards: (Array.isArray(value.creditCards)?value.creditCards:[]).map(cardSanitize), emergencyContacts: Array.isArray(value.emergencyContacts)?value.emergencyContacts:[], flights: Array.isArray(value.flights)?value.flights:[], rentalCars: Array.isArray(value.rentalCars)?value.rentalCars:[], stages: value.stages, checklist: Array.isArray(value.checklist)?value.checklist:[] };
       out.stages = out.stages.map(stage => stage && typeof stage === 'object' ? { ...stage, hotel: { ...(stage.hotel||{}), bookingLink: normalizeHotelLink(stage.hotel?.bookingLink), hotelLink: normalizeHotelLink(stage.hotel?.hotelLink) } } : stage);
       if (!isDate(out.meta.startDate) || !isDate(out.meta.endDate)) throw new Error('Start- und Enddatum müssen gültige ISO-Daten sein.');
       if (out.meta.startDate && out.meta.endDate && out.meta.endDate < out.meta.startDate) throw new Error('Das Enddatum liegt vor dem Startdatum.');
@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 54</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 55</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20043,6 +20043,7 @@ var qrcode = function() {
       const Stat = ({ k, v, sub, warn }) => <div data-ov-stat={k} className={`rounded-xl border p-3 ${warn ? 'border-amber-400 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}><div className="text-xs font-semibold text-slate-600">{k}</div><div className="text-lg font-extrabold text-slate-900">{v}</div>{sub && <div className="text-xs text-slate-600">{sub}</div>}</div>;
       return (
         <div data-ov-root className="space-y-4">
+          <CardExpiryAlerts trip={trip} goCards={goTab ? () => goTab('cards') : null} />
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base sm:text-lg font-bold text-slate-900">📅 Reisetage im Überblick</h2>
@@ -20781,6 +20782,70 @@ var qrcode = function() {
       if (beach) S('Strand', 'Strandtuch'); if (beach) S('Strand', 'Wasserfeste Handyhülle'); if (hike) S('Wandern', 'Pflaster / Blasenpflaster');
       const assump = [`${days} Tage`, `Tagesmittel ca. ${temp} °C${wxN >= 3 ? ' (Vorhersage)' : ' (Schätzung)'}`, hasFlight ? 'Flug' : null, hasCar ? (hasRental ? 'Mietwagen' : 'Auto') : 'ohne Auto', beach ? 'Strand' : null, hike ? 'Wandern' : null, rainy ? 'Regen möglich' : null].filter(Boolean).join(' · ');
       return { items, assump };
+    }
+
+    // v55: Karten nur mit letzten 4 Ziffern, Ablaufwarnung, Reisevorlage
+    function cardSanitize(c) {
+      if (!c || typeof c !== 'object') return c; const o = { ...c }; let had = false;
+      const digits = String(o.cardNumber || '').replace(/\D/g, ''); if (digits.length > 4) had = true; o.cardNumber = digits.slice(-4);
+      ['cvc', 'cvv', 'cvc2', 'cvv2', 'securityCode', 'pin', 'pinCode'].forEach((k) => { if (k in o) { delete o[k]; had = true; } });
+      if (had) { try { sessionStorage.setItem('rt_card_sanitized', '1'); } catch (e) {} } return o;
+    }
+    function cardExpiryEnd(v) { const m = String(v || '').trim().match(/^(\d{1,2})\s*[\/.\-]\s*(\d{2}|\d{4})$/); if (!m) return null; let mo = +m[1], y = +m[2]; if (y < 100) y += 2000; if (mo < 1 || mo > 12) return null; return Date.UTC(y, mo, 0); }
+    function cardWarnings(trip) {
+      const meta = trip.meta || {}; const iso = (s) => (/^\d{4}-\d{2}-\d{2}$/.test(s || '') ? Date.parse(s + 'T00:00:00Z') : null);
+      const st = iso(meta.startDate); const en = iso(meta.endDate) || st; if (st == null) return [];
+      const out = [];
+      (trip.creditCards || []).forEach((c) => {
+        const e = cardExpiryEnd(c.validUntil); if (e == null) return; const lbl = String(c.validUntil).trim();
+        if (e < st) out.push({ id: c.id, name: c.name, level: 'red', text: `Gültig bis ${lbl}: läuft vor Reisebeginn ab. Bitte neue Karte bereithalten.` });
+        else if (e <= en) out.push({ id: c.id, name: c.name, level: 'red', text: `Gültig bis ${lbl}: läuft während der Reise ab. Auf dieser Karte keine Buchungen für die Zeit danach.` });
+        else if (e <= en + 30 * 864e5) out.push({ id: c.id, name: c.name, level: 'amber', text: `Gültig bis ${lbl}: läuft kurz nach der Reise ab (innerhalb von 30 Tagen). Spätere Abbuchungen oder Rückerstattungen können noch folgen.` });
+      });
+      return out;
+    }
+    function CardExpiryAlerts({ trip, goCards }) {
+      const ws = cardWarnings(trip); const [gone, setGone] = useState(false); let sanitized = false; try { sanitized = !gone && sessionStorage.getItem('rt_card_sanitized') === '1'; } catch (e) {}
+      if (!ws.length && !sanitized) return null;
+      return (
+        <div data-card-alerts className="space-y-2">
+          {ws.map((w) => <div key={w.id} role="alert" data-card-alert={w.level} className={`rounded-xl border-2 px-3 py-2 text-sm flex flex-wrap items-center justify-between gap-2 ${w.level === 'red' ? 'border-red-500 bg-red-50 text-red-950' : 'border-amber-500 bg-amber-50 text-amber-950'}`}><span>💳 <b>{w.name}</b>: {w.text}</span>{goCards && <button type="button" data-readonly-allow onClick={goCards} className="v18-btn sm">Karten öffnen</button>}</div>)}
+          {sanitized && <div role="status" data-card-sanitized className="rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-800">Aus Sicherheitsgründen speichert der Planer nur noch die letzten 4 Ziffern einer Karte. Längere Nummern und Prüfnummern wurden entfernt, beim nächsten Speichern gilt das dauerhaft. <button type="button" data-readonly-allow onClick={() => { try { sessionStorage.removeItem('rt_card_sanitized'); } catch (e) {} setGone(true); }} className="underline font-semibold">OK</button></div>}
+        </div>
+      );
+    }
+    function TemplateBar({ trip, onSave }) {
+      const [msg, setMsg] = useState(''); const ref = useRef(null);
+      const pick = (o, ks) => { const r = {}; ks.forEach((k) => { if (o && o[k] != null && o[k] !== '') r[k] = o[k]; }); return r; };
+      const save = () => {
+        const t = { templateType: 'roadtrip-vorlage', version: 1, created: new Date().toISOString().slice(0, 10), meta: pick(trip.meta, ['currency', 'exchangeRate', 'homeTz', 'startLocation', 'maxDriveHours', 'vehicle']), participants: trip.participants || [], creditCards: (trip.creditCards || []).map(cardSanitize), emergencyContacts: trip.emergencyContacts || [] };
+        const url = URL.createObjectURL(new Blob([JSON.stringify(t, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = 'roadtrip-vorlage.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+        setMsg(`Vorlage gespeichert: ${t.creditCards.length} Karte(n), ${t.participants.length} Mitreisende, ${t.emergencyContacts.length} Notfallnummern.`);
+      };
+      const load = async (file) => {
+        try {
+          const t = JSON.parse(await file.text()); if (!t || t.templateType !== 'roadtrip-vorlage') throw new Error('Das ist keine Reisevorlage.');
+          const nid = (p) => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+          const parts = [...(trip.participants || [])]; let np = 0; (Array.isArray(t.participants) ? t.participants : []).forEach((p) => { if (p && p.name && !parts.some((x) => String(x.name).toLowerCase() === String(p.name).toLowerCase())) { parts.push({ ...p, id: parts.some((x) => x.id === p.id) || !p.id ? nid('p') : p.id }); np++; } });
+          const cards = [...(trip.creditCards || [])]; let nc = 0; (Array.isArray(t.creditCards) ? t.creditCards : []).forEach((c0) => { const c = cardSanitize(c0); if (c && c.name && !cards.some((x) => String(x.name).toLowerCase() === String(c.name).toLowerCase() && (x.cardNumber || '') === (c.cardNumber || ''))) { cards.push({ ...c, id: cards.some((x) => x.id === c.id) || !c.id ? nid('cc') : c.id }); nc++; } });
+          const ems = [...(trip.emergencyContacts || [])]; let ne = 0; (Array.isArray(t.emergencyContacts) ? t.emergencyContacts : []).forEach((e) => { if (e && e.organization && !ems.some((x) => x.organization === e.organization && (x.phone || '') === (e.phone || ''))) { ems.push({ ...e, id: ems.some((x) => x.id === e.id) || !e.id ? nid('em') : e.id }); ne++; } });
+          const meta = { ...(trip.meta || {}) }; Object.keys(t.meta || {}).forEach((k) => { if (meta[k] == null || meta[k] === '') meta[k] = t.meta[k]; });
+          onSave({ ...trip, meta, participants: parts, creditCards: cards, emergencyContacts: ems }, `Vorlage übernommen: ${nc} Karte(n), ${np} Mitreisende, ${ne} Notfallnummern`);
+          setMsg(`Übernommen: ${nc} Karte(n), ${np} Mitreisende, ${ne} Notfallnummern. Bereits vorhandene Einträge wurden nicht doppelt angelegt.`);
+        } catch (e) { setMsg('Vorlage konnte nicht gelesen werden: ' + e.message); }
+      };
+      return (
+        <section data-template-bar className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+          <h3 className="text-base font-bold text-slate-900">Reisevorlage: Karten, Mitreisende, Notfallnummern</h3>
+          <p className="text-xs text-slate-700">Spare dir das erneute Eintragen bei jeder Reise. Die Vorlage enthält nur Karten (Name, letzte 4 Ziffern, Ablaufdatum, Limit, Gebühren und Bedingungen), Mitreisende und Notfallnummern. Keine Etappen, Buchungen, vollständigen Kartennummern oder Prüfnummern. Die Datei gehört nicht ins Internet (nicht auf GitHub hochladen).</p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" data-template-save onClick={save} className="v18-btn">Als Vorlage speichern</button>
+            <button type="button" data-readonly-allow data-template-load onClick={() => ref.current && ref.current.click()} className="v18-btn">Vorlage laden …</button>
+            <input ref={ref} type="file" accept="application/json,.json" data-template-file className="hidden" onChange={(e) => { const f = e.target.files && e.target.files[0]; if (f) load(f); e.target.value = ''; }} />
+          </div>
+          {msg && <div data-template-msg role="status" className="text-xs text-slate-800">{msg}</div>}
+        </section>
+      );
     }
 
     function App() {
@@ -21819,6 +21884,7 @@ Quelle: ${lt.url}` : '') }] } });
                   <div className="min-w-[220px] flex-1"><h2 className="text-base font-bold text-slate-900">🧭 Reise-Assistent</h2><p className="text-sm text-slate-700">{(tripData.stages || []).length ? 'Schritt für Schritt prüfen und ergänzen: Grundrahmen, Route, Hotels, Fahrzeiten.' : 'Plane Schritt für Schritt: erst den Grundrahmen, dann die einzelnen Etappen.'}</p></div>
                   <button type="button" data-wizard-card-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard'))} className="v18-btn pri">{(tripData.stages || []).length ? 'Assistent öffnen' : 'Planung starten'}</button>
                 </section>
+                <CardExpiryAlerts trip={tripData} goCards={() => setActiveTab('cards')} />
                 <RtMigrate trip={tripData} onSave={saveTripData} />
                 <RouteCalcAll trip={tripData} onSave={saveTripData} />
                 <StageFinder trip={tripData} onPick={handleAddSuggestedStage} />
@@ -22361,6 +22427,7 @@ Quelle: ${lt.url}` : '') }] } });
 
             {activeTab === 'basics' && (
               <div className="space-y-8">
+                <CardExpiryAlerts trip={tripData} goCards={() => setActiveTab('cards')} />
                 <BookingHotels trip={tripData} onSave={saveTripData} goStage={(s) => { setActiveTab('stages'); setTimeout(() => window.dispatchEvent(new CustomEvent('rt-assist', { detail: { stageId: s.id, step: 'hotel' } })), 80); }} />
                 {/* FLÜGE */}
                 <section className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
@@ -22623,6 +22690,8 @@ Quelle: ${lt.url}` : '') }] } });
             =============================================================== */}
             {activeTab === 'cards' && (
               <div className="space-y-8">
+                <CardExpiryAlerts trip={tripData} goCards={null} />
+                <TemplateBar trip={tripData} onSave={saveTripData} />
                 {/* SEKTION 1: KREDITKARTEN-VERWALTUNG & LIVE-KREDITRAHMEN */}
                 <section className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
                   <div className="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
@@ -22668,9 +22737,8 @@ Quelle: ${lt.url}` : '') }] } });
                       const isNumberShown = !!visibleCardNumbers[card.id];
                       const areBookingsExpanded = !!expandedCardDetails[card.id];
 
-                      const displayCardNumber = isNumberShown
-                        ? card.cardNumber || 'Keine Nummer hinterlegt'
-                        : (card.cardNumber || '').replace(/\d(?=.{4})/g, '*');
+                      const l4 = String(card.cardNumber || '').replace(/\D/g, '').slice(-4);
+                      const displayCardNumber = l4 ? `•••• •••• •••• ${l4}` : 'Keine Ziffern hinterlegt';
 
                       return (
                         <div
@@ -22716,15 +22784,6 @@ Quelle: ${lt.url}` : '') }] } });
                               <div className="flex items-center justify-between pt-1 border-t border-white/15 text-xs font-mono">
                                 <div className="flex items-center gap-2">
                                   <span className="tracking-widest text-sm font-bold">{displayCardNumber}</span>
-                                  <button
-                                    onClick={() =>
-                                      setVisibleCardNumbers((prev) => ({ ...prev, [card.id]: !isNumberShown }))
-                                    }
-                                    className="text-[11px] bg-black/25 hover:bg-black/40 px-1.5 py-0.5 rounded font-sans"
-                                    title="Kartennummer ein-/ausblenden"
-                                  >
-                                    {isNumberShown ? '🙈 Verbergen' : '👁 Zeigen'}
-                                  </button>
                                 </div>
                                 <span>Gültig: <strong>{card.validUntil || '—'}</strong></span>
                               </div>
@@ -23689,7 +23748,7 @@ Quelle: ${lt.url}` : '') }] } });
             {activeTab === 'cloud' && (
               <AppErrorBoundary>
               <div className="space-y-6">
-                
+                <TemplateBar trip={tripData} onSave={saveTripData} />
                 <TripsCard trip={tripData} />
                 <DeviceDataCard trip={tripData} />
                 <details className="v18-adv rounded-2xl border border-slate-200 bg-white">
@@ -25311,14 +25370,17 @@ Quelle: ${lt.url}` : '') }] } });
                     placeholder="Kreditrahmen in €, z.B. 3000" />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Kartennummer (wird standardmäßig maskiert)</label>
+                    <label className="font-bold text-slate-700 block mb-1">Letzte 4 Ziffern der Karte</label>
                     <input
                       type="text"
-                      value={editingCardModal.cardNumber}
-                      onChange={(e) => setEditingCardModal({ ...editingCardModal, cardNumber: e.target.value })}
-                      placeholder="XXXX XXXX XXXX XXXX"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={String(editingCardModal.cardNumber || '').replace(/\D/g, '').slice(-4)}
+                      onChange={(e) => setEditingCardModal({ ...editingCardModal, cardNumber: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                      placeholder="1234"
                       className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono"
                     />
+                    <p className="text-[11px] text-slate-500 mt-1">Aus Sicherheitsgründen nur die letzten 4 Ziffern. Keine Prüfnummer (CVC) eintragen.</p>
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Gültig bis (MM/JJ)</label>
