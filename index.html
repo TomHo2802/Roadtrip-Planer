@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 56</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 57</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -22226,14 +22226,9 @@ Quelle: ${lt.url}` : '') }] } });
                                       </div>
                                       <div className="flex items-center justify-between gap-2">
                                         <span className="text-slate-500">Kreditkarte:</span>
-                                        <select data-hotel-card aria-label="Kreditkarte" title="Kreditkarte wählen" value={h.creditCard || ''} onChange={(e) => rtHotelSet(stage.id, { creditCard: e.target.value })} className="compact-value bg-emerald-200 text-emerald-950 font-bold rounded border border-emerald-400 px-1 py-0.5 max-w-[9rem]">
-                                          <option value="">—</option>
-                                          {(tripData.creditCards || []).map((cc) => <option key={cc.id} value={cc.name}>{cc.name}</option>)}
-                                          {h.creditCard && !(tripData.creditCards || []).some((cc) => cc.name === h.creditCard) && <option value={h.creditCard}>{h.creditCard}</option>}
-                                        </select>
-                                      </div>
-                                      {!(tripData.creditCards || []).length && <div className="text-[11px] text-slate-600">Noch keine Karte angelegt (Buchungen → Karten & Notfall oder Vorlage laden).</div>}
-                                      <div className="hidden">
+                                        <span className="compact-value bg-emerald-200 text-emerald-950 font-bold rounded border border-emerald-400" title="Nur im Bearbeiten-Dialog änderbar">
+                                          {h.creditCard || '—'}
+                                        </span>
                                       </div>
                                       <div className="flex justify-between py-1 border-b border-slate-100">
                                         <span className="text-slate-500">Abb. angek.:</span>
@@ -24440,6 +24435,7 @@ Quelle: ${lt.url}` : '') }] } });
                           }
                           className="w-full px-3 py-1.5 rounded-lg border border-emerald-400 bg-emerald-50 font-bold"
                         >
+                          {!editingStageModal.hotel?.creditCard && <option value="">— bitte wählen —</option>}
                           {availableCardOptions.map((cName) => (
                             <option key={cName} value={cName}>{cName}</option>
                           ))}

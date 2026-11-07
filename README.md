@@ -270,3 +270,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v56
 - Hotel-Kacheln: Frühstück, Parken und Vorab bezahlt lassen sich wieder per Klick zwischen „ja“ und „nein“ umschalten. Die Kreditkarte wird in der Kachel aus den angelegten Karten ausgewählt (Auswahlliste); ohne angelegte Karten erscheint ein Hinweis.
 - Die Meldung „Reisedauer überschritten“ erscheint nur noch, wenn eine Änderung die Nächte tatsächlich erhöht, nicht mehr bei jedem Speichern einer Etappe.
+
+## v57
+- Die Kreditkarte in der Hotel-Kachel ist wieder nur anzeigend und wird im Bearbeiten-Dialog gewählt (Frühstück, Parken, Vorab bez. bleiben per Klick umschaltbar).
+- Fehler behoben: Im Bearbeiten-Dialog wurde bei Hotels ohne Karte die erste Karte nur angezeigt, aber nicht gespeichert. Die Auswahl beginnt jetzt mit „— bitte wählen —“, und die gewählte Karte erscheint danach in der Kachel.
