@@ -285,3 +285,11 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v59
 **Ansicht Handy / Tablet / Laptop:** Die App erkennt automatisch (Bildschirmbreite und Touch) ob sie auf Handy, Tablet oder Laptop läuft. Unter Optionen gibt es "Ansicht für Unterwegs": Automatisch / Handy / Tablet / Laptop, falls die Erkennung falsch liegt. Heute und Navi nutzen auf Tablet und Laptop mehrere Spalten, auf dem Handy bleibt es eine Spalte. Das Layout wird als Nächstes feinjustiert.
+
+## v60
+**Neues Design-System und Icons:**
+- Einheitliche Grundlage: Farben, Schrift (System-Schrift wie in nativen Apps), Abstände, Schatten, Rundungen, Fokus-Rahmen und Eingabefelder.
+- Sanfte Übergänge beim Seitenwechsel und beim Antippen. Mit "Bewegung reduzieren" im Gerät werden sie abgeschaltet.
+- Mobil: Kopf- und Fußleiste leicht durchscheinend, Sicherheitsbereich (Notch, Home-Balken) berücksichtigt, kein automatisches Hineinzoomen auf iPhones beim Tippen in Felder.
+- Emojis in der Oberfläche (Hotel, Parken, Notfall, Navi, Flagge usw.) sind durch einheitliche Linien-Icons ersetzt, auch im Dunkel-Modus.
+- Wetter- und Ausflugs-Symbole der Daten bleiben bewusst unverändert.
