@@ -14011,7 +14011,7 @@ html[data-dark="1"] a:not([class*="bg-"]):not(.v18-btn){color:#9cc2ff}
 /* Buttons */
 html[data-dark="1"] button:not(.v18-btn.pri):not([class*="bg-[#1F4E8C]"]):not([class*="bg-blue-"]):not([class*="bg-amber-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-slate-9"]):not(.theme-seg button):not(.v18-seg button.on):not(.v18-day.on):not(.v18-bottom button.on):not([data-navi-type][aria-pressed="true"]):not([data-navi-pref-btn][aria-pressed="true"]):not([data-view-btn][aria-pressed="true"]){background-color:#1f3150 !important;color:#eef3fa !important;border-color:#3a4f73 !important}
 html[data-dark="1"] .v18-btn.pri,html[data-dark="1"] [class*="bg-[#1F4E8C]"]{background:#2f6fd6 !important;color:#fff !important;border-color:#4f8ae6 !important;box-shadow:none !important}
-html[data-dark="1"] [aria-pressed="true"]:not(.theme-seg button){background:#F2A044 !important;border-color:#F2A044 !important;color:#1c1204 !important}
+html[data-dark="1"] [aria-pressed="true"]:not(.theme-seg button):not([data-hotel-toggle]){background:#F2A044 !important;border-color:#F2A044 !important;color:#1c1204 !important}
 html[data-dark="1"] input,html[data-dark="1"] select,html[data-dark="1"] textarea{background:#0f1a2c !important;color:#f4f7fc !important;border-color:#3a4f73 !important}
 html[data-dark="1"] input::placeholder,html[data-dark="1"] textarea::placeholder{color:#8e9db5 !important}
 /* Etappen-Bereiche: klar unterscheidbar */
@@ -14074,6 +14074,13 @@ html[data-dark="1"] .v18-bottom button.on i{background:var(--rt-sel-soft) !impor
 html[data-dark="1"] .v18-bottom button.on i svg{color:var(--rt-sel) !important}
 html[data-dark="1"] button[aria-pressed="true"][data-navi-type],html[data-dark="1"] button[aria-pressed="true"][data-navi-pref-btn],html[data-dark="1"] button[aria-pressed="true"][data-view-btn]{background:var(--rt-sel) !important;color:var(--rt-sel-ink) !important;border-color:var(--rt-sel) !important}
 html[data-dark="1"] button[aria-pressed="true"][data-navi-type] *{color:var(--rt-sel-ink) !important}
+
+/* Ja / Nein im Dunkel-Modus */
+html[data-dark="1"] button[data-hotel-toggle][class*="bg-emerald"][class][class],html[data-dark="1"] [data-hotel-facts] span[class*="bg-emerald"][class][class]{background:#1d6b47 !important;color:#e8fff3 !important;border-color:#3fbf84 !important}
+html[data-dark="1"] button[data-hotel-toggle][class*="bg-rose"][class][class],html[data-dark="1"] [data-hotel-facts] span[class*="bg-rose"][class][class]{background:#8e2b3e !important;color:#fff0f3 !important;border-color:#e0566f !important}
+html[data-dark="1"] [data-hotel-facts] span[class*="bg-amber"][class][class]{background:#7a5a14 !important;color:#fff6dc !important;border-color:#d9a932 !important}
+html[data-dark="1"] [data-hotel-facts] span[class*="bg-slate"][class][class]{background:#25324a !important;color:#aab7cc !important;border-color:#3a4a66 !important}
+html[data-dark="1"] [data-hotel-facts] span b{color:inherit !important}
 </style></head>
 <body>
   <div id="root" aria-live="polite"></div>
@@ -19181,7 +19188,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 67</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 68</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
