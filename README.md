@@ -282,3 +282,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - **Kompakte Karten:** ein Name plus Knopf "Navigation". Mit "▾" erscheinen Google Maps, Apple Karten, GPS, Adresse und Copy GPS.
 - **Karten-Dienst:** automatisch (iPhone/iPad/Mac = Apple Karten, sonst Google Maps), umschaltbar auf Google oder Apple. Die Wahl gilt auch für "Navigation starten" und die Schnellzugriffe.
 - Mobil mehr Abstand unten, damit die untere Leiste nichts verdeckt.
+
+## v59
+**Ansicht Handy / Tablet / Laptop:** Die App erkennt automatisch (Bildschirmbreite und Touch) ob sie auf Handy, Tablet oder Laptop läuft. Unter Optionen gibt es "Ansicht für Unterwegs": Automatisch / Handy / Tablet / Laptop, falls die Erkennung falsch liegt. Heute und Navi nutzen auf Tablet und Laptop mehrere Spalten, auf dem Handy bleibt es eine Spalte. Das Layout wird als Nächstes feinjustiert.

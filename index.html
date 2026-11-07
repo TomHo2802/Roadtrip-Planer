@@ -511,6 +511,14 @@ html body .bg-blue-50,html body .bg-blue-100{background-color:#E8EEF7}
 html body .border-blue-200,html body .border-blue-300,html body .border-blue-400{border-color:#BCCDE6}
 html body .ring-blue-200{--tw-ring-color:#BCCDE6}
 @media (max-width:767px){body{padding-bottom:calc(88px + env(safe-area-inset-bottom))}}
+@media (min-width:768px){
+html[data-view="tablet"] [data-today],html[data-view="laptop"] [data-today]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+[data-today]>*{margin-top:0!important}
+html[data-view="tablet"] [data-today]>section:first-child,html[data-view="laptop"] [data-today]>section:first-child{grid-column:1/-1}
+html[data-view="tablet"] [data-navi-list]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html[data-view="laptop"] [data-navi-list]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+[data-navi-list]>*{margin-top:0!important}
+}
 /* ===== v19: ruhigere Optik ===== */
 :root{--v19-line:#E3E6EB}
 html body .font-mono{font-family:inherit!important;font-variant-numeric:tabular-nums}
@@ -18235,7 +18243,7 @@ var qrcode = function() {
       const cars = []; (trip.rentalCars || []).forEach((c) => { if (c.pickupDate === dmy(day.iso)) cars.push({ c, what: 'Abholung', where: c.pickupLocation, time: c.pickupTime }); if (c.dropoffDate === dmy(day.iso)) cars.push({ c, what: 'Rückgabe', where: c.dropoffLocation, time: c.dropoffTime }); });
       const emerg = trip.emergencyContacts || [];
       return (
-        <div className="space-y-4">
+        <div data-today className="space-y-4">
           <section className="space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0"><h2 className="text-lg font-bold text-slate-900">{isToday ? 'Heute · ' : ''}Tag {idx + 1} von {days.length}</h2><div className="text-xs text-slate-600">{fmtDayLong(day.iso)} · Etappe {day.stageIdx + 1}: {hotelName(stage)}</div></div>
@@ -19091,7 +19099,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 58</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 59</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20941,7 +20949,7 @@ var qrcode = function() {
             <input type="search" data-navi-search value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ort, Hotel oder Stopp suchen…" className="w-full min-h-[44px] px-3 rounded-lg border border-slate-300 text-sm" />
             <RtNaviPrefBar />
           </section>
-          <div className="space-y-2">
+          <div data-navi-list className="space-y-2">
             {shown.map((pt) => <RtNaviCard key={pt.id} pt={pt} svc={svc} />)}
             {!shown.length && <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">Keine Ziele gefunden.{st !== 'all' ? ' Tipp: „Alle Etappen“ wählen.' : ''}</div>}
           </div>
@@ -20962,6 +20970,36 @@ var qrcode = function() {
           <button type="button" data-quick-emerg onClick={() => goTab('cards')} className={`${big} bg-rose-50 border-rose-200 text-rose-900`}><span className="text-2xl" aria-hidden="true">🆘</span>Notfall</button>
           <button type="button" data-quick-wx onClick={() => goTab('wx')} className={`${big} ${on}`}><span className="text-2xl" aria-hidden="true">⛅</span>Wetter</button>
         </div>
+      );
+    }
+
+    /* ===== v59: Ansichts-Modus Handy / Tablet / Laptop ===== */
+    const RT_VIEW_KEY = 'roadtrip_view_pref';
+    const rtViewPref = () => { try { const v = localStorage.getItem(RT_VIEW_KEY); return ['phone', 'tablet', 'laptop'].includes(v) ? v : 'auto'; } catch (e) { return 'auto'; } };
+    const rtViewAuto = () => {
+      try {
+        const w = Math.min(window.innerWidth || 1024, screen.width || 9999) < 768 || window.innerWidth < 768 ? 'phone' : null; if (w) return w;
+        const touch = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints || 0) > 1;
+        return touch || window.innerWidth < 1100 ? 'tablet' : 'laptop';
+      } catch (e) { return 'phone'; }
+    };
+    const rtViewMode = () => { const p = rtViewPref(); return p === 'auto' ? rtViewAuto() : p; };
+    const rtViewApply = () => { try { document.documentElement.setAttribute('data-view', rtViewMode()); } catch (e) {} };
+    rtViewApply(); try { window.addEventListener('resize', rtViewApply); window.addEventListener('rt-view-pref', rtViewApply); } catch (e) {}
+    const RT_VIEW_NAME = { phone: 'Handy', tablet: 'Tablet', laptop: 'Laptop' };
+    function RtViewBar() {
+      const [p, setP] = useState(rtViewPref);
+      const set = (v) => { try { if (v === 'auto') localStorage.removeItem(RT_VIEW_KEY); else localStorage.setItem(RT_VIEW_KEY, v); } catch (e) {} setP(v); try { window.dispatchEvent(new CustomEvent('rt-view-pref')); } catch (e) {} };
+      return (
+        <section data-view-bar className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+          <h3 className="text-sm font-bold text-slate-900">Ansicht für Unterwegs</h3>
+          <p className="text-xs text-slate-600">Wird automatisch erkannt (Bildschirmbreite und Touch). Jetzt aktiv: <b>{RT_VIEW_NAME[rtViewMode()]}</b>. Bei falscher Erkennung hier umschalten.</p>
+          <div className="flex flex-wrap gap-2">
+            {[['auto', `Automatisch (${RT_VIEW_NAME[rtViewAuto()]})`], ['phone', 'Handy'], ['tablet', 'Tablet'], ['laptop', 'Laptop']].map(([k, l]) => (
+              <button key={k} type="button" data-view-btn={k} aria-pressed={p === k} onClick={() => set(k)} className={`min-h-[40px] px-3 rounded-lg border text-xs font-semibold ${p === k ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-300'}`}>{l}</button>
+            ))}
+          </div>
+        </section>
       );
     }
 
@@ -23772,6 +23810,7 @@ Quelle: ${lt.url}` : '') }] } });
               <AppErrorBoundary>
               <div className="space-y-6">
                 <TemplateBar trip={tripData} onSave={saveTripData} />
+                <RtViewBar />
                 <TripsCard trip={tripData} />
                 <DeviceDataCard trip={tripData} />
                 <details className="v18-adv rounded-2xl border border-slate-200 bg-white">
