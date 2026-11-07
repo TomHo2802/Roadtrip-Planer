@@ -321,3 +321,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v66
 - Unterwegs > Heute: In der Unterkunfts-Karte stehen jetzt Frühstück, Parken und Bereits bezahlt als farbige Kurzangaben (grün = ja, rot = nein, gelb = möglich, grau = nicht eingetragen).
+
+## v67
+- Dunkel-Modus: Die ausgewählte Auswahl ist jetzt orange und damit klar erkennbar. Das gilt für die obere Reiter-Leiste, den gewählten Tag, die Filter-Knöpfe, die Umschalter (z. B. Hell/Auto/Dunkel) und den aktiven Bereich in der unteren bzw. seitlichen Navigation.
