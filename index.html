@@ -18271,14 +18271,7 @@ var qrcode = function() {
             </div>
           </section>
 
-          {emerg.length > 0 && (
-            <details className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
-              <summary className="cursor-pointer text-sm font-bold text-rose-950">🆘 Notfallnummern</summary>
-              <div className="mt-2 space-y-1.5">
-                {emerg.map((e) => <div key={e.id} className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="min-w-0"><b>{e.organization}</b><span className="text-xs text-slate-600"> · {e.displayPhone || e.phone}</span></span>{e.phone && <a href={`tel:${e.phone}`} className="min-h-[36px] inline-flex items-center px-3 rounded-lg bg-rose-700 text-white text-xs font-bold">Anrufen</a>}</div>)}
-              </div>
-            </details>
-          )}
+          {emerg.length > 0 && <button type="button" data-emerg-link onClick={() => goTab('cards')} className="w-full text-left rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-950">🆘 Notfallnummern → Karten & Notfall</button>}
         </div>
       );
     }
@@ -18930,7 +18923,7 @@ var qrcode = function() {
     }
     function TripToolsView({ trip, onSave, todayIso }) {
       const [pos, setPos] = useState(null);
-      return <div className="space-y-4"><GeoPanel trip={trip} todayIso={todayIso} onPos={setPos} /><NearbyPanel trip={trip} pos={pos} /><FxPanel trip={trip} onSave={onSave} /></div>;
+      return <div className="space-y-4"><GeoPanel trip={trip} todayIso={todayIso} onPos={setPos} /><NearbyPanel trip={trip} pos={pos} /></div>;
     }
 
     // ----- Teilen per Link / QR -----
@@ -19022,8 +19015,8 @@ var qrcode = function() {
     const V18_GROUPS = [
       { id: 'plan', label: 'Planen', tabs: [{ id: 'stages', label: 'Etappen' }, { id: 'plan', label: 'Tagesplan' }, { id: 'overview', label: 'Übersicht' }, { id: 'map', label: 'Karte' }] },
       { id: 'book', label: 'Buchen', tabs: [{ id: 'basics', label: 'Flug & Mietwagen' }, { id: 'cards', label: 'Karten & Notfall' }, { id: 'finance', label: 'Budget' }] },
-      { id: 'go', label: 'Unterwegs', tabs: [{ id: 'today', label: 'Heute' }, { id: 'trip', label: 'Wo bin ich' }, { id: 'navi', label: '1-Klick Navi' }, { id: 'wx', label: 'Wetter' }, { id: 'ustools', label: 'US-Tools' }] },
-      { id: 'more', label: 'Einstellungen', short: 'Optionen', tabs: [{ id: 'org', label: 'Organisation' }, { id: 'cloud', label: 'Reisen & Daten' }] }
+      { id: 'go', label: 'Unterwegs', tabs: [{ id: 'today', label: 'Heute' }, { id: 'trip', label: 'Wo bin ich' }, { id: 'navi', label: '1-Klick Navi' }, { id: 'wx', label: 'Wetter' }, { id: 'ustools', label: 'Rechner & Listen' }] },
+      { id: 'more', label: 'Einstellungen', short: 'Optionen', tabs: [{ id: 'cloud', label: 'Reisen & Daten' }] }
     ];
 
     const v18Last = {};
@@ -19086,8 +19079,8 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 52</div>
-                <button type="button" onClick={onMeta} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Datum & Kurs ändern</button>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 53</div>
+                <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
               <button type="button" data-nav="more" aria-current={g.id === 'more' ? 'page' : undefined} onClick={() => go(V18_GROUPS[3])} className={`v18-btn justify-center ${g.id === 'more' ? 'pri' : ''}`}><V18Icon n="more" />Einstellungen</button>
@@ -20025,16 +20018,18 @@ var qrcode = function() {
       );
     }
 
-    function TripOverview({ trip, onSave, todayIso }) {
+    function TripOverview({ trip, onSave, todayIso, goTab }) {
       useWx(); useEffect(() => { wxStore.ensure(trip); }, [(trip.stages || []).length]);
       const meta = trip.meta || {}; const thr = Number(meta.maxDriveHours) > 0 ? Number(meta.maxDriveHours) : 5;
-      const [open, setOpen] = useState({}); const [focus, setFocus] = useState(null);
+      const [open, setOpen] = useState({}); const [focus, setFocus] = useState(null); const [showAll, setShowAll] = useState(false);
       const rows = useMemo(() => buildDays(trip).map((d) => {
         let tl = null; if (d.kind === 'travel') { try { tl = buildTimeline(trip, d); } catch (e) { tl = null; } }
         const acts = d.dayInStage ? attractionsForDay(d.stage, d.dayInStage) : [];
         const drive = tl ? tl.driveSum : 0; const prev = d.stageIdx > 0 ? (trip.stages || [])[d.stageIdx - 1] : null;
         return { d, tl, acts, drive, over: drive > thr * 60, change: d.kind === 'travel' && d.stageIdx > 0, free: d.kind !== 'travel' && acts.length === 0 && d.kind !== 'checkout', prev };
       }), [trip, thr]);
+      const needs = (r) => { const w = wxStore.get(r.d.stage, r.d.iso); return r.over || (r.tl && r.tl.warnings.length > 0) || ovRainy(w) || r.free; };
+      const vrows = showAll ? rows : rows.filter(needs);
       const total = rows.reduce((a, r) => a + r.drive, 0); const longest = rows.reduce((m, r) => (r.drive > (m ? m.drive : 0) ? r : m), null);
       const nOver = rows.filter((r) => r.over).length, nFree = rows.filter((r) => r.free).length, nChange = rows.filter((r) => r.change).length;
       const setThr = (v) => onSave({ ...trip, meta: { ...meta, maxDriveHours: Number(v) } }, '');
@@ -20048,7 +20043,7 @@ var qrcode = function() {
                 <select data-ov-thr data-readonly-allow value={thr} onChange={(e) => setThr(e.target.value)} className="h-10 px-2 rounded-lg border border-slate-300 bg-white text-slate-900">{[2, 3, 4, 5, 6, 7, 8, 10].map((h) => <option key={h} value={h}>{h} Std./Tag</option>)}</select>
               </label>
             </div>
-            <p className="text-xs text-slate-700">Tipp: Bei jedem Tag findest du den Button „☔ Regenplan“. Dort sammelst du Ausweichideen für schlechtes Wetter. Dasselbe gibt es auch im Tagesplan an jedem Tag.</p>
+            <p className="text-xs text-slate-700">Hier stehen nur Tage mit Hinweisen: lange Fahrten, Warnungen, Regen oder freie Tage. Mit „☔ Regenplan“ sammelst du Ausweichideen. Den vollständigen Ablauf jedes Tages gibt es im Tagesplan.</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <Stat k="Reisetage" v={rows.length} sub={`${(trip.stages || []).length} Etappen`} />
               <Stat k="Fahrzeit gesamt" v={fmtDurMin(total)} sub={longest && longest.drive ? `längster Tag: ${fmtDurMin(longest.drive)}` : ''} />
@@ -20058,8 +20053,10 @@ var qrcode = function() {
           </section>
           <section className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
             {rows.length === 0 && <div className="text-sm text-slate-700">Noch keine Reisetage. Trage in den Etappen Datum und Nächte ein.</div>}
+            {rows.length > 0 && vrows.length === 0 && <div data-ov-none className="text-sm text-slate-700 mb-2">Keine Hinweise: kein langer Fahrtag, kein Regen, keine Warnungen.</div>}
+            {rows.length > 0 && <div className="flex flex-wrap items-center gap-2 mb-2"><button type="button" data-readonly-allow data-ov-showall aria-pressed={showAll} onClick={() => setShowAll(!showAll)} className="v18-btn sm">{showAll ? 'Nur Tage mit Hinweisen' : `Alle ${rows.length} Tage zeigen`}</button>{goTab && <button type="button" data-readonly-allow data-ov-plan onClick={() => goTab('plan')} className="v18-btn sm">Tagesplan öffnen →</button>}</div>}
             <ol className="space-y-2">
-              {rows.map((r) => {
+              {vrows.map((r) => {
                 const { d } = r; const st = d.stage; const w = wxStore.get(st, d.iso); const rainy = ovRainy(w); const items = ovStageRain(st, d); const isOpen = open[d.iso] != null ? open[d.iso] : false;
                 const warns = r.tl ? r.tl.warnings : []; const color = OV_COLORS[d.stageIdx % OV_COLORS.length]; const isToday = d.iso === todayIso;
                 const title = d.kind === 'travel' ? `${r.prev ? hotelName(r.prev) : (st.fromCity || 'Start')} → ${hotelName(st)}` : d.kind === 'checkout' ? `Check-out ${hotelName(st)}` : `Aufenthalt ${hotelName(st)}`;
@@ -20082,7 +20079,7 @@ var qrcode = function() {
                         {r.over && <div data-ov-over className="mt-1 text-xs text-red-900 bg-red-50 border border-red-300 rounded-md px-2 py-1">Fahrzeit {fmtDurMin(r.drive)} liegt über deiner Grenze von {thr} Std. Zwischenstopp, früher starten oder die Etappe teilen.</div>}
                       </div>
                       <div className="flex gap-1.5 shrink-0">
-                        <button type="button" data-readonly-allow data-ov-focus onClick={() => setFocus(st.id)} title="Auf der Karte zeigen" className="h-9 w-9 rounded-full border border-slate-300 bg-white text-base">🗺</button>
+                        <button type="button" data-readonly-allow data-ov-focus onClick={() => goTab && goTab('map')} title="Auf der Karte zeigen" className="h-9 w-9 rounded-full border border-slate-300 bg-white text-base">🗺</button>
                         <button type="button" data-readonly-allow data-ov-rain-toggle aria-expanded={isOpen} onClick={() => setOpen({ ...open, [d.iso]: !isOpen })} className={`h-9 px-3 rounded-full border text-xs font-bold ${rainy && !isOpen ? 'border-sky-600 bg-sky-700 text-white' : 'border-slate-300 bg-white text-slate-900'}`}>☔ Regenplan</button>
                       </div>
                     </div>
@@ -20092,7 +20089,7 @@ var qrcode = function() {
               })}
             </ol>
           </section>
-          <OvMap trip={trip} focus={focus} onFocusDone={() => setFocus(null)} />
+          <section data-ov-mapbtn className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-bold text-slate-900">🗺 Gesamtkarte der Reise</h2><p className="text-xs text-slate-700">Die Karte mit Etappen, Hotels, Stopps und Straßenverlauf findest du im Tab Karte.</p></div>{goTab && <button type="button" data-readonly-allow data-ov-openmap onClick={() => goTab('map')} className="v18-btn pri">Karte öffnen →</button>}</section>
         </div>
       );
     }
@@ -22248,9 +22245,9 @@ Quelle: ${lt.url}` : '') }] } });
             {/* ===============================================================
                 TAB 2: FLUG & MIETWAGEN (MIT 1-KLICK STATUS-BUTTONS)
             =============================================================== */}
-            {activeTab === 'map' && (<div data-ro-ok><RoadtripMap trip={tripData} onSave={saveTripData} /></div>)}
+            {activeTab === 'map' && (<div data-ro-ok className="space-y-6"><RoadtripMap trip={tripData} onSave={saveTripData} /><OvMap trip={tripData} focus={null} onFocusDone={() => {}} /></div>)}
             {activeTab === 'today' && (<div data-ro-ok><TodayView trip={tripData} onSave={saveTripData} todayIso={todayIso} goTab={setActiveTab} /></div>)}
-            {activeTab === 'overview' && (<div data-ro-ok><TripOverview trip={tripData} onSave={saveTripData} todayIso={todayIso} /></div>)}
+            {activeTab === 'overview' && (<div data-ro-ok><TripOverview trip={tripData} onSave={saveTripData} todayIso={todayIso} goTab={setActiveTab} /></div>)}
             {activeTab === 'plan' && (<div data-ro-ok><PlanView trip={tripData} onSave={saveTripData} todayIso={todayIso} /></div>)}
             {activeTab === 'org' && (<div data-ro-ok><OrgView trip={tripData} onSave={saveTripData} /></div>)}
             {activeTab === 'wx' && (<div data-ro-ok><WeatherView trip={tripData} todayIso={todayIso} /></div>)}
@@ -22524,10 +22521,10 @@ Quelle: ${lt.url}` : '') }] } });
                   <div className="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
-                        <span>Kreditkarten, Konditionen & Live-Kreditrahmen</span>
+                        <span>Kreditkarten & Konditionen</span>
                       </h2>
                       <p className="text-xs text-slate-300">
-                        Hier hinterlegte Karten können direkt bei Flügen, Mietwagen und Hotels ausgewählt werden. Beträge & Rest-Kreditrahmen aktualisieren sich automatisch!
+                        Hier hinterlegte Karten können direkt bei Flügen, Mietwagen und Hotels ausgewählt werden. Belastungen und freier Rahmen stehen im Budget.
                       </p>
                     </div>
                     <button
@@ -22626,38 +22623,7 @@ Quelle: ${lt.url}` : '') }] } });
                               </div>
                             </div>
 
-                            {/* Live Credit Limit & Assigned Bookings Progress */}
-                            <div className="p-4 bg-slate-50 border-b border-slate-200 space-y-2.5">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="font-semibold text-slate-600">Kreditrahmen:</span>
-                                <span className="font-bold text-slate-900">{formatEur(limit)}</span>
-                              </div>
-
-                              {/* Progress Bar */}
-                              <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div
-                                  className={`h-full transition-all ${
-                                    usagePercent > 85 ? 'bg-rose-600' : colorTheme.bar
-                                  }`}
-                                  style={{ width: `${usagePercent}%` }}
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-3 gap-1.5 text-center text-[11px] pt-1">
-                                <div className="bg-white p-1.5 rounded-lg border border-slate-200">
-                                  <span className="text-slate-500 block">Gebucht ({stats.bookings.length})</span>
-                                  <span className="font-bold text-slate-900">{formatEur(stats.total)}</span>
-                                </div>
-                                <div className="bg-rose-50 p-1.5 rounded-lg border border-rose-200">
-                                  <span className="text-rose-700 block">Noch offen</span>
-                                  <span className="font-bold text-rose-900">{formatEur(stats.open)}</span>
-                                </div>
-                                <div className="bg-emerald-50 p-1.5 rounded-lg border border-emerald-200">
-                                  <span className="text-emerald-700 block">Freier Rahmen</span>
-                                  <span className="font-bold text-emerald-900">{formatEur(remaining)}</span>
-                                </div>
-                              </div>
-                            </div>
+                            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs"><span><span className="font-semibold text-slate-600">Kreditrahmen:</span> <span className="font-bold text-slate-900">{formatEur(limit)}</span></span><button type="button" data-card-budget onClick={() => setActiveTab('finance')} className="text-blue-700 font-semibold hover:underline">Belastungen im Budget →</button></div>
 
                             {/* Card Terms & Conditions */}
                             <div className="p-4 space-y-2 text-xs">
@@ -23454,33 +23420,10 @@ Quelle: ${lt.url}` : '') }] } });
                     </div>
                   </div>
 
-                  {/* Alle Etappen-Strecken parallel in km und Meilen */}
-                  <div className="pt-3">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 mb-2">
-                      📋 Alle Etappen-Distanzen deiner Rundreise im direkten km / Meilen-Vergleich
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
-                      {(tripData.stages || []).map((st, idx) => {
-                        const { km, mi } = parseKmAndMi(st.routeToHotel?.distanceKm);
-                        return (
-                          <div key={st.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                            <div>
-                              <span className="font-bold text-slate-900 block">
-                                {idx + 1}. {st.fromCity} → {st.toCity}
-                              </span>
-                              <span className="text-slate-500">Fahrzeit: {st.routeToHotel?.duration || '—'}</span>
-                            </div>
-                            <div className="text-right font-mono">
-                              <span className="font-bold text-blue-700 block">{km ? `${km} km` : st.routeToHotel?.distanceKm}</span>
-                              {mi && <span className="text-amber-700 font-semibold">{mi} mi</span>}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                                    <p data-dist-hint className="text-xs text-slate-600 pt-2">Entfernung und Fahrzeit der Etappen stehen in den Etappen und in der Übersicht.</p>
                 </section>
 
+                <FxPanel trip={tripData} onSave={saveTripData} />
                 {/* 2. WÄHRUNG, TRINKGELD, TANKSTELLEN-RECHNER & CHECKLISTE */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-4">
@@ -23629,6 +23572,7 @@ Quelle: ${lt.url}` : '') }] } });
                     </div>
                   </div>
                 </div>
+                <div data-packlist-block><OrgView trip={tripData} onSave={saveTripData} /></div>
               </div>
             )}
 

@@ -247,3 +247,12 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Die Liste zeigt zuerst die 10 besten Treffer, „Mehr anzeigen“ lädt jeweils 10 weitere nach (Karte folgt der Liste).
 - Neu: „Nach Namen suchen“ in beiden Suchen – findet auch bekannte Orte, die in der Vorschlagsliste fehlen (mit Foto, Entfernung und Übernahme in die Etappe).
 - Alte gespeicherte Suchergebnisse werden nicht mehr verwendet; mit „Neu suchen“ gibt es die verbesserte Liste.
+
+## v53 – Aufräumen: doppelte Funktionen zusammengelegt
+- **Reise & Zeitraum:** Der Link „Datum & Kurs ändern“ in der Seitenleiste heißt jetzt „Reise & Zeitraum ändern“ und öffnet den Reise-Assistenten bei Schritt 1. Der Reisedatum-Chip oben öffnet weiterhin den kleinen Dialog (inkl. Wechselkurs).
+- **Übersicht:** zeigt nur noch Tage mit Hinweisen (lange Fahrt, Warnung, Regen, freier Tag); „Alle Tage zeigen“ blendet den Rest ein, „Tagesplan öffnen“ springt zum vollständigen Ablauf. Die Gesamtkarte ist in den Tab Karte umgezogen; in der Übersicht führt ein Knopf dorthin.
+- **Karte:** unter der Routenkarte steht jetzt auch die Gesamtkarte der Reise (Ebenen, Straßenverlauf).
+- **Rechner & Listen (früher US-Tools):** „Alle Etappen-Distanzen“ entfällt (Entfernungen stehen in Etappen und Übersicht). Der Wechselkurs ist von „Wo bin ich“ hierher gezogen. Checkliste und Packliste stehen zusammen auf dieser Seite; der Tab „Organisation“ entfällt.
+- **Karten & Notfall:** zeigt pro Karte nur noch Kreditrahmen und Konditionen; Belastungen und freier Rahmen stehen im Budget (Link „Belastungen im Budget“).
+- **Heute:** Die Notfallnummern-Liste ist durch einen Knopf zu „Karten & Notfall“ ersetzt.
+- Bewusst unverändert: „Nächste Etappe finden“ und die Vorschläge in der Karte (verschiedene Aufgaben, Merkliste), „In der Nähe“ (Tankstelle, Supermarkt usw., keine Sehenswürdigkeiten).
