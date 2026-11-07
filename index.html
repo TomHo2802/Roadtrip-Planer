@@ -19086,7 +19086,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 55</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 56</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -20563,15 +20563,14 @@ var qrcode = function() {
         return o;
       });
       let newMeta = null, notice = '';
-      if (iso) {
-        const nights = list.reduce((a, s) => a + nn(s), 0);
+      const oldN = oldStages.reduce((a, s) => a + nn(s), 0), newN = list.reduce((a, s) => a + nn(s), 0);
+      if (iso && newN > oldN) {
         const endIso = /^\d{4}-\d{2}-\d{2}$/.test(meta.endDate || '') ? meta.endDate : null;
         const planned = parseInt(meta.plannedDays, 10) || (endIso ? tripDayCount(iso, endIso) : 0);
-        if (planned) {
-          const days = Math.max(nights + 1, planned);
-          const newEnd = isoAdd(iso, days - 1);
-          if (nights + 1 > planned) notice = `Die angegebene Reisedauer von ${planned} Tagen wurde überschritten. Die Reise verlängert sich auf ${nights + 1} Tage (bis ${wzDM(newEnd)}${newEnd.slice(0, 4)}).`;
-          if (newEnd !== meta.endDate || meta.plannedDays !== planned) newMeta = { ...meta, endDate: newEnd, plannedDays: planned };
+        if (planned && newN + 1 > planned) {
+          const newEnd = isoAdd(iso, newN);
+          notice = `Die angegebene Reisedauer von ${planned} Tagen wurde überschritten. Die Reise verlängert sich auf ${newN + 1} Tage (bis ${wzDM(newEnd)}${newEnd.slice(0, 4)}).`;
+          newMeta = { ...meta, endDate: newEnd, plannedDays: planned };
         }
       }
       return { stages: list, meta: newMeta, notice };
@@ -21711,6 +21710,7 @@ Quelle: ${lt.url}` : '') }] } });
         saveTripData({ ...tripData, stages: st }, `„${c.name}“ zu den Aktionen vor Ort hinzugefügt`);
       };
 
+      const rtHotelSet = (stageId, patch) => saveTripData({ ...tripData, stages: (tripData.stages || []).map((s) => (s.id === stageId ? { ...s, hotel: { ...(s.hotel || {}), ...patch } } : s)) }, '');
       const handleMoveStage = (index, direction) => {
         const stages = [...(tripData.stages || [])];
         const targetIndex = index + direction;
@@ -22176,27 +22176,27 @@ Quelle: ${lt.url}` : '') }] } });
                                       </div>
                                       <div className="flex items-center justify-between py-0.5">
                                         <span className="text-slate-600 font-medium">Frühstück:</span>
-                                        <span aria-disabled="true" title="Nur im Bearbeiten-Dialog änderbar" className={`px-3 py-1 rounded-lg font-bold border transition ${
-                                            isPositiveValue(h.breakfast)
+                                        <button type="button" data-hotel-toggle="breakfast" aria-pressed={isPositiveValue(h.breakfast)} title="Klicken zum Umschalten" onClick={() => rtHotelSet(stage.id, { breakfast: isPositiveValue(h.breakfast) ? 'nein' : 'ja' })} className={`px-3 py-1 rounded-lg font-bold border transition cursor-pointer ${
+ isPositiveValue(h.breakfast)
                                               ? 'bg-emerald-200 text-emerald-950 border-emerald-400'
                                               : 'bg-rose-200 text-rose-900 border-rose-400'
-                                          }`}>{h.breakfast}</span>
+                                          }`}>{h.breakfast || '—'}</button>
                                       </div>
                                       <div className="flex items-center justify-between py-0.5">
                                         <span className="text-slate-600 font-medium">Parken:</span>
-                                        <span aria-disabled="true" title="Nur im Bearbeiten-Dialog änderbar" className={`px-3 py-1 rounded-lg font-bold border transition ${
-                                            isPositiveValue(h.parking)
+                                        <button type="button" data-hotel-toggle="parking" aria-pressed={isPositiveValue(h.parking)} title="Klicken zum Umschalten" onClick={() => rtHotelSet(stage.id, { parking: isPositiveValue(h.parking) ? 'nein' : 'ja' })} className={`px-3 py-1 rounded-lg font-bold border transition cursor-pointer ${
+ isPositiveValue(h.parking)
                                               ? 'bg-emerald-200 text-emerald-950 border-emerald-400'
                                               : 'bg-rose-200 text-rose-900 border-rose-400'
-                                          }`}>{h.parking}</span>
+                                          }`}>{h.parking || '—'}</button>
                                       </div>
                                       <div className="flex items-center justify-between py-0.5">
                                         <span className="text-slate-600 font-medium">Vorab bez.:</span>
-                                        <span aria-disabled="true" title="Nur im Bearbeiten-Dialog änderbar" className={`px-3 py-1 rounded-lg font-bold border transition ${
-                                            isPositiveValue(h.prepaid)
+                                        <button type="button" data-hotel-toggle="prepaid" aria-pressed={isPositiveValue(h.prepaid)} title="Klicken zum Umschalten" onClick={() => rtHotelSet(stage.id, { prepaid: isPositiveValue(h.prepaid) ? 'nein' : 'ja' })} className={`px-3 py-1 rounded-lg font-bold border transition cursor-pointer ${
+ isPositiveValue(h.prepaid)
                                               ? 'bg-emerald-200 text-emerald-950 border-emerald-400'
                                               : 'bg-rose-200 text-rose-900 border-rose-400'
-                                          }`}>{h.prepaid}</span>
+                                          }`}>{h.prepaid || '—'}</button>
                                       </div>
                                     </div>
 
@@ -22226,9 +22226,14 @@ Quelle: ${lt.url}` : '') }] } });
                                       </div>
                                       <div className="flex items-center justify-between gap-2">
                                         <span className="text-slate-500">Kreditkarte:</span>
-                                        <span className="compact-value bg-emerald-200 text-emerald-950 font-bold rounded border border-emerald-400" title="Nur im Bearbeiten-Dialog änderbar">
-                                          {h.creditCard || '—'}
-                                        </span>
+                                        <select data-hotel-card aria-label="Kreditkarte" title="Kreditkarte wählen" value={h.creditCard || ''} onChange={(e) => rtHotelSet(stage.id, { creditCard: e.target.value })} className="compact-value bg-emerald-200 text-emerald-950 font-bold rounded border border-emerald-400 px-1 py-0.5 max-w-[9rem]">
+                                          <option value="">—</option>
+                                          {(tripData.creditCards || []).map((cc) => <option key={cc.id} value={cc.name}>{cc.name}</option>)}
+                                          {h.creditCard && !(tripData.creditCards || []).some((cc) => cc.name === h.creditCard) && <option value={h.creditCard}>{h.creditCard}</option>}
+                                        </select>
+                                      </div>
+                                      {!(tripData.creditCards || []).length && <div className="text-[11px] text-slate-600">Noch keine Karte angelegt (Buchungen → Karten & Notfall oder Vorlage laden).</div>}
+                                      <div className="hidden">
                                       </div>
                                       <div className="flex justify-between py-1 border-b border-slate-100">
                                         <span className="text-slate-500">Abb. angek.:</span>

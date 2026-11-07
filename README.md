@@ -266,3 +266,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - **Karten nur mit letzten 4 Ziffern:** Im Karten-Dialog ist nur noch „Letzte 4 Ziffern“ möglich; es gibt kein Feld für Prüfnummer (CVC). Bereits gespeicherte längere Nummern und Prüfnummern werden beim Laden automatisch auf die letzten 4 Ziffern gekürzt bzw. entfernt (mit Hinweis).
 - **Ablaufwarnung:** Läuft eine Karte vor, während oder bis 30 Tage nach der Reise ab, erscheint eine rote bzw. gelbe Meldung (Etappen, Übersicht, Buchungen, Karten).
 - **Reisevorlage:** Unter Karten & Notfall und Reisen & Daten gibt es „Als Vorlage speichern“ und „Vorlage laden …“. Die Vorlage enthält nur Karten (Name, letzte 4 Ziffern, Ablaufdatum, Limit, Gebühren, Bedingungen), Mitreisende und Notfallnummern, keine Etappen oder Buchungen. Beim Laden wird nichts doppelt angelegt. Die Datei nicht auf GitHub hochladen.
+
+## v56
+- Hotel-Kacheln: Frühstück, Parken und Vorab bezahlt lassen sich wieder per Klick zwischen „ja“ und „nein“ umschalten. Die Kreditkarte wird in der Kachel aus den angelegten Karten ausgewählt (Auswahlliste); ohne angelegte Karten erscheint ein Hinweis.
+- Die Meldung „Reisedauer überschritten“ erscheint nur noch, wenn eine Änderung die Nächte tatsächlich erhöht, nicht mehr bei jedem Speichern einer Etappe.
