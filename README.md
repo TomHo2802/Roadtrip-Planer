@@ -337,3 +337,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Liegt eine neuere Version vor, während du selbst ungespeicherte Änderungen hast, wird nichts überschrieben: Du siehst eine Meldung „Jetzt laden“ oder „Meinen Stand behalten“.
 - Nach einem Browser-Neustart fragt Chrome einmal nach: Meldung „Verbindung erneuern“.
 - Grenzen: Dauerhafte Dateiverbindung gibt es nur in Chrome/Edge am Laptop. Auf dem Handy (Android Chrome, iOS Safari) steht in Optionen „Neueste Datei aus Drive laden“. Die Drive-App auf dem Handy synchronisiert die Datei, die Web-App kann sie aber nicht von selbst lesen.
+
+## v71
+- Die Versionsnummer steht jetzt dezent neben dem Bereichstitel im Kopf der Handy-Ansicht (am Laptop weiter in der Seitenleiste).
