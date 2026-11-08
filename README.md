@@ -387,3 +387,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - „Alle neu berechnen“ rechnet alle Etappen mit der gewählten Routenart neu.
 - Meidet der Routing-Dienst eine Strecke nicht (keine Alternative), nutzt die App die Standardroute und weist darauf hin.
 - Nicht möglich: „nur Autobahn“ erzwingen, „am Meer entlang“.
+
+## v82
+- Etappen-Finder: Klick auf einen Kartenpunkt wählt den Ort aus und scrollt die Liste dorthin.
