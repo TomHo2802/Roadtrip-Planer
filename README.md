@@ -340,3 +340,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v71
 - Die Versionsnummer steht jetzt dezent neben dem Bereichstitel im Kopf der Handy-Ansicht (am Laptop weiter in der Seitenleiste).
+
+## v72 – Kreditkarten: mehr Farben und Logo
+- Unter Buchen > Karten & Notfall > Karte bearbeiten: 18 Farben als Farbfelder statt 5. Es ist keine Obergrenze für die Zahl der Karten eingebaut.
+- Logo pro Karte: Webseite eintragen (bei bekannten Namen wie Visa, DKB, ING vorbelegt) und „Logo aus Internet laden“, oder „Eigenes Bild“. Das Logo wird verkleinert und in der Karte gespeichert, also auch in Reisedatei und Reisevorlage. Es erscheint im Kopf der Karte.
+- Das Laden aus dem Internet braucht Netz und klappt nicht bei jeder Seite. Dann hilft „Eigenes Bild“.
