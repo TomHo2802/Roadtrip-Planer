@@ -360,3 +360,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v76 – Gelöschte Kreditkarten
 - Wird eine Kreditkarte gelöscht, wird sie auch bei Hotels, Flügen und Mietwagen entfernt. Die Auswahllisten zeigen nur noch vorhandene Karten (plus „Bar / Vor Ort ohne Karte“). Betroffene Buchungen stehen danach auf „bitte wählen“.
 - Bereits gelöschte Karten, die noch in Buchungen hingen (z. B. Zipfelbank), werden beim nächsten Start einmalig bereinigt.
+
+## v77 – Karte bei den Hotels
+- Buchen > Buchungen > Hotels: unter jedem Hotel steht die gewählte Kreditkarte. Ist keine gewählt (oder die Karte gelöscht), steht dort rot „Karte auswählen“. Dasselbe in der Hotel-Kopfzeile und in der Budget-Tabelle.

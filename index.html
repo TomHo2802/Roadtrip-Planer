@@ -19226,7 +19226,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 76</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 77</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19235,7 +19235,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 76'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 77'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <ThemeSwitch compact />
             <button type="button" onClick={() => setActiveTab('cloud')} className="inline-flex items-center gap-1.5 text-xs text-slate-700"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</button>
           </header>
@@ -20856,6 +20856,7 @@ var qrcode = function() {
                 <div className="min-w-[180px] flex-1">
                   <div className="text-xs font-semibold text-slate-700">Etappe {i + 1} · {s.toCity || '?'} · {s.dateRange || ''}{s.nights ? ` · ${s.nights} ${Number(s.nights) === 1 ? 'Nacht' : 'Nächte'}` : ''}</div>
                   <div className="text-sm font-bold text-slate-900 break-words">{name || 'Hotel noch nicht gewählt'}</div>
+                  <div className="mt-1 text-xs"><RtCardChip name={s.hotel && s.hotel.creditCard} cards={trip.creditCards} /></div>
                 </div>
                 <span data-book-badge className={`px-2.5 py-1 rounded-full text-xs font-bold ${ok ? 'bg-emerald-700 text-white' : 'bg-red-700 text-white'}`}>{ok ? '✔ Gebucht' : '✖ Nicht gebucht'}</span>
                 <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">Preis €<input data-book-price type="number" min="0" step="1" defaultValue={rtHotelPrice(s.hotel) || ''} key={s.id + ':' + rtHotelPrice(s.hotel)} onBlur={(e) => setPrice(s, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-28 h-10 px-2 rounded-lg border border-slate-300 bg-white text-sm text-slate-900" /></label>
@@ -21499,6 +21500,14 @@ var qrcode = function() {
       const fix = (o) => { if (o && bad(o.creditCard)) { n++; return { ...o, creditCard: '' }; } return o; };
       const out = { ...trip, flights: (trip.flights || []).map(fix), rentalCars: (trip.rentalCars || []).map(fix), stages: (trip.stages || []).map((s) => (s && s.hotel && bad(s.hotel.creditCard) ? (n++, { ...s, hotel: { ...s.hotel, creditCard: '' } }) : s)) };
       return n ? out : null;
+    }
+
+    // ===== v77: Kartenanzeige bei Hotels =====
+    function RtCardChip({ name, cards, dark }) {
+      const has = !!name && (name === RT_NO_CARD || (cards || []).some((c) => c.name === name));
+      return has
+        ? <span data-card-chip="ok" className={'inline-flex items-center gap-1 px-2 py-0.5 rounded font-bold border ' + (dark ? 'bg-emerald-400/20 border-emerald-300/50 text-emerald-100' : 'bg-emerald-200 text-emerald-950 border-emerald-400')}><Ic n="card" />{name}</span>
+        : <span data-card-chip="missing" className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-bold border bg-red-600 text-white border-red-700"><Ic n="warn" />Karte auswählen</span>;
     }
 
     function App() {
@@ -22770,6 +22779,7 @@ Quelle: ${lt.url}` : '') }] } });
                                         <span className="bg-amber-400 text-slate-950 font-extrabold px-2.5 py-0.5 rounded-md">
                                           ★ Bew.: {h.rating || '—'}
                                         </span>
+                                        <RtCardChip name={h.creditCard} cards={tripData.creditCards} dark />
                                       </div>
                                       <p className="text-slate-300 italic mt-1"><Ic n="pin" />{h.address}</p>
                                     </div>
@@ -22878,9 +22888,7 @@ Quelle: ${lt.url}` : '') }] } });
                                       </div>
                                       <div className="flex items-center justify-between gap-2">
                                         <span className="text-slate-500">Kreditkarte:</span>
-                                        <span className="compact-value bg-emerald-200 text-emerald-950 font-bold rounded border border-emerald-400" title="Nur im Bearbeiten-Dialog änderbar">
-                                          {h.creditCard || '—'}
-                                        </span>
+                                        <span title="Nur im Bearbeiten-Dialog änderbar"><RtCardChip name={h.creditCard} cards={tripData.creditCards} /></span>
                                       </div>
                                       <div className="flex justify-between py-1 border-b border-slate-100">
                                         <span className="text-slate-500">Abb. angek.:</span>
@@ -24027,7 +24035,7 @@ Quelle: ${lt.url}` : '') }] } });
                                     : 'bg-rose-100 text-rose-900 border-rose-300'
                                 }`}>{s.hotel?.prepaid}</span>
                             </td>
-                            <td className="py-2 px-2">{s.hotel?.creditCard} ({s.hotel?.paidBy || participantNames[0]})</td>
+                            <td className="py-2 px-2"><RtCardChip name={s.hotel?.creditCard} cards={tripData.creditCards} />{s.hotel?.creditCard ? ` (${s.hotel?.paidBy || participantNames[0]})` : ''}</td>
                           </tr>
                         ))}
                       </tbody>
