@@ -13995,6 +13995,26 @@ html{overflow-x:clip}
 .rt-fspill{position:fixed;left:10px;bottom:10px;z-index:30;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.92);border:1px solid #d5dbe3;color:#47556b;font-size:11px;pointer-events:none}
 html[data-view="phone"] .rt-fspill{bottom:calc(76px + env(safe-area-inset-bottom))}
 @media print{.rt-fsbar,.rt-fspill{display:none!important}}
+/* v78 Kopfzeile, Hilfe, Sicherungsleiste */
+.v18-mhead{background:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;gap:8px}
+html[data-dark="1"] .v18-mhead{background:#111c2e!important}
+.v18-mhead>.font-bold{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v18-mhead [data-theme-cycle]{width:36px;height:36px;padding:0!important;border-radius:50%!important;font-size:17px!important;display:inline-flex;align-items:center;justify-content:center}
+.rt-help-btn{width:36px;height:36px;border-radius:50%;border:1px solid #cbd5e1;background:#fff;font-weight:800;font-size:16px;color:#1F4E8C}
+.rt-stat-btn{width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.rt-stat-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html[data-dark="1"] .rt-help-btn{background:#1f3150!important;border-color:#2c3e5c!important;color:#9cc2ff!important}
+.rt-bkbar{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:60;max-width:min(560px,calc(100vw - 20px));display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-radius:14px;background:#fff3e0;border:1px solid #f2a044;color:#5a3300;font-size:13px;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+html[data-view="phone"] .rt-bkbar{bottom:calc(84px + env(safe-area-inset-bottom))}
+.rt-bkbar button{min-height:36px;padding:0 12px;border-radius:10px;background:#1F4E8C;color:#fff;font-weight:700;font-size:13px}
+.rt-bkbar button.ghost{background:#fff;color:#334;border:1px solid #cbd5e1}
+html[data-dark="1"] .rt-bkbar{background:#3a2a10!important;border-color:#F2A044!important;color:#ffe2bd!important}
+html[data-dark="1"] .rt-bkbar button.ghost{background:#1f3150!important;color:#e5ecf7!important}
+html[data-dark="1"] .rt-help{background:#111c2e!important;color:#e5ecf7}
+html[data-dark="1"] .rt-help h2,html[data-dark="1"] .rt-help .text-slate-900{color:#f1f5fb!important}
+html[data-dark="1"] .rt-help .text-slate-600{color:#a9b8d0!important}
+html[data-dark="1"] .rt-help>div.sticky{background:#111c2e!important;border-color:#2c3e5c!important}
+@media print{.rt-bkbar{display:none!important}}
 </style><style id="dark-theme">html[data-dark="1"]{color-scheme:dark}
 html[data-dark="1"] body{background:#0e1726 !important;color:#eef3fa !important}
 html[data-dark="1"] *{text-shadow:none !important}
@@ -18614,7 +18634,7 @@ var qrcode = function() {
       await new Promise((res, rej) => { const tx = db.transaction('docs', 'readwrite'); const st = tx.objectStore('docs'); st.clear(); (arr || []).forEach((d) => st.put({ id: d.id, name: d.name, type: d.type, size: d.size, cat: d.cat, added: d.added, blob: d.blob || b64ToBlob(d.data, d.type) })); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); });
       docsChanged();
     };
-    const downloadTripFile = async (trip, name) => { const full = await withDocs(trip); const b = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 1500); };
+    const downloadTripFile = async (trip, name) => { rtMarkBackup(); const full = await withDocs(trip); const b = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 1500); };
     window.__pendingDocs = null;
     const stripPendingDocs = (d) => { const { documents, ...rest } = d; window.__pendingDocs = Array.isArray(documents) && documents.length ? documents : null; return rest; };
 
@@ -18694,7 +18714,7 @@ var qrcode = function() {
           if (!force && (this.incoming || await this.checkRemote(data))) { this.set({ dirty: false }); return; }
           const full = await withDocs(data); const w = await this.handle.createWritable(); await w.write(JSON.stringify(full, null, 2)); await w.close();
           let ms = 0; try { ms = (await this.handle.getFile()).lastModified; } catch (e) {}
-          this.set({ lastWrite: new Date(), lastSeen: ms, baseStamp: (data.meta && data.meta.lastUpdated) || '', dirty: false, incoming: null, error: '' });
+          rtMarkBackup(); this.set({ lastWrite: new Date(), lastSeen: ms, baseStamp: (data.meta && data.meta.lastUpdated) || '', dirty: false, incoming: null, error: '' });
         }
         catch (e) { this.set({ dirty: false, error: 'Schreiben in die Datei fehlgeschlagen: ' + (e && e.message ? e.message : e), status: 'needs-permission' }); }
       },
@@ -18751,35 +18771,36 @@ var qrcode = function() {
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-100 p-4" data-readonly-allow>
           <div className="mx-auto max-w-xl space-y-4 py-6">
             <h1 className="text-2xl font-extrabold text-slate-900">Roadtrip-Planer</h1>
-            <p className="text-sm text-slate-600">Auf diesem Gerät ist keine Reise geöffnet. Die Daten liegen getrennt vom Programm in einer Datei (<code>roadtrip-daten.json</code>, zum Beispiel in Google Drive).</p>
+            <p className="text-sm text-slate-600">Reise planen, alles Gebuchte an einem Ort und unterwegs offline dabei. Wie möchtest du starten?</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button type="button" data-demo-open disabled={busy} onClick={() => run(async () => { await loadDemo(); location.reload(); })} className="text-left rounded-2xl border-2 border-blue-600 bg-white p-4 space-y-1 min-h-[112px]"><span className="block text-base font-extrabold text-slate-900">Demo ansehen</span><span className="block text-xs text-slate-600">Beispielreise Florida mit allen Funktionen zum Ausprobieren. Deine Daten bleiben getrennt.</span><span className="inline-block mt-1 px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold">Empfohlen für den Einstieg</span></button>
+              <button type="button" data-new-trip onClick={onSkip} className="text-left rounded-2xl border border-slate-300 bg-white p-4 space-y-1 min-h-[112px]"><span className="block text-base font-extrabold text-slate-900">Eigene Reise anlegen</span><span className="block text-xs text-slate-600">Der Assistent fragt Reisedaten, Mitreisende und Etappen Schritt für Schritt ab.</span></button>
+            </div>
             {lib.length > 0 && (
               <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
                 <h2 className="text-base font-bold">Gespeicherte Reisen auf diesem Gerät</h2>
                 {lib.map((e) => <div key={e.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 p-2"><div className="min-w-0"><div className="text-sm font-semibold break-words">{e.title || 'Ohne Titel'}</div><div className="text-[11px] text-slate-500">{e.start ? e.start.split('-').reverse().join('.') : ''} · {e.stages} Etappen · {(e.docs || []).length} Dokumente</div></div><button type="button" disabled={busy} onClick={() => onSwitch(e.id)} className="min-h-[44px] px-4 rounded-xl bg-slate-900 text-white text-sm font-bold">Öffnen</button></div>)}
               </section>
             )}
-            <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-              <h2 className="text-base font-bold">Reisedaten-Datei laden</h2>
+<details data-have-file className="rounded-2xl border border-slate-200 bg-white p-4">
+              <summary className="cursor-pointer text-base font-bold text-slate-900">Ich habe schon eine Reisedatei</summary>
+              <div className="space-y-3 mt-3">
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold">Datei laden</h3>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={ro} onChange={(e) => setRo(e.target.checked)} className="w-5 h-5" /> Nur lesen (empfohlen für Handys)</label>
               <label className="min-h-[48px] inline-flex items-center px-5 rounded-xl bg-blue-600 text-white text-sm font-bold cursor-pointer">Datei auswählen<input type="file" accept=".json,application/json" onChange={onFile} className="hidden" /></label>
               <p className="text-xs text-slate-500">Im Dateiauswahl-Dialog Google Drive wählen und die Reise-Datei antippen. Danach liegt eine Kopie samt Dokumenten offline auf dem Gerät.</p>
-            </section>
+            </div>
             {FS_SUPPORTED && (
-              <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-                <h2 className="text-base font-bold">Laptop: mit Datei verbinden</h2>
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold">Laptop: mit Datei verbinden</h3>
                 <p className="text-xs text-slate-500">Änderungen werden automatisch in die Datei zurückgeschrieben (Chrome oder Edge).</p>
                 <button type="button" disabled={busy} onClick={onConnect} className="min-h-[48px] px-5 rounded-xl bg-[#1F4E8C] text-white text-sm font-bold">Datei verbinden</button>
-              </section>
+              </div>
             )}
-            <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-              <h2 className="text-base font-bold">Demo-Reise ausprobieren</h2>
-              <p className="text-xs text-slate-500">Beispielreise „Florida Rundreise“ mit allen Funktionen. Du kannst alles ändern und sie jederzeit auf den Ursprungszustand zurücksetzen. Deine echten Reisen bleiben getrennt.</p>
-              <button type="button" data-demo-open disabled={busy} onClick={() => run(async () => { await loadDemo(); location.reload(); })} className="min-h-[48px] px-5 rounded-xl border border-slate-300 bg-white text-sm font-bold">Demo-Reise öffnen</button>
-            </section>
-            <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-              <h2 className="text-base font-bold">Neue Reise</h2>
-              <button type="button" onClick={onSkip} className="min-h-[48px] px-5 rounded-xl border border-slate-300 bg-white text-sm font-bold">Neue Reise mit Assistent anlegen</button>
-            </section>
+              </div>
+            </details>
+            <button type="button" data-readonly-allow onClick={rtOpenHelp} className="text-sm font-semibold text-blue-700 underline min-h-[40px]">Kurzanleitung ansehen</button>
             {busy && <div className="text-sm text-slate-600">Bitte warten …</div>}
             {err && <div role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-950">{err}</div>}
           </div>
@@ -19201,7 +19222,7 @@ var qrcode = function() {
       const [m, setM] = useState(themeGet());
       const set = (v) => { try { localStorage.setItem(THEME_KEY, v); } catch (e) {} setM(v); themeApply(v); };
       const opts = [['light', 'Hell'], ['auto', 'Auto'], ['dark', 'Dunkel']];
-      if (compact) { const nxt = { light: 'dark', dark: 'auto', auto: 'light' }[m]; return <button type="button" data-theme-cycle onClick={() => set(nxt)} aria-label={`Darstellung: ${{ light: 'Hell', dark: 'Dunkel', auto: 'Automatisch' }[m]} (tippen zum Wechseln)`} className="text-xs font-semibold px-2 py-1 rounded-full border border-slate-300">{{ light: '☀ Hell', dark: '☾ Dunkel', auto: '◐ Auto' }[m]}</button>; }
+      if (compact) { const nxt = { light: 'dark', dark: 'auto', auto: 'light' }[m]; return <button type="button" data-theme-cycle onClick={() => set(nxt)} aria-label={`Darstellung: ${{ light: 'Hell', dark: 'Dunkel', auto: 'Automatisch' }[m]} (tippen zum Wechseln)`} className="text-xs font-semibold px-2 py-1 rounded-full border border-slate-300">{{ light: '☀', dark: '☾', auto: '◐' }[m]}</button>; }
       return <div className="theme-seg" role="group" aria-label="Darstellung">{opts.map(([k, l]) => <button key={k} type="button" data-theme={k} aria-pressed={m === k} onClick={() => set(k)}>{l}</button>)}</div>;
     }
     function V18Shell({ activeTab, setActiveTab, trip, countdown, onMeta, isOnline, syncStatus, total, people }) {
@@ -19226,18 +19247,22 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 77</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 78</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
               <button type="button" data-nav="more" aria-current={g.id === 'more' ? 'page' : undefined} onClick={() => go(V18_GROUPS[3])} className={`v18-btn justify-center ${g.id === 'more' ? 'pri' : ''}`}><V18Icon n="more" />Einstellungen</button>
               <button type="button" onClick={() => setActiveTab('cloud')} className="v18-btn justify-center"><V18Icon n="swap" />Reise wechseln</button>
+              <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} className="v18-btn justify-center">Hilfe / Erste Schritte</button>
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 77'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
-            <ThemeSwitch compact />
-            <button type="button" onClick={() => setActiveTab('cloud')} className="inline-flex items-center gap-1.5 text-xs text-slate-700"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</button>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 78'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
+              <ThemeSwitch compact />
+              <button type="button" onClick={() => setActiveTab('cloud')} title={status.t} aria-label={status.t} className="rt-stat-btn"><span style={{ width: 10, height: 10, borderRadius: '50%', background: status.c, display: 'inline-block' }} /><span className="rt-stat-t">{status.t}</span></button>
+            </div>
           </header>
           <nav className="v18-bottom md:hidden" aria-label="Bereiche (unten)">
             {V18_GROUPS.map((x) => <button key={x.id} type="button" data-mobile-tab={x.id} aria-current={x.id === g.id ? 'page' : undefined} onClick={() => go(x)} className={x.id === g.id ? 'on' : ''}><i><V18Icon n={x.id} size={22} /></i>{x.short || x.label}</button>)}
@@ -21510,12 +21535,66 @@ var qrcode = function() {
         : <span data-card-chip="missing" className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-bold border bg-red-600 text-white border-red-700"><Ic n="warn" />Karte auswählen</span>;
     }
 
+    // ===== v78: Hilfe, Start-Bildschirm, Sicherungs-Erinnerung =====
+    const RT_HELP_KEY = 'rt_help_seen_v1', RT_BK_KEY = 'rt_last_backup', RT_FIRST_KEY = 'rt_first_seen', RT_SNOOZE_KEY = 'rt_backup_snooze';
+    const rtLsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const rtLsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+    function rtMarkBackup() { rtLsSet(RT_BK_KEY, String(Date.now())); try { window.dispatchEvent(new Event('rt-backup')); } catch (e) {} }
+    function rtOpenHelp() { try { window.dispatchEvent(new Event('rt-help')); } catch (e) {} }
+    const RT_HELP = [
+      ['Aufbau', 'Unten (am Laptop links) wählst du den Bereich: Planen, Buchen, Unterwegs, Optionen. Die Unterpunkte oben bleiben beim Scrollen stehen.'],
+      ['Reise anlegen', 'Mit „Neue Reise“ führt dich der Assistent durch Reisedaten, Mitreisende und Etappen. Zum Ausprobieren gibt es die Demo-Reise.'],
+      ['Planen', 'Etappen mit Hotel, Anreise, Stopps und Ausflügen. Der Tagesplan rechnet Fahrzeiten und Ankunft pro Tag, die Karte zeigt die ganze Route.'],
+      ['Buchen', 'Hotels, Flüge und Mietwagen auf einen Blick. Ein Preis heißt „gebucht“. Rot markiert, was noch fehlt (zum Beispiel „Karte auswählen“). Karten, Notfallnummern und Koffer-PINs stehen unter „Karten & Notfall“, Kosten unter „Budget“.'],
+      ['Unterwegs', 'Heute zeigt den Tag mit Hotel, Check-in und Navigation. „1-Klick Navi“ startet Google Maps oder Apple Karten. Dazu Wetter, Wechselkurs, Trinkgeld- und Tankrechner.'],
+      ['Offline und Handy', 'Die App läuft ohne Netz. Auf dem Handy über das Browser-Menü „Zum Startbildschirm“ installieren und einmal mit Netz öffnen.'],
+      ['Sichern', 'Deine Daten liegen auf dem Gerät. Sichere sie regelmäßig als Datei (Optionen > Daten & Sicherung) oder verbinde am Laptop eine Datei, zum Beispiel in Google Drive. Dann wird automatisch gespeichert.'],
+      ['Hell und Dunkel', 'Die Darstellung wechselst du oben mit dem Sonne/Mond-Knopf. Die Handy- oder Laptop-Ansicht erkennt die App selbst (Optionen > Darstellung).'],
+    ];
+    function RtHelpHost({ hasTrip }) {
+      const [open, setOpen] = useState(false);
+      useEffect(() => { const h = () => setOpen(true); window.addEventListener('rt-help', h); return () => window.removeEventListener('rt-help', h); }, []);
+      useEffect(() => { if (!hasTrip || rtLsGet(RT_HELP_KEY)) return; const t = setTimeout(() => setOpen(true), 900); return () => clearTimeout(t); }, [hasTrip]);
+      useEffect(() => { if (!open) return; const k = (e) => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', k); return () => document.removeEventListener('keydown', k); }, [open]);
+      const close = () => { rtLsSet(RT_HELP_KEY, '1'); setOpen(false); };
+      if (!open) return null;
+      return (
+        <div data-readonly-allow className="fixed inset-0 z-[90] bg-slate-950/70 flex items-end sm:items-center justify-center sm:p-4" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="rt-help-t" className="rt-help bg-white w-full sm:max-w-xl max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl shadow-2xl">
+            <div className="sticky top-0 bg-white px-5 pt-4 pb-3 border-b border-slate-200 flex items-center justify-between gap-3"><h2 id="rt-help-t" className="text-lg font-extrabold text-slate-900">Erste Schritte</h2><button type="button" data-readonly-allow onClick={close} aria-label="Schließen" className="w-10 h-10 rounded-full border border-slate-300 text-slate-600">✕</button></div>
+            <ol className="px-5 py-4 space-y-3 m-0 list-none">
+              {RT_HELP.map(([t, x], i) => <li key={t} className="flex gap-3"><span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">{i + 1}</span><div><div className="text-sm font-bold text-slate-900">{t}</div><p className="text-sm text-slate-600 m-0">{x}</p></div></li>)}
+            </ol>
+            <div className="px-5 pb-5"><button type="button" data-readonly-allow onClick={close} className="w-full min-h-[48px] rounded-xl bg-blue-600 text-white font-bold">Verstanden</button><p className="text-xs text-slate-500 mt-2 mb-0 text-center">Diese Hilfe öffnest du jederzeit wieder mit dem Fragezeichen.</p></div>
+          </section>
+        </div>
+      );
+    }
+    function RtBackupBar({ trip }) {
+      const [, f] = useState(0); const fs = useFsSync();
+      useEffect(() => { const h = () => f((x) => x + 1); window.addEventListener('rt-backup', h); return () => window.removeEventListener('rt-backup', h); }, []);
+      useEffect(() => { if (!rtLsGet(RT_FIRST_KEY)) rtLsSet(RT_FIRST_KEY, String(Date.now())); }, []);
+      if (IS_READ_ONLY_COPY || getDeviceMode() === 'readonly' || fs.status === 'connected') return null;
+      if (!trip || !trip.meta || trip.meta.tripId === 'demo-florida-v1' || !(trip.stages || []).length) return null;
+      const now = Date.now(), last = Number(rtLsGet(RT_BK_KEY)) || 0, first = Number(rtLsGet(RT_FIRST_KEY)) || now, snooze = Number(rtLsGet(RT_SNOOZE_KEY)) || 0;
+      const base = last || first, days = Math.floor((now - base) / 864e5);
+      if (now < snooze || days < (last ? 7 : 1)) return null;
+      return (
+        <div role="status" data-backup-bar className="rt-bkbar">
+          <span>{last ? `Letzte Sicherung vor ${days} Tagen.` : 'Deine Reise ist noch nicht als Datei gesichert.'}</span>
+          <button type="button" data-readonly-allow onClick={() => downloadTripFile(normalizeTrip(trip), 'roadtrip-daten.json')}>Jetzt sichern</button>
+          <button type="button" data-readonly-allow className="ghost" onClick={() => { rtLsSet(RT_SNOOZE_KEY, String(Date.now() + 3 * 864e5)); f((x) => x + 1); }}>Später</button>
+        </div>
+      );
+    }
+    function RtGroupHead({ title, sub }) { return <div data-opt-group className="pt-2"><h2 className="text-xl font-extrabold text-slate-900 m-0">{title}</h2>{sub && <p className="text-sm text-slate-500 m-0">{sub}</p>}</div>; }
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
       useEffect(() => { tripDataRef.current = tripData; }, [tripData]);
       // Tabs: 'stages' | 'basics' | 'cards' | 'finance' | 'navi' | 'ustools' | 'cloud'
-      const [activeTab, setActiveTab] = useState(() => { try { const n = new Date(); const iso = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; return buildDays(tripData).some((d) => d.iso === iso) ? 'today' : 'stages'; } catch (e) { return 'stages'; } });
+      const [activeTab, setActiveTab] = useState(() => { try { const n = new Date(); const iso = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; return (tripData.meta && tripData.meta.tripId === 'demo-florida-v1') ? 'stages' : (buildDays(tripData).some((d) => d.iso === iso) ? 'today' : 'stages'); } catch (e) { return 'stages'; } });
       useEffect(() => {
         const activeMobileTab = document.querySelector(`nav[aria-label="Hauptnavigation"] [data-mobile-tab="${activeTab}"]`);
         activeMobileTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -21675,7 +21754,7 @@ var qrcode = function() {
         isDate(tripData.meta?.endDate) && !!tripData.meta?.endDate &&
         localDateDayNumber(todayIso) >= localDateDayNumber(tripData.meta.startDate) &&
         localDateDayNumber(todayIso) <= localDateDayNumber(tripData.meta.endDate);
-      useEffect(() => { if (tripIsActiveToday) setActiveTab((t) => (t === 'stages' ? 'today' : t)); }, []);
+      useEffect(() => { if (tripIsActiveToday && !(tripData.meta && tripData.meta.tripId === 'demo-florida-v1')) setActiveTab((t) => (t === 'stages' ? 'today' : t)); }, []);
       const todayStages = useMemo(() => {
         if (!tripIsActiveToday) return [];
         const day = localDateDayNumber(todayIso);
@@ -24316,10 +24395,13 @@ Quelle: ${lt.url}` : '') }] } });
             {activeTab === 'cloud' && (
               <AppErrorBoundary>
               <div className="space-y-6">
-                <TemplateBar trip={tripData} onSave={saveTripData} />
-                <RtViewBar />
+                <RtGroupHead title="Reise" sub="Reisen wechseln, laden und als Vorlage speichern." />
                 <TripsCard trip={tripData} />
+                <TemplateBar trip={tripData} onSave={saveTripData} />
+                <RtGroupHead title="Daten & Sicherung" sub="Deine Reise als Datei sichern oder mit Drive verbinden." />
                 <DeviceDataCard trip={tripData} />
+                <RtGroupHead title="Darstellung" sub="Handy-, Tablet- oder Laptop-Ansicht." />
+                <RtViewBar />
                 <details className="v18-adv rounded-2xl border border-slate-200 bg-white">
                   <summary className="cursor-pointer px-5 py-4"><span className="text-base font-bold text-slate-900">Erweitert</span><span className="block text-[13px] text-slate-500 font-normal">Sicherungen, Export und Hintergrund – selten gebraucht</span></summary>
                   <div className="space-y-6 p-5 pt-0">
@@ -26125,6 +26207,8 @@ Quelle: ${lt.url}` : '') }] } });
           )}
           {importPreview && <div className="fixed inset-0 z-[80] bg-slate-950/70 flex items-center justify-center p-4"><section role="dialog" aria-modal="true" aria-labelledby="import-title" className="bg-white rounded-2xl p-5 max-w-lg w-full space-y-3"><h2 id="import-title" className="text-lg font-bold">JSON-Import prüfen</h2><p>Datei: <strong>{importPreview.filename}</strong></p><p>Reise: {importPreview.data.meta.title||'Ohne Titel'} · {importPreview.data.stages.length} Etappen · Schema {importPreview.data.meta.schemaVersion||'alt (wird migriert)'}</p><p className="text-xs text-amber-900">Vor Import wird die aktuelle Reise gesichert (Rolling-Backup). Import ersetzt die aktuelle Reise.</p><pre className="max-h-40 overflow-auto rounded bg-slate-100 p-2 text-xs">{JSON.stringify({meta:importPreview.data.meta,stages:importPreview.data.stages.map(x=>({id:x.id,toCity:x.toCity}))},null,2)}</pre><div className="flex justify-end gap-2"><button onClick={()=>setImportPreview(null)} className="px-3 py-2 border rounded">Abbrechen</button><button onClick={confirmImport} className="px-3 py-2 bg-teal-700 text-white rounded font-bold">Backup erstellen & importieren</button></div></section></div>}
           <RtFsBanner trip={tripData} />
+          <RtHelpHost hasTrip={(tripData.stages || []).length > 0} />
+          <RtBackupBar trip={tripData} />
           {cloudConflict && <div className="fixed inset-0 z-[80] bg-slate-950/75 flex items-center justify-center p-4"><section role="dialog" aria-modal="true" aria-labelledby="conflict-title" className="bg-white rounded-2xl p-5 max-w-lg w-full space-y-4"><h2 id="conflict-title" className="text-lg font-bold text-amber-800">Drive-Konflikt erkannt</h2><p>Lokale Version {Number(tripData.meta?.version)||1} · Drive-Version {cloudConflict.version}. Es wurde nichts automatisch überschrieben. Vorher JSON exportieren empfohlen.</p><div className="grid gap-2"><button onClick={()=>{setCloudConflict(null);uploadCloud(tripData,true);}} className="p-3 rounded bg-teal-700 text-white font-bold">Lokal behalten – Drive bewusst überschreiben</button><button onClick={applyCloud} className="p-3 rounded border font-bold">Drive übernehmen – lokale Version ersetzen</button><button onClick={mergeCloud} className="p-3 rounded border font-bold">Zusammenführen – Listen nach ID kombinieren (lokale Felder gewinnen)</button><button onClick={()=>setCloudConflict(null)} className="p-2 text-slate-600">Später entscheiden</button></div></section></div>}
         </div>
       );

@@ -363,3 +363,11 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v77 – Karte bei den Hotels
 - Buchen > Buchungen > Hotels: unter jedem Hotel steht die gewählte Kreditkarte. Ist keine gewählt (oder die Karte gelöscht), steht dort rot „Karte auswählen“. Dasselbe in der Hotel-Kopfzeile und in der Budget-Tabelle.
+
+## v78 – Einstieg und Bedienung
+- Startbildschirm: oben „Demo ansehen“ und „Eigene Reise anlegen“. Datei-Optionen stehen eingeklappt unter „Ich habe schon eine Reisedatei“.
+- Hilfe „Erste Schritte“: öffnet beim ersten Start automatisch, danach über das Fragezeichen in der Kopfzeile (Handy) bzw. „Hilfe / Erste Schritte“ in der Seitenleiste (Laptop).
+- Die Demo-Reise startet immer in „Planen“.
+- Kopfzeile am Handy aufgeräumt: Titel, Fragezeichen, Hell/Dunkel-Knopf und Statuspunkt. Hintergrund ist jetzt undurchsichtig.
+- Optionen in drei Abschnitte gegliedert: Reise, Daten & Sicherung, Darstellung.
+- Sicherungs-Erinnerung: Ohne verbundene Datei erscheint nach einem Tag (nie gesichert) bzw. nach 7 Tagen ein Hinweis „Jetzt sichern“. „Später“ blendet ihn 3 Tage aus. Nicht in der Demo und nicht im Nur-Lesen-Modus.
