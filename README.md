@@ -393,3 +393,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v83
 - Etappen-Finder: „Ort auf der Karte wählen“ zeigt nur den Suchbereich; Ziel per Tipp auf die Karte wählen.
+
+## v84
+- Karten in Finder und Aktionen-Suche: Mausrad zoomt auf der Karte, neben der Karte scrollt die Seite.
