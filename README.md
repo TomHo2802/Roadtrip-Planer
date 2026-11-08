@@ -375,3 +375,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v79 – Nächste Etappe finden
 - Die Suche geht jetzt vom Startort der gewählten Etappe aus (bei Etappen ab Nr. 2 vom Hotel der Vor-Etappe, sonst vom Ortsnamen). Die Auswahl zeigt „Etappe N: Start → Ziel“.
 - „Übernehmen“ ersetzt das Ziel dieser Etappe; der Start der Folge-Etappe wird angepasst. Mit dem letzten Eintrag „Neue Etappe anhängen“ entsteht eine zusätzliche Etappe.
+
+## v80 – Nächste Etappe finden: Richtungen, Fortschritt, Zeitüberschreitung
+- Mehrere Himmelsrichtungen sind antippbar (zum Beispiel Süd und Südwest). „Öffnung“ Schmal/Normal/Breit (±25°/±45°/±70°) erweitert den Sektor. Standard ist Normal (vorher ±35°).
+- Fortschrittsbalken wie bei der Aktionen-Suche, mit Abbrechen.
+- Die Orte-Abfrage fragt nur noch den gewählten Richtungssektor ab (kleiner, schneller) und wartet länger auf die Kartendienste (bis 60 s, ein Wiederholungsversuch). Bei Zeitüberschreitung kommt eine verständliche Meldung statt „signal is aborted“.

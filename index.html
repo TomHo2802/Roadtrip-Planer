@@ -18886,7 +18886,7 @@ var qrcode = function() {
     }
 
     // ===== Online-Funktionen: Wetter, Strand & Meer, Wo bin ich, In der Nähe, Wechselkurs, Teilen =====
-    const fetchJsonT = async (url, ms = 12000) => { const ac = new AbortController(); const t = setTimeout(() => ac.abort(), ms); try { const r = await fetch(url, { signal: ac.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); } finally { clearTimeout(t); } };
+    const fetchJsonT = async (url, ms = 12000) => { const ac = new AbortController(); const t = setTimeout(() => ac.abort(), ms); try { const r = await fetch(url, { signal: ac.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); } catch (e) { if (e && e.name === 'AbortError') throw new Error('Zeitüberschreitung'); throw e; } finally { clearTimeout(t); } };
     const lsGetJ = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
     const lsSetJ = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
     const mapsLink = (lat, lon, label) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}${label ? '&destination_place_id=&travelmode=driving' : ''}`;
@@ -19247,7 +19247,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 79</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 80</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19257,7 +19257,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 79'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 80'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -19319,9 +19319,19 @@ var qrcode = function() {
       const j = await fetchJsonT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`, 12000);
       return j && j[0] ? [Number(j[0].lat), Number(j[0].lon)] : null;
     }
-    async function sfWikidata(origin, Rkm, minPop, minSl) {
-      const q = `SELECT ?item ?itemLabel ?loc ?pop ?img ?sl ?elev ?water ?cap WHERE { SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${origin[1]} ${origin[0]})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Math.round(Rkm)}" . } ?item wdt:P1082 ?pop . FILTER(?pop > ${minPop}) ?item wdt:P31/wdt:P279* wd:Q486972 . ?item wikibase:sitelinks ?sl . FILTER(?sl >= ${minSl}) FILTER NOT EXISTS { ?item wdt:P31 wd:Q498162 } . BIND(EXISTS { ?item wdt:P206 ?w0 } AS ?water) BIND(EXISTS { ?item wdt:P1376 ?c0 } AS ?cap) OPTIONAL { ?item wdt:P2044 ?elev } OPTIONAL { ?item wdt:P18 ?img } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?pop) LIMIT 250`;
-      const j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 25000);
+    const SF_TOL = { narrow: 25, normal: 45, wide: 70 };
+    const sfSectors = (origin, Rkm, dirs, tol) => dirs.map((d) => {
+      const pts = [origin]; const R = Rkm * 1.01 / Math.cos(5 * Math.PI / 180); const angs = []; for (let a = d - tol; a < d + tol; a += 10) angs.push(a); angs.push(d + tol);
+      angs.forEach((a) => { const r = a * Math.PI / 180; pts.push([origin[0] + (R / 111.2) * Math.cos(r), origin[1] + (R / (111.2 * Math.cos(origin[0] * Math.PI / 180))) * Math.sin(r)]); });
+      return pts;
+    });
+    async function sfWikidata(origin, Rkm, minPop, minSl, sectors) {
+      let area;
+      if (sectors) { const all = sectors.flat(); const la = all.map((p) => p[0]), lo = all.map((p) => p[1]); const s = Math.max(-89, Math.min(...la)), n = Math.min(89, Math.max(...la)), w = Math.max(-179, Math.min(...lo)), e = Math.min(179, Math.max(...lo));
+        area = `SERVICE wikibase:box { ?item wdt:P625 ?loc . bd:serviceParam wikibase:cornerSouthWest "Point(${w.toFixed(4)} ${s.toFixed(4)})"^^geo:wktLiteral . bd:serviceParam wikibase:cornerNorthEast "Point(${e.toFixed(4)} ${n.toFixed(4)})"^^geo:wktLiteral . }`; }
+      else area = `SERVICE wikibase:around { ?item wdt:P625 ?loc . bd:serviceParam wikibase:center "Point(${origin[1]} ${origin[0]})"^^geo:wktLiteral . bd:serviceParam wikibase:radius "${Math.round(Rkm)}" . }`;
+      const q = `SELECT ?item ?itemLabel ?loc ?pop ?img ?sl ?elev ?water ?cap WHERE { ${area} ?item wdt:P1082 ?pop . FILTER(?pop > ${minPop}) ?item wdt:P31/wdt:P279* wd:Q486972 . ?item wikibase:sitelinks ?sl . FILTER(?sl >= ${minSl}) FILTER NOT EXISTS { ?item wdt:P31 wd:Q498162 } . BIND(EXISTS { ?item wdt:P206 ?w0 } AS ?water) BIND(EXISTS { ?item wdt:P1376 ?c0 } AS ?cap) OPTIONAL { ?item wdt:P2044 ?elev } OPTIONAL { ?item wdt:P18 ?img } SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". } } ORDER BY DESC(?pop) LIMIT 250`;
+      const j = await fetchJsonT(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(q)}`, 40000);
       const m = new Map();
       ((j.results && j.results.bindings) || []).forEach((r) => {
         const mm = /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(r.loc && r.loc.value); if (!mm) return;
@@ -19333,53 +19343,66 @@ var qrcode = function() {
       });
       return [...m.values()];
     }
-    async function sfOverpass(origin, Rm) {
-      const q = `[out:json][timeout:20];(node["place"="city"](around:${Math.round(Rm)},${origin[0]},${origin[1]});node["place"="town"](around:${Math.round(Rm)},${origin[0]},${origin[1]}););out center 400;`;
-      let j;
-      try { j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 25000))); }
-      catch (e) { throw new Error('Overpass: ' + ((e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort')); }
+    async function sfOverpass(origin, Rm, sectors) {
+      const sel = (t) => (sectors ? sectors.map((pts) => `node["place"="${t}"](poly:"${pts.map((p) => p[0].toFixed(4) + ' ' + p[1].toFixed(4)).join(' ')}");`).join('') : `node["place"="${t}"](around:${Math.round(Rm)},${origin[0]},${origin[1]});`);
+      const q = `[out:json][timeout:50];(${sel('city')}${sel('town')});out center 400;`;
+      let j, lastErr;
+      for (let attempt = 0; attempt < 2 && !j; attempt++) {
+        try { j = await Promise.any(OVERPASS.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(q)}`, 60000))); }
+        catch (e) { lastErr = e; }
+      }
+      if (!j) throw new Error('Overpass: ' + ((lastErr && lastErr.errors || [lastErr]).map((x) => x && x.message).filter(Boolean).join(' | ') || 'keine Antwort'));
       return (j.elements || []).filter((e) => e.tags && e.tags.name && e.lat != null && (e.tags.place === 'city' || Number(e.tags.population) >= 10000 || e.tags.wikipedia || e.tags.wikidata)).map((e) => ({ id: 'o' + (e.id != null ? e.id : e.lat + ',' + e.lon), name: e.tags.name, lat: e.lat, lon: e.lon, pop: Number(e.tags.population) || 0, type: e.tags.place, wp: e.tags.wikipedia || '' }));
     }
-    async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin, dir) {
+    async function sfFindPlaces(origin, limitKm, minKm, mode, limitMin, minMin, dirs, tol, onP, cancelled) {
+      const P = onP || (() => {}); dirs = dirs || []; tol = tol || 45;
       const maxStraight = mode === 'km' ? limitKm : (limitMin / 60) * 110; // Luftlinie <= Fahrstrecke, 110 km/h als obere Schranke
       const Rkm = Math.min(380, Math.max(15, maxStraight));
-      const [w, o] = await Promise.allSettled([sfWikidata(origin, Rkm, Rkm >= 150 ? 20000 : 5000, Rkm >= 150 ? 8 : 5), sfOverpass(origin, Rkm * 1000)]);
+      const sectors = dirs.length ? sfSectors(origin, Rkm, dirs, tol) : null;
+      const lbl = 'Orte werden gesucht (Wikidata, OpenStreetMap) …'; let tick = 8; P(tick, lbl);
+      const tk = setInterval(() => { tick = Math.min(40, tick + 1.5); P(tick, lbl); }, 700);
+      let w, o;
+      try { [w, o] = await Promise.allSettled([sfWikidata(origin, Rkm, Rkm >= 150 ? 20000 : 5000, Rkm >= 150 ? 8 : 5, sectors), sfOverpass(origin, Rkm * 1000, sectors)]); } finally { clearInterval(tk); }
+      if (cancelled && cancelled()) return { items: [], estimated: false, cancelled: true };
       if (w.status === 'rejected' && o.status === 'rejected') throw new Error(`Wikidata: ${w.reason && w.reason.message} | ${o.reason && o.reason.message}`);
       const all = [...(w.status === 'fulfilled' ? w.value : []), ...(o.status === 'fulfilled' ? o.value : [])];
       const seen = []; let cand = [];
       all.forEach((c) => { if (seen.some((s) => s.name === c.name && Math.abs(s.lat - c.lat) < 0.15 && Math.abs(s.lon - c.lon) < 0.15)) return; seen.push(c); cand.push({ ...c, air: haversineM(origin, [c.lat, c.lon]) / 1000 }); });
       const bearing = (c) => { const p1 = origin[0] * Math.PI / 180, p2 = c.lat * Math.PI / 180, dl = (c.lon - origin[1]) * Math.PI / 180; return (Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)) * 180 / Math.PI + 360) % 360; };
-      const inDir = (c) => { if (dir == null) return true; const d = Math.abs(((bearing(c) - dir) + 540) % 360 - 180); return d <= 35; };
+      const inDir = (c) => { if (!dirs.length) return true; const b = bearing(c); return dirs.some((dd) => Math.abs(((b - dd) + 540) % 360 - 180) <= tol); };
       const minStraight = mode === 'km' ? minKm * 0.5 : 0;
       cand = cand.filter((c) => c.air <= Rkm * 1.02 && c.air >= Math.min(minStraight, 1e9) && c.air > 2 && inDir(c)).sort((a, b) => (b.pop - a.pop) || (a.air - b.air)).slice(0, 80);
-      if (!cand.length) return { items: [], estimated: false };
-      let estimated = false; const out = [];
+      if (!cand.length) { P(100, 'Fertig'); return { items: [], estimated: false }; }
+      let estimated = false; const out = []; const tot = Math.ceil(cand.length / 40);
       for (let i = 0; i < cand.length; i += 40) {
+        if (cancelled && cancelled()) return { items: [], estimated: false, cancelled: true };
+        P(45 + (i / cand.length) * 50, `Fahrstrecken werden berechnet (Abschnitt ${i / 40 + 1} von ${tot}) …`);
         const chunk = cand.slice(i, i + 40);
         try {
           const coords = [origin, ...chunk.map((c) => [c.lat, c.lon])].map((p) => `${p[1]},${p[0]}`).join(';');
-          const t = await fetchJsonT(`https://router.project-osrm.org/table/v1/driving/${coords}?sources=0&annotations=distance,duration`, 20000);
+          const t = await fetchJsonT(`https://router.project-osrm.org/table/v1/driving/${coords}?sources=0&annotations=distance,duration`, 25000);
           if (!t.distances || !t.durations) throw new Error('osrm');
           chunk.forEach((c, k) => { const d = t.distances[0][k + 1], s = t.durations[0][k + 1]; const snap = t.destinations && t.destinations[k + 1] && t.destinations[k + 1].distance; if (snap != null && snap > 2500) return; if (d != null && s != null) out.push({ ...c, km: d / 1000, min: s / 60 }); });
         } catch (e) { estimated = true; chunk.forEach((c) => out.push({ ...c, km: c.air * 1.3, min: (c.air * 1.3) / 80 * 60 })); }
       }
       const items = out.filter((c) => (mode === 'km' ? c.km <= limitKm && c.km >= minKm : c.min <= limitMin && c.min >= minMin)).sort((a, b) => a.km - b.km).slice(0, 40);
-      return { items, estimated };
+      P(100, 'Fertig'); return { items, estimated };
     }
     const SF_DIRS = [['N', 'Norden', 0], ['NO', 'Nordosten', 45], ['O', 'Osten', 90], ['SO', 'Südosten', 135], ['S', 'Süden', 180], ['SW', 'Südwesten', 225], ['W', 'Westen', 270], ['NW', 'Nordwesten', 315]];
     function SfCompass({ value, onChange }) {
+      const vals = Array.isArray(value) ? value : []; const toggle = (deg) => onChange(vals.includes(deg) ? vals.filter((x) => x !== deg) : [...vals, deg]);
       const pt = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [60 + r * Math.cos(a), 60 + r * Math.sin(a)]; };
       const wedge = (deg) => { const [x1, y1] = pt(deg - 22.5, 54), [x2, y2] = pt(deg + 22.5, 54), [x3, y3] = pt(deg + 22.5, 20), [x4, y4] = pt(deg - 22.5, 20); return `M${x1},${y1} A54,54 0 0 1 ${x2},${y2} L${x3},${y3} A20,20 0 0 0 ${x4},${y4} Z`; };
       return (
-        <svg viewBox="0 0 120 120" width="150" height="150" role="radiogroup" aria-label="Himmelsrichtung" className="shrink-0">
-          {SF_DIRS.map(([k, name, deg]) => { const on = value === deg; const [tx, ty] = pt(deg, 37); return (
-            <g key={k} role="radio" aria-checked={on} aria-label={name} tabIndex={0} style={{ cursor: 'pointer', outline: 'none' }} onClick={() => onChange(on ? null : deg)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange(on ? null : deg); } }}>
+        <svg viewBox="0 0 120 120" width="150" height="150" role="group" aria-label="Himmelsrichtungen (mehrere wählbar)" className="shrink-0">
+          {SF_DIRS.map(([k, name, deg]) => { const on = vals.includes(deg); const [tx, ty] = pt(deg, 37); return (
+            <g key={k} role="checkbox" aria-checked={on} aria-label={name} tabIndex={0} style={{ cursor: 'pointer', outline: 'none' }} onClick={() => toggle(deg)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(deg); } }}>
               <path d={wedge(deg)} fill={on ? '#1F4E8C' : '#F0F2F5'} stroke="#fff" strokeWidth="1.5" />
               <text x={tx} y={ty} textAnchor="middle" dominantBaseline="central" fontSize={k.length > 1 ? 8 : 10} fontWeight="700" fill={on ? '#fff' : '#3A4354'} style={{ pointerEvents: 'none' }}>{k}</text>
             </g>); })}
-          <g role="radio" aria-checked={value == null} aria-label="Alle Richtungen" tabIndex={0} style={{ cursor: 'pointer', outline: 'none' }} onClick={() => onChange(null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange(null); } }}>
-            <circle cx="60" cy="60" r="17" fill={value == null ? '#1F4E8C' : '#fff'} stroke="#CBD2DC" />
-            <text x="60" y="60" textAnchor="middle" dominantBaseline="central" fontSize="7.5" fontWeight="700" fill={value == null ? '#fff' : '#3A4354'} style={{ pointerEvents: 'none' }}>alle</text>
+          <g role="checkbox" aria-checked={!vals.length} aria-label="Alle Richtungen" tabIndex={0} style={{ cursor: 'pointer', outline: 'none' }} onClick={() => onChange([])} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange([]); } }}>
+            <circle cx="60" cy="60" r="17" fill={!vals.length ? '#1F4E8C' : '#fff'} stroke="#CBD2DC" />
+            <text x="60" y="60" textAnchor="middle" dominantBaseline="central" fontSize="7.5" fontWeight="700" fill={!vals.length ? '#fff' : '#3A4354'} style={{ pointerEvents: 'none' }}>alle</text>
           </g>
         </svg>
       );
@@ -19497,7 +19520,7 @@ var qrcode = function() {
       const [from, setFrom] = useState(Math.max(0, stages.length - 1));
       const [mode, setMode] = useState('km');
       const [rng, setRng] = useState([0, 300]);
-      const [dir, setDir] = useState(null);
+      const [dir, setDir] = useState([]); const [tol, setTol] = useState('normal'); const [pg, setPg] = useState({ pct: 0, label: '', busy: false }); const cancelRef = useRef(false);
       const [selId, setSelId] = useState(null);
       const [flt, setFlt] = useState([]);
       const [enr, setEnr] = useState({ busy: false, map: {}, fail: 0 });
@@ -19526,18 +19549,20 @@ var qrcode = function() {
       const label = (s) => (s.toCity || s.fromCity || '–');
       const unit = mode === 'km' ? 'km' : 'Std.';
       const fmtV = (v) => (mode === 'km' ? `${v} km` : `${String(v).replace('.', ',')} Std.`);
-      const dirName = dir == null ? 'alle Richtungen' : SF_DIRS.find((d) => d[2] === dir)[1];
+      const dirName = !dir.length ? 'alle Richtungen' : SF_DIRS.filter((d) => dir.includes(d[2])).map((d) => d[1]).join(', ');
       const run = async () => {
-        setSt({ busy: true, err: '', items: null, estimated: false, origin: null });
+        setSt({ busy: true, err: '', items: null, estimated: false, origin: null }); cancelRef.current = false; setPg({ pct: 3, label: 'Startpunkt wird gesucht …', busy: true });
         try {
           let g = startGps;
           if (!g && startCity) g = await sfGeocode(startCity);
           if (!g) throw new Error('Startpunkt nicht gefunden. Bitte den Startort der Etappe als eindeutigen Ortsnamen eintragen oder im Hotel der Vor-Etappe GPS hinterlegen.');
           const [mn, mx] = rng;
           if (!(mx > 0)) throw new Error('Wert: Der Höchstabstand muss größer als 0 sein.');
-          const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60, dir);
+          const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60, dir, SF_TOL[tol], (pct, label) => setPg({ pct, label, busy: true }), () => cancelRef.current);
+          if (r.cancelled) { setPg({ pct: 0, label: '', busy: false }); setSt({ busy: false, err: '', items: null, estimated: false, origin: null }); return; }
+          setPg({ pct: 100, label: 'Fertig', busy: false });
           setSt({ busy: false, err: '', items: r.items, estimated: r.estimated, origin: g }); setSelId(r.items[0] ? (r.items[0].id || r.items[0].name) : null);
-        } catch (e) { setSt({ busy: false, err: /Startpunkt|^Wert/.test(e.message) ? e.message.replace(/^Wert: /, '') : `Orte konnten nicht geladen werden (${String(e.message || e).slice(0, 260)}). Internet nötig; bei großem Radius hilft eine kleinere Obergrenze.`, items: null, estimated: false, origin: null }); }
+        } catch (e) { setPg({ pct: 0, label: '', busy: false }); setSt({ busy: false, err: /Startpunkt|^Wert/.test(e.message) ? e.message.replace(/^Wert: /, '') : (/Zeitüberschreitung|abort/i.test(e.message) ? 'Die Kartendienste (Wikidata, OpenStreetMap) haben nicht rechtzeitig geantwortet. Bitte nochmal versuchen, mehr Richtungen wählen, den Bereich verkleinern oder später erneut suchen (die Dienste sind manchmal überlastet).' : `Orte konnten nicht geladen werden (${String(e.message || e).slice(0, 260)}). Internet nötig; bei großem Radius hilft eine kleinere Obergrenze.`), items: null, estimated: false, origin: null }); }
       };
       return (
         <details data-finder className="v18-edit-only v20-finder rounded-2xl border border-slate-200 bg-white no-print">
@@ -19563,13 +19588,16 @@ var qrcode = function() {
               </div>
               <div className="flex flex-col items-center gap-1">
                 <SfCompass value={dir} onChange={setDir} />
-                <div data-sf-dir className="text-xs font-semibold text-slate-700">Richtung: {dirName}</div>
+                <div data-sf-dir className="text-xs font-semibold text-slate-700 max-w-[180px] text-center">Richtung: {dirName}</div>
+                <div className="text-[11px] text-slate-500">Mehrere Richtungen antippbar</div>
+                <div data-sf-tol role="group" aria-label="Öffnung der Richtung" className="inline-flex rounded-lg border border-slate-300 overflow-hidden text-xs">{[['narrow', 'Schmal'], ['normal', 'Normal'], ['wide', 'Breit']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={tol === k} onClick={() => setTol(k)} className={`px-2.5 py-1.5 font-semibold ${tol === k ? 'bg-[#1F4E8C] text-white' : 'bg-white text-slate-700'}`}>{l}</button>)}</div>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" data-readonly-allow onClick={run} disabled={st.busy} className="v18-btn pri disabled:opacity-50">{st.busy ? 'Suche läuft …' : 'Orte suchen'}</button>
               <span className="text-xs text-slate-500">{!isNew ? `Start: ${startCity || '–'}. Das Ergebnis ersetzt das Ziel von Etappe ${from + 1} (${cur.toCity || '–'}).` : `Start: ${startCity || '–'}. Das Ergebnis wird als neue Etappe ${from + 1} angehängt.`}</span>
             </div>
+            {(pg.busy) && <SfProgress pct={pg.pct} label={pg.label} onCancel={() => { cancelRef.current = true; }} />}
             {st.err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{st.err}</div>}
             {st.items && st.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Keine Orte gefunden. Weite den Abstandsbereich aus oder wähle eine andere Richtung.</div>}
             {st.items && st.items.length > 0 && (
