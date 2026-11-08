@@ -330,3 +330,10 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v69
 - Dunkel-Modus: Der aktive Hauptbereich (Planen / Buchen / Unterwegs) in der Seitenleiste ist jetzt orange hervorgehoben, mit orangem Streifen links. In der unteren Handy-Leiste war er schon orange.
+
+## v70 – Drive-Synchronisation
+- Ist die Reise einmal mit einer Datei verbunden (Datei angelegt oder aus Drive geöffnet), wird bei jeder Änderung automatisch in diese Datei gespeichert. Unten links steht „Drive gespeichert HH:MM“.
+- Die App prüft alle 15 Sekunden und beim Zurückkehren in die App, ob die Datei neuer ist (z. B. am Laptop geändert). Eine neuere Version wird automatisch übernommen, sobald du nichts bearbeitest.
+- Liegt eine neuere Version vor, während du selbst ungespeicherte Änderungen hast, wird nichts überschrieben: Du siehst eine Meldung „Jetzt laden“ oder „Meinen Stand behalten“.
+- Nach einem Browser-Neustart fragt Chrome einmal nach: Meldung „Verbindung erneuern“.
+- Grenzen: Dauerhafte Dateiverbindung gibt es nur in Chrome/Edge am Laptop. Auf dem Handy (Android Chrome, iOS Safari) steht in Optionen „Neueste Datei aus Drive laden“. Die Drive-App auf dem Handy synchronisiert die Datei, die Web-App kann sie aber nicht von selbst lesen.

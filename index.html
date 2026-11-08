@@ -13987,6 +13987,14 @@ html[data-dark="1"].rt-scrolled .v18-subhead{border-color:#25364f}
 #root,body{overflow-x:clip!important;overflow-y:visible!important}
 html{overflow-x:clip}
 @media (max-width:767px){.v18-mhead{position:fixed!important;top:0;left:0;right:0;z-index:35}body{padding-top:var(--rt-hdr-full,56px)}}
+/* v70 Drive-Sync */
+.rt-fsbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--rt-hdr-full,56px) + 8px);z-index:70;max-width:min(560px,calc(100vw - 20px));display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-radius:14px;background:#e7f6ee;border:1px solid #86d0a7;color:#0b3d24;font-size:13px;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.rt-fsbar.warn{background:#fff3e0;border-color:#f2a044;color:#5a3300}
+.rt-fsbar button{min-height:36px;padding:0 12px;border-radius:10px;background:#1F4E8C;color:#fff;font-weight:700;font-size:13px}
+.rt-fsbar button.ghost{background:#fff;color:#334;border:1px solid #cbd5e1}
+.rt-fspill{position:fixed;left:10px;bottom:10px;z-index:30;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.92);border:1px solid #d5dbe3;color:#47556b;font-size:11px;pointer-events:none}
+html[data-view="phone"] .rt-fspill{bottom:calc(76px + env(safe-area-inset-bottom))}
+@media print{.rt-fsbar,.rt-fspill{display:none!important}}
 </style><style id="dark-theme">html[data-dark="1"]{color-scheme:dark}
 html[data-dark="1"] body{background:#0e1726 !important;color:#eef3fa !important}
 html[data-dark="1"] *{text-shadow:none !important}
@@ -14082,6 +14090,10 @@ html[data-dark="1"] [data-hotel-facts] span[class*="bg-amber"][class][class]{bac
 html[data-dark="1"] [data-hotel-facts] span[class*="bg-slate"][class][class]{background:#25324a !important;color:#aab7cc !important;border-color:#3a4a66 !important}
 html[data-dark="1"] [data-hotel-facts] span b{color:inherit !important}
 html[data-dark="1"] .v18-side .v18-nav.on{background:rgba(242,160,68,.2) !important;color:#F2A044 !important;border-color:transparent !important;box-shadow:inset 3px 0 0 #F2A044}
+html[data-dark="1"] .rt-fspill{background:rgba(20,30,48,.92)!important;border-color:#2c3e5c!important;color:#a9b8d0!important}
+html[data-dark="1"] .rt-fsbar{background:#12301f!important;border-color:#2f7d52!important;color:#d6f5e3!important}
+html[data-dark="1"] .rt-fsbar.warn{background:#3a2a10!important;border-color:#F2A044!important;color:#ffe2bd!important}
+html[data-dark="1"] .rt-fsbar button.ghost{background:#1f3150!important;color:#e5ecf7!important;border-color:#2c3e5c!important}
 </style></head>
 <body>
   <div id="root" aria-live="polite"></div>
@@ -18664,7 +18676,7 @@ var qrcode = function() {
     };
     const startBlankTrip = async () => { await stashActive(); localStorage.removeItem(LOCAL_STORAGE_KEY); localStorage.removeItem(ACTIVE_ID_KEY); await replaceDocs([]); await fsIdbDel(); };
     const fsSync = {
-      handle: null, name: '', status: 'none', lastWrite: null, error: '', listeners: new Set(), timer: null,
+      handle: null, name: '', status: 'none', lastWrite: null, error: '', listeners: new Set(), timer: null, lastSeen: 0, dirty: false, incoming: null, polling: false, baseStamp: '',
       set(p) { Object.assign(this, p); this.listeners.forEach((f) => f()); },
       async init() {
         if (!FS_SUPPORTED) return;
@@ -18692,10 +18704,45 @@ var qrcode = function() {
       },
       async write(data, force) {
         if (!this.handle || (this.status !== 'connected' && !force)) return;
-        try { const full = await withDocs(data); const w = await this.handle.createWritable(); await w.write(JSON.stringify(full, null, 2)); await w.close(); this.set({ lastWrite: new Date(), error: '' }); }
-        catch (e) { this.set({ error: 'Schreiben in die Datei fehlgeschlagen: ' + (e && e.message ? e.message : e), status: 'needs-permission' }); }
+        try {
+          if (!force && (this.incoming || await this.checkRemote(data))) { this.set({ dirty: false }); return; }
+          const full = await withDocs(data); const w = await this.handle.createWritable(); await w.write(JSON.stringify(full, null, 2)); await w.close();
+          let ms = 0; try { ms = (await this.handle.getFile()).lastModified; } catch (e) {}
+          this.set({ lastWrite: new Date(), lastSeen: ms, baseStamp: (data.meta && data.meta.lastUpdated) || '', dirty: false, incoming: null, error: '' });
+        }
+        catch (e) { this.set({ dirty: false, error: 'Schreiben in die Datei fehlgeschlagen: ' + (e && e.message ? e.message : e), status: 'needs-permission' }); }
       },
-      queueWrite(data) { if (this.status !== 'connected') return; clearTimeout(this.timer); this.timer = setTimeout(() => this.write(data), 800); },
+      queueWrite(data) {
+        if (this.status !== 'connected') return;
+        if (!this.incoming && this.baseStamp && data.meta && data.meta.lastUpdated === this.baseStamp) return;
+        clearTimeout(this.timer); this.dirty = true; this.listeners.forEach((f) => f()); this.timer = setTimeout(() => this.write(data), 800);
+      },
+      // Liegt in der Datei ein neuerer Stand als unser lokaler? Dann nicht überschreiben.
+      async readNewer(local) {
+        const f = await this.handle.getFile(); if (f.lastModified <= (this.lastSeen || 0) + 1) return null;
+        const txt = await f.text(); this.lastSeen = f.lastModified; if (!txt.trim()) return null;
+        let d; try { d = normalizeTrip(JSON.parse(txt)); } catch (e) { return null; }
+        if (!local || !sameTrip(local, d)) return null;
+        return String((d.meta && d.meta.lastUpdated) || '') > String((local.meta && local.meta.lastUpdated) || '') ? d : null;
+      },
+      async checkRemote(data) { const d = await this.readNewer(data); if (d) { this.set({ incoming: { data: d, at: new Date() } }); return true; } return false; },
+      async poll() {
+        if (!this.handle || this.status !== 'connected' || this.polling) return; this.polling = true;
+        try {
+          if ((await this.handle.queryPermission({ mode: 'readwrite' })) !== 'granted') { this.set({ status: 'needs-permission' }); return; }
+          if (this.incoming) return;
+          const d = await this.readNewer(getActiveTrip()); if (d) this.set({ incoming: { data: d, at: new Date() } });
+        } catch (e) {} finally { this.polling = false; }
+      },
+      async applyIncoming() {
+        const inc = this.incoming; if (!inc) return; clearTimeout(this.timer);
+        await installTripData(inc.data); try { sessionStorage.setItem('rt_synced', '1'); } catch (e) {} location.reload();
+      },
+      async renew(trip) {
+        const d = await this.activate(); this.lastSeen = 0;
+        const hit = d && sameTrip(getActiveTrip() || trip, d) && String((d.meta && d.meta.lastUpdated) || '') > String(((getActiveTrip() || trip).meta || {}).lastUpdated || '');
+        if (hit) this.set({ incoming: { data: d, at: new Date() } }); else await this.write(getActiveTrip() || trip);
+      },
       async disconnect() { try { const db = await fsIdb(); const tx = db.transaction('h', 'readwrite'); tx.objectStore('h').delete('handle'); } catch (e) {} this.set({ handle: null, name: '', status: 'none' }); }
     };
     function useFsSync() { const [, f] = useState(0); useEffect(() => { const fn = () => f((x) => x + 1); fsSync.listeners.add(fn); fsSync.init().then(fn); return () => fsSync.listeners.delete(fn); }, []); return fsSync; }
@@ -18821,7 +18868,11 @@ var qrcode = function() {
               <p className="text-[11px] text-slate-500">Eine bestehende Datei verbindest du oben unter „Meine Reisen“. Nach dem Neustart des Browsers fragt Chrome einmal nach („Verbindung erneuern“).</p>
             </div>
           )}
-          {mode !== 'readonly' && !FS_SUPPORTED && <p className="text-xs text-slate-600">Dieser Browser kann Dateien nicht direkt zurückschreiben. Nutze „Daten + Dokumente als JSON speichern“ und lege die Datei in Drive ab. Für automatisches Speichern am Laptop wird Chrome oder Edge benötigt.</p>}
+          {!FS_SUPPORTED && <div data-readonly-allow className="rounded-xl border border-emerald-300 bg-white p-3 space-y-2">
+            <div className="text-sm font-bold">Stand der Daten auf diesem Gerät: {trip.meta && trip.meta.lastUpdated ? new Date(trip.meta.lastUpdated).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'unbekannt'}</div>
+            <p className="text-xs text-slate-600">Dieser Browser kann eine Datei nicht dauerhaft verbinden und nicht automatisch nachladen. Änderungen vom Laptop holst du hier mit einem Tipp: Datei aus Drive wählen (die neueste Version wird übernommen).</p>
+            <label data-readonly-allow className="min-h-[44px] inline-flex items-center px-4 rounded-xl bg-[#1F4E8C] text-white text-sm font-bold cursor-pointer">Neueste Datei aus Drive laden<input data-readonly-allow type="file" accept=".json,application/json" className="hidden" onChange={(e) => run(async () => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; const d = await readTripFile(f); const fl = (d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (sameTrip(getActiveTrip(), d) && fl && fl <= lo) { setMsg('Diese Datei ist nicht neuer als der Stand auf dem Gerät. Nichts geändert.'); return; } if (sameTrip(getActiveTrip(), d) && mode !== 'readonly' && !window.confirm('Lokale Daten durch die Datei ersetzen?')) return; await loadTripFileAsActive(d); location.reload(); })} /></label>
+          </div>}
           {msg && <div role="status" className="text-sm rounded-lg bg-white border border-emerald-300 p-2">{msg}</div>}
         </section>
       );
@@ -19189,7 +19240,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 69</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 70</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -21231,6 +21282,49 @@ var qrcode = function() {
         <div data-hotel-facts className="flex flex-wrap gap-2">
           {items.map(([l, v]) => <span key={l} className={`inline-flex items-center gap-1.5 min-h-[32px] px-2.5 rounded-lg border text-xs font-semibold ${tone(v)}`}>{l}<b>{String(v || '').trim() ? String(v).trim() : '—'}</b></span>)}
         </div>
+      );
+    }
+
+    // ===== v70: Drive-Synchronisation (automatisch speichern + Änderungen übernehmen) =====
+    window.__rtFs = fsSync;
+    function RtFsBanner({ trip }) {
+      const fs = useFsSync(); const [busy, setBusy] = useState(false); const [note, setNote] = useState(() => { try { const v = sessionStorage.getItem('rt_synced'); if (v) { sessionStorage.removeItem('rt_synced'); return 'Aktualisiert: neuere Version aus Drive übernommen.'; } } catch (e) {} return ''; });
+      useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(''), 6000); return () => clearTimeout(t); }, [note]);
+      useEffect(() => {
+        if (IS_READ_ONLY_COPY) return;
+        const go = () => { if (document.visibilityState !== 'hidden') fsSync.poll(); };
+        const iv = setInterval(go, 15000);
+        document.addEventListener('visibilitychange', go); window.addEventListener('focus', go); window.addEventListener('online', go);
+        go();
+        return () => { clearInterval(iv); document.removeEventListener('visibilitychange', go); window.removeEventListener('focus', go); window.removeEventListener('online', go); };
+      }, []);
+      // Neuere Datei automatisch übernehmen, wenn gerade nichts bearbeitet wird und nichts ungespeichert ist
+      useEffect(() => {
+        if (!fs.incoming || fs.dirty) return;
+        const t = setInterval(() => {
+          const ae = document.activeElement, typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+          const dlg = document.querySelector('[role="dialog"],[aria-modal="true"],.rt-sheet');
+          if (!typing && !dlg && !fsSync.dirty && fsSync.incoming) { clearInterval(t); fsSync.applyIncoming().catch((e) => fsSync.set({ error: String(e && e.message || e) })); }
+        }, 1500);
+        return () => clearInterval(t);
+      }, [fs.incoming, fs.dirty]);
+      const run = async (fn) => { setBusy(true); try { await fn(); } catch (x) { if (!x || x.name !== 'AbortError') fsSync.set({ error: x && x.message ? x.message : String(x) }); } setBusy(false); };
+      if (IS_READ_ONLY_COPY || fs.status === 'none') return note ? <div role="status" className="rt-fsbar">{note}</div> : null;
+      const hh = fs.lastWrite ? fs.lastWrite.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null;
+      return (
+        <>
+          {note && <div role="status" className="rt-fsbar">{note}</div>}
+          {fs.incoming && <div role="alert" className="rt-fsbar warn">
+            <span>Auf Drive liegt eine neuere Version (z. B. vom Laptop).</span>
+            <button type="button" disabled={busy} onClick={() => run(() => fsSync.applyIncoming())}>Jetzt laden</button>
+            <button type="button" disabled={busy} className="ghost" onClick={() => { if (window.confirm('Die Drive-Datei mit deinem Stand überschreiben? Änderungen der anderen Version gehen dann verloren.')) run(async () => { fsSync.set({ incoming: null }); await fsSync.write(trip, true); }); }}>Meinen Stand behalten</button>
+          </div>}
+          {!fs.incoming && fs.status === 'needs-permission' && <div role="alert" className="rt-fsbar warn">
+            <span>Drive-Verbindung pausiert ({fs.name}). Bitte kurz bestätigen.</span>
+            <button type="button" disabled={busy} onClick={() => run(() => fsSync.renew(trip))}>Verbindung erneuern</button>
+          </div>}
+          {fs.status === 'connected' && !fs.incoming && <div className="rt-fspill" title={fs.error || ('Datei: ' + fs.name)}>{fs.error ? 'Drive: Fehler' : fs.dirty ? 'Drive: speichert …' : hh ? 'Drive gespeichert ' + hh : 'Drive verbunden'}</div>}
+        </>
       );
     }
 
@@ -25860,6 +25954,7 @@ Quelle: ${lt.url}` : '') }] } });
             </div>
           )}
           {importPreview && <div className="fixed inset-0 z-[80] bg-slate-950/70 flex items-center justify-center p-4"><section role="dialog" aria-modal="true" aria-labelledby="import-title" className="bg-white rounded-2xl p-5 max-w-lg w-full space-y-3"><h2 id="import-title" className="text-lg font-bold">JSON-Import prüfen</h2><p>Datei: <strong>{importPreview.filename}</strong></p><p>Reise: {importPreview.data.meta.title||'Ohne Titel'} · {importPreview.data.stages.length} Etappen · Schema {importPreview.data.meta.schemaVersion||'alt (wird migriert)'}</p><p className="text-xs text-amber-900">Vor Import wird die aktuelle Reise gesichert (Rolling-Backup). Import ersetzt die aktuelle Reise.</p><pre className="max-h-40 overflow-auto rounded bg-slate-100 p-2 text-xs">{JSON.stringify({meta:importPreview.data.meta,stages:importPreview.data.stages.map(x=>({id:x.id,toCity:x.toCity}))},null,2)}</pre><div className="flex justify-end gap-2"><button onClick={()=>setImportPreview(null)} className="px-3 py-2 border rounded">Abbrechen</button><button onClick={confirmImport} className="px-3 py-2 bg-teal-700 text-white rounded font-bold">Backup erstellen & importieren</button></div></section></div>}
+          <RtFsBanner trip={tripData} />
           {cloudConflict && <div className="fixed inset-0 z-[80] bg-slate-950/75 flex items-center justify-center p-4"><section role="dialog" aria-modal="true" aria-labelledby="conflict-title" className="bg-white rounded-2xl p-5 max-w-lg w-full space-y-4"><h2 id="conflict-title" className="text-lg font-bold text-amber-800">Drive-Konflikt erkannt</h2><p>Lokale Version {Number(tripData.meta?.version)||1} · Drive-Version {cloudConflict.version}. Es wurde nichts automatisch überschrieben. Vorher JSON exportieren empfohlen.</p><div className="grid gap-2"><button onClick={()=>{setCloudConflict(null);uploadCloud(tripData,true);}} className="p-3 rounded bg-teal-700 text-white font-bold">Lokal behalten – Drive bewusst überschreiben</button><button onClick={applyCloud} className="p-3 rounded border font-bold">Drive übernehmen – lokale Version ersetzen</button><button onClick={mergeCloud} className="p-3 rounded border font-bold">Zusammenführen – Listen nach ID kombinieren (lokale Felder gewinnen)</button><button onClick={()=>setCloudConflict(null)} className="p-2 text-slate-600">Später entscheiden</button></div></section></div>}
         </div>
       );
