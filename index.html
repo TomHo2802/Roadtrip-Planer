@@ -19247,7 +19247,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 78</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 79</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19257,7 +19257,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 78'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 79'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -19503,7 +19503,7 @@ var qrcode = function() {
       const [enr, setEnr] = useState({ busy: false, map: {}, fail: 0 });
       const [sortBy, setSortBy] = useState('km');
       const [st, setSt] = useState({ busy: false, err: '', items: null, estimated: false, origin: null });
-      useEffect(() => { if (from >= stages.length) setFrom(Math.max(0, stages.length - 1)); }, [stages.length]);
+      useEffect(() => { if (from > stages.length) setFrom(Math.max(0, stages.length - 1)); }, [stages.length]);
       const E = (c) => enr.map[c.id || c.name] || null;
       const FLT = [['big', 'Großstadt', 'Ab 250.000 Einwohnern', (c) => c.pop >= 250000, 'size'], ['mid', 'Stadt', '50.000 bis 250.000 Einwohner', (c) => c.pop >= 50000 && c.pop < 250000, 'size'], ['small', 'Kleinstadt', 'Unter 50.000 Einwohnern', (c) => c.pop > 0 && c.pop < 50000, 'size'],
         ['beach', 'Strand', 'Sandstrand höchstens ca. 4 km vom Ort', (c) => !!E(c) && E(c).beach > 0, 'f'],
@@ -19519,7 +19519,10 @@ var qrcode = function() {
       }, [st.items, flt, sortBy]);
       useEffect(() => { if (shown.length && !shown.some((c) => (c.id || c.name) === selId)) setSelId(shown[0].id || shown[0].name); }, [shown]);
       if (!stages.length) return null;
-      const o = stages[Math.min(from, stages.length - 1)]; const next = stages[from + 1];
+      const isNew = from >= stages.length; const cur = isNew ? null : stages[from]; const prevSt = from > 0 ? stages[Math.min(from, stages.length) - 1] : null;
+      const nrm = (x) => String(x || '').trim().toLowerCase();
+      const startCity = isNew ? ((prevSt && prevSt.toCity) || '') : (cur.fromCity || (prevSt && prevSt.toCity) || '');
+      const startGps = prevSt && (isNew || !cur.fromCity || nrm(prevSt.toCity) === nrm(cur.fromCity)) ? parseGps(prevSt.hotel && prevSt.hotel.gps) : null;
       const label = (s) => (s.toCity || s.fromCity || '–');
       const unit = mode === 'km' ? 'km' : 'Std.';
       const fmtV = (v) => (mode === 'km' ? `${v} km` : `${String(v).replace('.', ',')} Std.`);
@@ -19527,9 +19530,9 @@ var qrcode = function() {
       const run = async () => {
         setSt({ busy: true, err: '', items: null, estimated: false, origin: null });
         try {
-          let g = parseGps(o.hotel && o.hotel.gps);
-          if (!g && o.toCity) g = await sfGeocode(o.toCity);
-          if (!g) throw new Error('Startpunkt nicht gefunden. Bitte GPS im Hotel der Etappe oder einen eindeutigen Ortsnamen eintragen.');
+          let g = startGps;
+          if (!g && startCity) g = await sfGeocode(startCity);
+          if (!g) throw new Error('Startpunkt nicht gefunden. Bitte den Startort der Etappe als eindeutigen Ortsnamen eintragen oder im Hotel der Vor-Etappe GPS hinterlegen.');
           const [mn, mx] = rng;
           if (!(mx > 0)) throw new Error('Wert: Der Höchstabstand muss größer als 0 sein.');
           const r = await sfFindPlaces(g, mode === 'km' ? mx : 0, mode === 'km' ? mn : 0, mode, mx * 60, mn * 60, dir);
@@ -19541,8 +19544,8 @@ var qrcode = function() {
           <summary className="cursor-pointer px-4 py-3"><span className="font-bold text-slate-900">Nächste Etappe finden</span><span className="block text-xs text-slate-500">Orte in einem Abstands-Bereich und einer Himmelsrichtung vorschlagen</span></summary>
           <div className="p-4 pt-0 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="text-sm font-semibold">Ausgehend von
-                <select data-readonly-allow value={from} onChange={(e) => setFrom(Number(e.target.value))} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">{stages.map((s, i) => <option key={s.id} value={i}>Etappe {i + 1}: {label(s)}</option>)}</select>
+              <label className="text-sm font-semibold">Ziel suchen für (Abstand ab Startort der Etappe)
+                <select data-readonly-allow value={from} onChange={(e) => setFrom(Number(e.target.value))} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">{stages.map((s, i) => <option key={s.id} value={i}>Etappe {i + 1}: {s.fromCity || '–'} → {s.toCity || '–'}</option>)}<option value={stages.length}>Neue Etappe anhängen (Start: {label(stages[stages.length - 1])})</option></select>
               </label>
               <div className="text-sm font-semibold">Abstand messen in
                 <div className="mt-1 inline-flex rounded-lg border border-slate-300 overflow-hidden w-full">
@@ -19565,7 +19568,7 @@ var qrcode = function() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" data-readonly-allow onClick={run} disabled={st.busy} className="v18-btn pri disabled:opacity-50">{st.busy ? 'Suche läuft …' : 'Orte suchen'}</button>
-              <span className="text-xs text-slate-500">{next ? `Das Ergebnis ersetzt das Ziel von Etappe ${from + 2} (${label(next)}).` : `Das Ergebnis wird als neue Etappe ${from + 2} angehängt.`}</span>
+              <span className="text-xs text-slate-500">{!isNew ? `Start: ${startCity || '–'}. Das Ergebnis ersetzt das Ziel von Etappe ${from + 1} (${cur.toCity || '–'}).` : `Start: ${startCity || '–'}. Das Ergebnis wird als neue Etappe ${from + 1} angehängt.`}</span>
             </div>
             {st.err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{st.err}</div>}
             {st.items && st.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Keine Orte gefunden. Weite den Abstandsbereich aus oder wähle eine andere Richtung.</div>}
@@ -19593,7 +19596,7 @@ var qrcode = function() {
                     <div className="mt-2 text-[11px] text-slate-400">Fotos: Wikimedia Commons / Wikipedia · Karte: © OpenStreetMap</div>
                   </div>
                   <div className="order-1 lg:order-2 min-w-0 lg:sticky lg:top-4">
-                    <SfMap key={`${st.origin}`} origin={st.origin} items={shown} selId={selId} onSelect={setSelId} originName={label(o)} />
+                    <SfMap key={`${st.origin}`} origin={st.origin} items={shown} selId={selId} onSelect={setSelId} originName={startCity || 'Start'} />
                   </div>
                 </div>
               </div>
@@ -22414,19 +22417,18 @@ var qrcode = function() {
         setEditingStageModal(JSON.parse(JSON.stringify(newStage)));
       };
 
-      const handleAddSuggestedStage = (fromIdx, c) => {
-        const stages = tripData.stages || []; const o = stages[fromIdx]; if (!o) return;
+      const handleAddSuggestedStage = (idx, c) => { // idx: Etappe, deren Ziel gewählt wird (idx = Anzahl: neue Etappe)
+        const stages = tripData.stages || []; const o = idx > 0 ? stages[idx - 1] : null;
         const km = Math.round(c.km), hrs = (c.min / 60).toFixed(1).replace('.', ',');
         const route = { distanceKm: `${km} km (${Math.round(km * 0.621)} mi)`, duration: `${hrs} h`, routeDescription: '', stopsOnWay: [] };
         const gps = `${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}`;
-        const next = stages[fromIdx + 1];
-        if (next) {
-          const upd = stages.map((s, i) => i === fromIdx + 1 ? { ...s, fromCity: o.toCity || s.fromCity, toCity: c.name, routeToHotel: { ...(s.routeToHotel || {}), ...route }, hotel: { ...(s.hotel || {}), gps: (s.hotel && s.hotel.gps) ? s.hotel.gps : gps } } : s);
-          saveTripData({ ...tripData, stages: upd }, `Etappe ${fromIdx + 2}: ${c.name}`);
+        if (idx < stages.length) {
+          const oldTo = String((stages[idx] || {}).toCity || '').trim().toLowerCase(); const upd = stages.map((s, i) => i === idx ? { ...s, fromCity: s.fromCity || (o && o.toCity) || '', toCity: c.name, routeToHotel: { ...(s.routeToHotel || {}), ...route }, hotel: { ...(s.hotel || {}), gps } } : (i === idx + 1 && oldTo && String(s.fromCity || '').trim().toLowerCase() === oldTo ? { ...s, fromCity: c.name } : s));
+          saveTripData({ ...tripData, stages: upd }, `Etappe ${idx + 1}: ${c.name}`);
         } else {
           const id = `stage-${Date.now()}`;
-          const ns = { id, fromCity: o.toCity || '', toCity: c.name, dateRange: '', nights: '', routeToHotel: route, hotel: { ...emptyHotel(), gps }, localAttractions: [] };
-          saveTripData({ ...tripData, stages: [...stages, ns] }, `Etappe ${fromIdx + 2}: ${c.name}`);
+          const ns = { id, fromCity: (o && o.toCity) || '', toCity: c.name, dateRange: '', nights: '', routeToHotel: route, hotel: { ...emptyHotel(), gps }, localAttractions: [] };
+          saveTripData({ ...tripData, stages: [...stages, ns] }, `Etappe ${idx + 1}: ${c.name}`);
           setEditingStageModal(JSON.parse(JSON.stringify(ns)));
         }
       };

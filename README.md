@@ -371,3 +371,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Kopfzeile am Handy aufgeräumt: Titel, Fragezeichen, Hell/Dunkel-Knopf und Statuspunkt. Hintergrund ist jetzt undurchsichtig.
 - Optionen in drei Abschnitte gegliedert: Reise, Daten & Sicherung, Darstellung.
 - Sicherungs-Erinnerung: Ohne verbundene Datei erscheint nach einem Tag (nie gesichert) bzw. nach 7 Tagen ein Hinweis „Jetzt sichern“. „Später“ blendet ihn 3 Tage aus. Nicht in der Demo und nicht im Nur-Lesen-Modus.
+
+## v79 – Nächste Etappe finden
+- Die Suche geht jetzt vom Startort der gewählten Etappe aus (bei Etappen ab Nr. 2 vom Hotel der Vor-Etappe, sonst vom Ortsnamen). Die Auswahl zeigt „Etappe N: Start → Ziel“.
+- „Übernehmen“ ersetzt das Ziel dieser Etappe; der Start der Folge-Etappe wird angepasst. Mit dem letzten Eintrag „Neue Etappe anhängen“ entsteht eine zusätzliche Etappe.
