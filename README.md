@@ -348,3 +348,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v73
 - Karten-Logo: neuer Knopf „Aus Zwischenablage“. Alternativ Bild kopieren und Strg+V drücken, solange der Karten-Dialog offen ist.
+
+## v74 – Notfallkontakte
+- Gruppen: Bank, ADAC, Privat, Mietwagen, Fluggesellschaft, Reise, Sonstiges. Bestehende Kontakte werden anhand von Name und Kategorie automatisch einer Gruppe zugeordnet; im Bearbeiten-Dialog kannst du die Gruppe ändern.
+- Farbe pro Kontakt wie bei den Kreditkarten (18 Farben). Jeder Notfallkontakt hat immer einen roten Rand.

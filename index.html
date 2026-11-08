@@ -19226,7 +19226,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 73</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 74</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19235,7 +19235,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 73'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 74'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <ThemeSwitch compact />
             <button type="button" onClick={() => setActiveTab('cloud')} className="inline-flex items-center gap-1.5 text-xs text-slate-700"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</button>
           </header>
@@ -21404,6 +21404,21 @@ var qrcode = function() {
       );
     }
 
+    // ===== v74: Notfallkontakte nach Gruppen + Farben =====
+    const RT_EM_GROUPS = ['Bank', 'ADAC', 'Privat', 'Mietwagen', 'Fluggesellschaft', 'Reise', 'Sonstiges'];
+    const rtEmGroup = (em) => {
+      if (em && RT_EM_GROUPS.includes(em.group)) return em.group;
+      const t = `${(em && em.category) || ''} ${(em && em.organization) || ''}`.toLowerCase();
+      if (/adac|pannen|abschlepp/.test(t)) return 'ADAC';
+      if (/bank|kredit|karte|sperr|visa|master|amex|sparkasse|dkb|ing\b/.test(t)) return 'Bank';
+      if (/miet|hertz|avis|sixt|enterprise|budget|alamo|car rental|auto/.test(t)) return 'Mietwagen';
+      if (/flug|airline|lufthansa|condor|eurowings|delta|united|american air|airways|air /.test(t)) return 'Fluggesellschaft';
+      if (/privat|familie|freund|angehörig|zuhause|nachbar|eltern/.test(t)) return 'Privat';
+      if (/reise|versicher|hotel|botschaft|konsulat|auswärtig|usa|notruf|911|arzt|klinik|krankenhaus/.test(t)) return 'Reise';
+      return 'Sonstiges';
+    };
+    const rtEmTheme = (em) => { const c = RT_CARD_COLORS.find((x) => x.k === ((em && em.color) || 'red')) || RT_CARD_COLORS.find((x) => x.k === 'red'); return { solid: c.a, grad: `linear-gradient(135deg, ${c.a}, ${c.b})` }; };
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
@@ -23464,16 +23479,17 @@ Quelle: ${lt.url}` : '') }] } });
                     </button>
                   </div>
 
-                  <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {(tripData.emergencyContacts || []).map((em) => (
+                  <div className="p-4 sm:p-6 space-y-6">
+                    {RT_EM_GROUPS.map((grp) => { const emList = (tripData.emergencyContacts || []).filter((e) => rtEmGroup(e) === grp); if (!emList.length) return null; return (<div key={grp} data-em-group={grp}><h3 className="text-sm font-bold text-slate-700 mb-2">{grp} <span className="font-normal text-slate-400">({emList.length})</span></h3><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {emList.map((em) => (
                       <div
                         key={em.id}
-                        className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 flex flex-col justify-between gap-3 hover:border-rose-300 transition"
+                        data-emergency-card className="rounded-xl border-2 border-red-600 bg-slate-50/70 p-4 flex flex-col justify-between gap-3 transition"
                       >
                         <div>
                           <div className="flex items-start justify-between gap-2">
-                            <span className="text-[11px] font-bold uppercase tracking-wider bg-rose-100 text-rose-900 px-2.5 py-0.5 rounded border border-rose-200">
-                              {em.category || 'Notfall'}
+                            <span style={{ background: rtEmTheme(em).grad }} className="text-[11px] font-bold uppercase tracking-wider text-white px-2.5 py-0.5 rounded">
+                              {rtEmGroup(em)}
                             </span>
                             <div className="flex items-center gap-1">
                               <button
@@ -23518,7 +23534,7 @@ Quelle: ${lt.url}` : '') }] } });
                         <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80">
                           <a
                             href={`tel:${(em.phone || em.displayPhone || '').replace(/\s+/g, '')}`}
-                            className="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 px-3 rounded-lg text-center flex items-center justify-center gap-1.5 shadow-2xs transition"
+                            style={{ background: rtEmTheme(em).grad }} className="flex-1 text-white text-xs font-bold py-2 px-3 rounded-lg text-center flex items-center justify-center gap-1.5 shadow-2xs transition"
                           >
                             <span>Anrufen: {em.displayPhone || em.phone}</span>
                           </a>
@@ -23532,6 +23548,7 @@ Quelle: ${lt.url}` : '') }] } });
                         </div>
                       </div>
                     ))}
+                  </div></div>); })}
                   </div>
                 </section>
               </div>
@@ -25921,13 +25938,7 @@ Quelle: ${lt.url}` : '') }] } });
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="font-bold text-slate-700 block mb-1">Kategorie</label>
-                      <input
-                        type="text"
-                        value={editingEmergencyModal.category}
-                        onChange={(e) => setEditingEmergencyModal({ ...editingEmergencyModal, category: e.target.value })}
-                        placeholder="z.B. ADAC & Pannenhilfe"
-                        className="w-full px-3 py-1.5 rounded-lg border border-slate-300"
-                      />
+                      <select data-em-group-select value={rtEmGroup(editingEmergencyModal)} onChange={(e) => setEditingEmergencyModal({ ...editingEmergencyModal, group: e.target.value, category: e.target.value })} className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white">{RT_EM_GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}</select>
                     </div>
                     <div>
                       <label className="font-bold text-slate-700 block mb-1">Telefonnummer</label>
@@ -25946,6 +25957,7 @@ Quelle: ${lt.url}` : '') }] } });
                       />
                     </div>
                   </div>
+                  <div><label className="font-bold text-slate-700 block mb-1">Farbe (der rote Rand bleibt immer)</label><RtCardColors value={editingEmergencyModal.color || 'red'} onChange={(v) => setEditingEmergencyModal({ ...editingEmergencyModal, color: v })} /></div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Vertrags- / Mitglieds- / Policennummer</label>
                     <input
