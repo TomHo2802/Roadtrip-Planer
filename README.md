@@ -390,3 +390,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v82
 - Etappen-Finder: Klick auf einen Kartenpunkt wählt den Ort aus und scrollt die Liste dorthin.
+
+## v83
+- Etappen-Finder: „Ort auf der Karte wählen“ zeigt nur den Suchbereich; Ziel per Tipp auf die Karte wählen.
