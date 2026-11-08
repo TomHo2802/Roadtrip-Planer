@@ -19247,7 +19247,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 80</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 81</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19257,7 +19257,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 80'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 81'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -19593,6 +19593,7 @@ var qrcode = function() {
                 <div data-sf-tol role="group" aria-label="Öffnung der Richtung" className="inline-flex rounded-lg border border-slate-300 overflow-hidden text-xs">{[['narrow', 'Schmal'], ['normal', 'Normal'], ['wide', 'Breit']].map(([k, l]) => <button key={k} type="button" data-readonly-allow aria-pressed={tol === k} onClick={() => setTol(k)} className={`px-2.5 py-1.5 font-semibold ${tol === k ? 'bg-[#1F4E8C] text-white' : 'bg-white text-slate-700'}`}>{l}</button>)}</div>
               </div>
             </div>
+            <RtRouteInline />
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" data-readonly-allow onClick={run} disabled={st.busy} className="v18-btn pri disabled:opacity-50">{st.busy ? 'Suche läuft …' : 'Orte suchen'}</button>
               <span className="text-xs text-slate-500">{!isNew ? `Start: ${startCity || '–'}. Das Ergebnis ersetzt das Ziel von Etappe ${from + 1} (${cur.toCity || '–'}).` : `Start: ${startCity || '–'}. Das Ergebnis wird als neue Etappe ${from + 1} angehängt.`}</span>
@@ -20775,8 +20776,8 @@ var qrcode = function() {
     // v50: Rückreise-Etappe, Strecken (km / Fahrzeit) und Migration bestehender Planungen
     const rtIsRet = (stages, i) => !!stages && stages.length > 1 && i === stages.length - 1 && !(parseInt((stages[i] || {}).nights, 10) > 0);
     const rtStageName = (s) => `${s.fromCity || '?'} → ${s.toCity || '?'}`;
-    async function rtRoute(A, B) {
-      const j = await fetchJsonTimeout(`https://router.project-osrm.org/route/v1/driving/${A[1]},${A[0]};${B[1]},${B[0]}?overview=false`, {}, 15000);
+    async function rtRoute(A, B, mode) {
+      const j = await fetchJsonTimeout(`https://router.project-osrm.org/route/v1/driving/${A[1]},${A[0]};${B[1]},${B[0]}?overview=false${mode ? '&rtmode=' + mode : ''}`, {}, 15000);
       const r = j && j.routes && j.routes[0]; if (!r) throw new Error('Keine Route');
       const km = Math.round(r.distance / 1000), hrs = (r.duration / 3600).toFixed(1).replace('.', ',');
       return { distanceKm: `${km} km (${Math.round(km * 0.621)} mi)`, duration: `${hrs} h` };
@@ -20786,17 +20787,19 @@ var qrcode = function() {
       let A = parseGps(prev && prev.hotel && prev.hotel.gps); if (!A) { const nm = s.fromCity || (prev && prev.toCity); if (nm) A = await sfGeocode(nm); }
       let B = parseGps(s.hotel && s.hotel.gps); if (!B && s.toCity) B = await sfGeocode(s.toCity);
       if (!A || !B) throw new Error('Ort nicht gefunden');
-      return rtRoute(A, B);
+      return rtRoute(A, B, (stages[i] || {}).routeType);
     }
     function RouteCalcBar({ trip, stage, index, onSave }) {
       const [st, setSt] = useState('');
       const run = async () => {
         setSt('Berechne …');
-        try { const r = await rtCalcStage(trip.stages || [], index); const stages = (trip.stages || []).map((s) => (s.id === stage.id ? { ...s, routeToHotel: { ...(s.routeToHotel || { routeDescription: '', stopsOnWay: [] }), ...r } } : s)); onSave({ ...trip, stages }, `Strecke: ${r.distanceKm} · ${r.duration}`); setSt(''); }
+        const t0 = Date.now();
+        try { const r = await rtCalcStage(trip.stages || [], index); const stages = (trip.stages || []).map((s) => (s.id === stage.id ? { ...s, routeToHotel: { ...(s.routeToHotel || { routeDescription: '', stopsOnWay: [] }), ...r } } : s)); onSave({ ...trip, stages }, `Strecke: ${r.distanceKm} · ${r.duration}`); setSt((window.__rtRouteFallback || 0) > t0 ? 'Routenart vom Dienst nicht unterstützt: Standardroute verwendet.' : ''); }
         catch (e) { setSt('Nicht möglich: ' + (/Ort/.test(e.message) ? 'Ortsnamen prüfen.' : 'Internet nötig.')); }
       };
       return (
         <div data-route-calc className="px-3 py-2 flex flex-wrap items-center gap-2 text-xs">
+          <label className="inline-flex items-center gap-1 text-slate-700">Routenart <select data-stage-route-type value={stage.routeType || ''} onChange={(e) => onSave({ ...trip, stages: (trip.stages || []).map((s) => (s.id === stage.id ? { ...s, routeType: e.target.value } : s)) }, 'Routenart der Etappe geändert')} className="px-2 py-1 rounded-lg border border-slate-300 bg-white"><option value="">Wie Einstellung ({rtRouteLabel(rtRoutePref())})</option>{RT_ROUTE_MODES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
           <button type="button" onClick={run} className="v18-btn sm">Entfernung &amp; Fahrzeit ermitteln</button>
           <span className="text-slate-600">{(stage.routeToHotel || {}).distanceKm ? '' : 'Noch keine Angabe.'} {st}</span>
         </div>
@@ -20806,10 +20809,10 @@ var qrcode = function() {
       const [st, setSt] = useState('');
       const stages = trip.stages || []; const open = stages.filter((s) => !(s.routeToHotel && s.routeToHotel.distanceKm && s.routeToHotel.duration)).length;
       if (!stages.length) return null;
-      const run = async () => {
+      const run = async (force) => {
         let cur = stages, fail = 0;
         for (let i = 0; i < cur.length; i++) {
-          const s = cur[i]; if (s.routeToHotel && s.routeToHotel.distanceKm && s.routeToHotel.duration) continue;
+          const s = cur[i]; if (!force && s.routeToHotel && s.routeToHotel.distanceKm && s.routeToHotel.duration) continue;
           setSt(`Berechne Etappe ${i + 1} von ${cur.length} …`);
           try { const r = await rtCalcStage(cur, i); cur = cur.map((x, k) => (k === i ? { ...x, routeToHotel: { ...(x.routeToHotel || { routeDescription: '', stopsOnWay: [] }), ...r } } : x)); } catch (e) { fail++; }
         }
@@ -20817,7 +20820,8 @@ var qrcode = function() {
       };
       return (
         <div data-route-all className="v18-edit-only no-print rounded-2xl border border-slate-200 bg-white p-3 flex flex-wrap items-center gap-3 text-sm">
-          <button type="button" onClick={run} disabled={!open || !!st && /Berechne/.test(st)} className="v18-btn disabled:opacity-50">Entfernung &amp; Fahrzeit für alle Etappen ermitteln</button>
+          <button type="button" onClick={() => run(false)} disabled={!open || !!st && /Berechne/.test(st)} className="v18-btn disabled:opacity-50">Entfernung &amp; Fahrzeit für alle Etappen ermitteln</button>
+          <button type="button" data-route-all-force onClick={() => { if (window.confirm('Alle Strecken mit der aktuellen Routenart neu berechnen? Vorhandene km und Fahrzeiten werden überschrieben.')) run(true); }} disabled={!!st && /Berechne/.test(st)} className="v18-btn">Alle neu berechnen ({rtRouteLabel(rtRoutePref())})</button>
           <span className="text-slate-700">{open ? `${open} Etappe(n) ohne Angabe` : 'Alle Etappen haben km und Fahrzeit.'} {st}</span>
         </div>
       );
@@ -21619,6 +21623,47 @@ var qrcode = function() {
       );
     }
     function RtGroupHead({ title, sub }) { return <div data-opt-group className="pt-2"><h2 className="text-xl font-extrabold text-slate-900 m-0">{title}</h2>{sub && <p className="text-sm text-slate-500 m-0">{sub}</p>}</div>; }
+
+    // ===== v81: Routenart (Autobahn meiden, mautfrei, Fähren meiden) =====
+    const RT_ROUTE_KEY = 'roadtrip_route_pref';
+    const RT_ROUTE_MODES = [['fast', 'Schnellste Route', '', 'Standard des Routing-Dienstes'], ['nomotorway', 'Autobahn meiden', 'motorway', 'Landstraßen bevorzugt, meist langsamer'], ['notoll', 'Mautfrei', 'toll', 'Mautstraßen meiden'], ['noferry', 'Fähren meiden', 'ferry', 'Nur Strecken ohne Fähre']];
+    const rtRoutePref = () => { const v = rtLsGet(RT_ROUTE_KEY); return RT_ROUTE_MODES.some((m) => m[0] === v) ? v : 'fast'; };
+    const rtRouteLabel = (k) => (RT_ROUTE_MODES.find((m) => m[0] === k) || RT_ROUTE_MODES[0])[1];
+    (function rtPatchFetch() {
+      if (window.__rtFetchPatched) return; window.__rtFetchPatched = true; const orig = window.fetch.bind(window);
+      window.fetch = async function (input, init) {
+        let url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (!/router\.project-osrm\.org\/(route|table)\/v1\/driving\//.test(url)) return orig(input, init);
+        let mode = null; url = url.replace(/&rtmode=([a-z]+)/, (m, g) => { mode = g; return ''; });
+        if (!mode) mode = rtRoutePref();
+        const cls = (RT_ROUTE_MODES.find((m) => m[0] === mode) || [])[2];
+        if (!cls) return orig(url, init);
+        try {
+          const r = await orig(url + (url.includes('?') ? '&' : '?') + 'exclude=' + cls, init);
+          if (r.ok) { const j = await r.clone().json().catch(() => null); if (j && j.code === 'Ok') return r; }
+        } catch (e) { if (e && e.name === 'AbortError') throw e; }
+        window.__rtRouteFallback = Date.now(); return orig(url, init);
+      };
+    })();
+    function rtSetRoutePref(v) { rtLsSet(RT_ROUTE_KEY, v); try { window.dispatchEvent(new Event('rt-route-pref')); } catch (e) {} }
+    function useRoutePref() { const [v, setV] = useState(rtRoutePref); useEffect(() => { const h = () => setV(rtRoutePref()); window.addEventListener('rt-route-pref', h); return () => window.removeEventListener('rt-route-pref', h); }, []); return v; }
+    function RtRouteBar() {
+      const v = useRoutePref();
+      return (
+        <section data-route-pref className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+          <h3 className="text-base font-bold text-slate-900 m-0">Routenart</h3>
+          <p className="text-xs text-slate-600 m-0">Gilt für neue Strecken- und Fahrzeitberechnungen sowie „Nächste Etappe finden“. Einzelne Etappen können eine eigene Routenart haben (bei der Strecke der Etappe).</p>
+          <div role="radiogroup" aria-label="Routenart" className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {RT_ROUTE_MODES.map(([k, l, , d]) => <button key={k} type="button" role="radio" aria-checked={v === k} data-readonly-allow data-route-mode={k} onClick={() => rtSetRoutePref(k)} className={`text-left rounded-xl border px-3 py-2 min-h-[52px] ${v === k ? 'border-[#F2A044] bg-[#FFF5E6] ring-2 ring-[#F2A044]' : 'border-slate-300 bg-white'}`}><span className="block text-sm font-bold text-slate-900">{l}</span><span className="block text-xs text-slate-600">{d}</span></button>)}
+          </div>
+          <p className="text-xs text-slate-500 m-0">Nicht möglich: „nur Autobahn“ erzwingen und „am Meer entlang“. Der Routing-Dienst kennt dafür keine Option. Meidet er eine Strecke nicht (zum Beispiel keine Landstraße vorhanden), nutzt die App die Standardroute und weist darauf hin.</p>
+        </section>
+      );
+    }
+    function RtRouteInline() {
+      const v = useRoutePref();
+      return <label data-route-inline className="text-sm font-semibold block">Routenart <select data-readonly-allow value={v} onChange={(e) => rtSetRoutePref(e.target.value)} className="mt-1 w-full sm:w-auto px-3 py-2 rounded-lg border border-slate-300 bg-white font-normal">{RT_ROUTE_MODES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>;
+    }
 
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
@@ -24430,6 +24475,8 @@ Quelle: ${lt.url}` : '') }] } });
                 <TemplateBar trip={tripData} onSave={saveTripData} />
                 <RtGroupHead title="Daten & Sicherung" sub="Deine Reise als Datei sichern oder mit Drive verbinden." />
                 <DeviceDataCard trip={tripData} />
+                <RtGroupHead title="Routen" sub="Wie Strecken und Fahrzeiten berechnet werden." />
+                <RtRouteBar />
                 <RtGroupHead title="Darstellung" sub="Handy-, Tablet- oder Laptop-Ansicht." />
                 <RtViewBar />
                 <details className="v18-adv rounded-2xl border border-slate-200 bg-white">

@@ -380,3 +380,10 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Mehrere Himmelsrichtungen sind antippbar (zum Beispiel Süd und Südwest). „Öffnung“ Schmal/Normal/Breit (±25°/±45°/±70°) erweitert den Sektor. Standard ist Normal (vorher ±35°).
 - Fortschrittsbalken wie bei der Aktionen-Suche, mit Abbrechen.
 - Die Orte-Abfrage fragt nur noch den gewählten Richtungssektor ab (kleiner, schneller) und wartet länger auf die Kartendienste (bis 60 s, ein Wiederholungsversuch). Bei Zeitüberschreitung kommt eine verständliche Meldung statt „signal is aborted“.
+
+## v81 – Routenart
+- Optionen > Routen: Schnellste Route, Autobahn meiden, Mautfrei oder Fähren meiden. Gilt für Strecken-/Fahrzeitberechnung und „Nächste Etappe finden“ (dort auch direkt wählbar).
+- Pro Etappe überschreibbar: bei „Weg zum Hotel“ neben „Entfernung & Fahrzeit ermitteln“.
+- „Alle neu berechnen“ rechnet alle Etappen mit der gewählten Routenart neu.
+- Meidet der Routing-Dienst eine Strecke nicht (keine Alternative), nutzt die App die Standardroute und weist darauf hin.
+- Nicht möglich: „nur Autobahn“ erzwingen, „am Meer entlang“.
