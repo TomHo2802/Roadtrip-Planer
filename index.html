@@ -19226,7 +19226,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 72</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 73</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19235,7 +19235,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 72'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 73'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <ThemeSwitch compact />
             <button type="button" onClick={() => setActiveTab('cloud')} className="inline-flex items-center gap-1.5 text-xs text-slate-700"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</button>
           </header>
@@ -21377,6 +21377,16 @@ var qrcode = function() {
         setBusy(false);
       };
       const pick = async (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; setBusy(true); setMsg(''); try { onChange(await rtLogoFromBlob(f)); setMsg('Bild übernommen.'); } catch (x) { setMsg(x.message || 'Fehler'); } setBusy(false); };
+      const take = async (blob) => { setBusy(true); setMsg(''); try { onChange(await rtLogoFromBlob(blob)); setMsg('Bild aus der Zwischenablage übernommen.'); } catch (x) { setMsg(x.message || 'Fehler'); } setBusy(false); };
+      useEffect(() => {
+        const h = (e) => { const it = [...((e.clipboardData && e.clipboardData.items) || [])].find((i) => /^image\//.test(i.type)); if (!it) return; const f = it.getAsFile(); if (f) { e.preventDefault(); take(f); } };
+        document.addEventListener('paste', h); return () => document.removeEventListener('paste', h);
+      }, []);
+      const fromClip = async () => {
+        setMsg('');
+        try { if (!navigator.clipboard || !navigator.clipboard.read) throw new Error('x'); const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find((x) => /^image\//.test(x)); if (t) { await take(await it.getType(t)); return; } } setMsg('In der Zwischenablage ist kein Bild. Kopiere zuerst ein Bild.'); }
+        catch (e) { setMsg('Zugriff auf die Zwischenablage nicht möglich. Kopiere das Bild und drücke Strg+V (am Handy: in das Feld unten tippen und „Einfügen“ wählen).'); }
+      };
       return (
         <div data-card-logo className="space-y-2">
           <div className="flex items-center gap-3">
@@ -21386,6 +21396,7 @@ var qrcode = function() {
           <div className="flex flex-wrap gap-2 items-center">
             <input type="text" value={dom} onChange={(e) => setDom(e.target.value)} placeholder="Webseite, z. B. dkb.de" className="flex-1 min-w-[10rem] px-3 py-1.5 rounded-lg border border-slate-300" />
             <button type="button" disabled={busy} onClick={load} className="min-h-[36px] px-3 rounded-lg bg-[#1F4E8C] text-white text-xs font-bold">{busy ? 'Lade …' : 'Logo aus Internet laden'}</button>
+            <button type="button" disabled={busy} data-clip-paste onClick={fromClip} className="min-h-[36px] px-3 rounded-lg border border-slate-300 bg-white text-xs font-semibold">Aus Zwischenablage</button>
             <label className="min-h-[36px] inline-flex items-center px-3 rounded-lg border border-slate-300 bg-white text-xs font-semibold cursor-pointer">Eigenes Bild<input type="file" accept="image/*" className="hidden" onChange={pick} /></label>
           </div>
           {msg && <div role="status" className="text-xs text-slate-700">{msg}</div>}
