@@ -19226,7 +19226,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 75</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 76</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19235,7 +19235,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 75'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 76'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <ThemeSwitch compact />
             <button type="button" onClick={() => setActiveTab('cloud')} className="inline-flex items-center gap-1.5 text-xs text-slate-700"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</button>
           </header>
@@ -21492,6 +21492,15 @@ var qrcode = function() {
       );
     }
 
+    // ===== v76: gelöschte Kreditkarten aus Buchungen entfernen =====
+    const RT_NO_CARD = 'Bar / Vor Ort ohne Karte';
+    function rtDropCardRefs(trip, gone) {
+      const bad = (n) => !!n && n !== RT_NO_CARD && gone(n); let n = 0;
+      const fix = (o) => { if (o && bad(o.creditCard)) { n++; return { ...o, creditCard: '' }; } return o; };
+      const out = { ...trip, flights: (trip.flights || []).map(fix), rentalCars: (trip.rentalCars || []).map(fix), stages: (trip.stages || []).map((s) => (s && s.hotel && bad(s.hotel.creditCard) ? (n++, { ...s, hotel: { ...s.hotel, creditCard: '' } }) : s)) };
+      return n ? out : null;
+    }
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
@@ -21898,15 +21907,13 @@ var qrcode = function() {
       const restoreRollingBackup = () => { try { const backups=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'); if(!backups.length) { setImportError('Kein lokales Rolling-Backup vorhanden.'); return; } const b=backups[0]; setImportPreview({data:normalizeTrip(b.data),filename:'Lokales Rolling-Backup ('+new Date(b.savedAt).toLocaleString('de-DE')+')'}); } catch(e) { setImportError('Rolling-Backup kann nicht gelesen werden: '+e.message); } };
 
       // Available Credit Card Names for Dropdowns
-      const availableCardOptions = useMemo(() => {
-        const registered = (tripData.creditCards || []).map((c) => c.name);
-        const usedInBookings = new Set(registered);
-        (tripData.flights || []).forEach((f) => f.creditCard && usedInBookings.add(f.creditCard));
-        (tripData.rentalCars || []).forEach((c) => c.creditCard && usedInBookings.add(c.creditCard));
-        (tripData.stages || []).forEach((s) => s.hotel?.creditCard && usedInBookings.add(s.hotel.creditCard));
-        usedInBookings.add('Bar / Vor Ort ohne Karte');
-        return Array.from(usedInBookings);
-      }, [tripData]);
+      const availableCardOptions = useMemo(() => [...(tripData.creditCards || []).map((c) => c.name), RT_NO_CARD], [tripData]);
+      useEffect(() => {
+        if (isReadOnly || !(tripData.creditCards || []).length) return;
+        const names = new Set((tripData.creditCards || []).map((c) => c.name));
+        const cleaned = rtDropCardRefs(tripData, (n) => !names.has(n));
+        if (cleaned) saveTripData(cleaned, 'Gelöschte Kreditkarte aus Buchungen entfernt');
+      }, [tripData, isReadOnly]);
 
       const participantNames = useMemo(() => {
         const list = (tripData.participants || []).map((p) => p.name);
@@ -22376,7 +22383,7 @@ Quelle: ${lt.url}` : '') }] } });
         } else if (type === 'car') {
           saveTripData({ ...tripData, rentalCars: (tripData.rentalCars || []).filter((c) => c.id !== id) }, 'Mietwagen gelöscht');
         } else if (type === 'card') {
-          saveTripData({ ...tripData, creditCards: (tripData.creditCards || []).filter((c) => c.id !== id) }, 'Kreditkarte gelöscht');
+          { const gone = (tripData.creditCards || []).find((c) => c.id === id); const rest = (tripData.creditCards || []).filter((c) => c.id !== id); const next = { ...tripData, creditCards: rest }; saveTripData(rtDropCardRefs(next, (n) => !!gone && n === gone.name && !rest.some((c) => c.name === n)) || next, 'Kreditkarte gelöscht'); }
         } else if (type === 'emergency') {
           saveTripData({ ...tripData, emergencyContacts: (tripData.emergencyContacts || []).filter((e) => e.id !== id) }, 'Notfallkontakt gelöscht');
         }
@@ -24949,7 +24956,7 @@ Quelle: ${lt.url}` : '') }] } });
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Kreditkarte</label>
                         <select
-                          value={editingStageModal.hotel?.creditCard || ''}
+                          value={availableCardOptions.includes(editingStageModal.hotel?.creditCard) ? editingStageModal.hotel.creditCard : ''}
                           onChange={(e) =>
                             setEditingStageModal({
                               ...editingStageModal,
@@ -24958,7 +24965,7 @@ Quelle: ${lt.url}` : '') }] } });
                           }
                           className="w-full px-3 py-1.5 rounded-lg border border-emerald-400 bg-emerald-50 font-bold"
                         >
-                          {!editingStageModal.hotel?.creditCard && <option value="">— bitte wählen —</option>}
+                          {!availableCardOptions.includes(editingStageModal.hotel?.creditCard) && <option value="">— bitte wählen —</option>}
                           {availableCardOptions.map((cName) => (
                             <option key={cName} value={cName}>{cName}</option>
                           ))}
@@ -25402,10 +25409,11 @@ Quelle: ${lt.url}` : '') }] } });
                     <label className="font-bold text-slate-700 block mb-1">Kreditkarte & Bezahlt von</label>
                     <div className="flex gap-2">
                       <select
-                        value={editingFlightModal.creditCard || ''}
+                        value={availableCardOptions.includes(editingFlightModal.creditCard) ? editingFlightModal.creditCard : ''}
                         onChange={(e) => setEditingFlightModal({ ...editingFlightModal, creditCard: e.target.value })}
                         className="w-1/2 px-2 py-1.5 rounded-lg border border-emerald-400 bg-emerald-50 font-bold"
                       >
+                        {!availableCardOptions.includes((editingFlightModal||editingCarModal||{}).creditCard) && <option value="">— bitte wählen —</option>}
                         {availableCardOptions.map((cName) => (
                           <option key={cName} value={cName}>{cName}</option>
                         ))}
@@ -25637,10 +25645,11 @@ Quelle: ${lt.url}` : '') }] } });
                     <label className="font-bold text-slate-700 block mb-1">Kreditkarte & Bezahlt von</label>
                     <div className="flex gap-2">
                       <select
-                        value={editingCarModal.creditCard || ''}
+                        value={availableCardOptions.includes(editingCarModal.creditCard) ? editingCarModal.creditCard : ''}
                         onChange={(e) => setEditingCarModal({ ...editingCarModal, creditCard: e.target.value })}
                         className="w-1/2 px-2 py-1.5 rounded-lg border border-emerald-400 bg-emerald-50 font-bold"
                       >
+                        {!availableCardOptions.includes((editingFlightModal||editingCarModal||{}).creditCard) && <option value="">— bitte wählen —</option>}
                         {availableCardOptions.map((cName) => (
                           <option key={cName} value={cName}>{cName}</option>
                         ))}

@@ -356,3 +356,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v75 – Koffer-PINs
 - Buchen > Karten & Notfall, unterhalb der Notfallkontakte: je Mitreisendem eine Karte mit beliebig vielen PINs samt Beschreibung. PINs hinzufügen (+ PIN hinzufügen) und entfernen (✕), Karte löschen. PINs sind zunächst verdeckt (Anzeigen/Verbergen).
 - Sie liegen in der Reisedatei (Drive), aber nicht in der Reisevorlage und nicht im Teilen-Export.
+
+## v76 – Gelöschte Kreditkarten
+- Wird eine Kreditkarte gelöscht, wird sie auch bei Hotels, Flügen und Mietwagen entfernt. Die Auswahllisten zeigen nur noch vorhandene Karten (plus „Bar / Vor Ort ohne Karte“). Betroffene Buchungen stehen danach auf „bitte wählen“.
+- Bereits gelöschte Karten, die noch in Buchungen hingen (z. B. Zipfelbank), werden beim nächsten Start einmalig bereinigt.
