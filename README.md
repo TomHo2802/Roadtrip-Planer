@@ -352,3 +352,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v74 – Notfallkontakte
 - Gruppen: Bank, ADAC, Privat, Mietwagen, Fluggesellschaft, Reise, Sonstiges. Bestehende Kontakte werden anhand von Name und Kategorie automatisch einer Gruppe zugeordnet; im Bearbeiten-Dialog kannst du die Gruppe ändern.
 - Farbe pro Kontakt wie bei den Kreditkarten (18 Farben). Jeder Notfallkontakt hat immer einen roten Rand.
+
+## v75 – Koffer-PINs
+- Buchen > Karten & Notfall, unterhalb der Notfallkontakte: je Mitreisendem eine Karte mit beliebig vielen PINs samt Beschreibung. PINs hinzufügen (+ PIN hinzufügen) und entfernen (✕), Karte löschen. PINs sind zunächst verdeckt (Anzeigen/Verbergen).
+- Sie liegen in der Reisedatei (Drive), aber nicht in der Reisevorlage und nicht im Teilen-Export.

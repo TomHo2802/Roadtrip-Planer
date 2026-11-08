@@ -19226,7 +19226,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 74</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 75</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19235,7 +19235,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 74'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 75'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <ThemeSwitch compact />
             <button type="button" onClick={() => setActiveTab('cloud')} className="inline-flex items-center gap-1.5 text-xs text-slate-700"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</button>
           </header>
@@ -21419,6 +21419,79 @@ var qrcode = function() {
     };
     const rtEmTheme = (em) => { const c = RT_CARD_COLORS.find((x) => x.k === ((em && em.color) || 'red')) || RT_CARD_COLORS.find((x) => x.k === 'red'); return { solid: c.a, grad: `linear-gradient(135deg, ${c.a}, ${c.b})` }; };
 
+    // ===== v75: Koffer-PINs je Mitreisendem =====
+    function RtPinCards({ trip, onSave }) {
+      const cards = trip.suitcasePins || []; const people = (trip.participants || []).map((p) => p.name).filter(Boolean);
+      const [edit, setEdit] = useState(null); const [shown, setShown] = useState({});
+      const uid = () => 'sp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const free = people.filter((n) => !cards.some((c) => c.name === n));
+      const startNew = () => setEdit({ id: uid(), name: free[0] || '', pins: [{ id: uid(), label: '', pin: '' }], isNew: true });
+      const save = () => {
+        const name = (edit.name || '').trim(); if (!name) return;
+        const pins = (edit.pins || []).filter((p) => (p.label || '').trim() || (p.pin || '').trim()).map((p) => ({ id: p.id, label: (p.label || '').trim(), pin: (p.pin || '').trim() }));
+        const next = { id: edit.id, name, pins };
+        const list = cards.some((c) => c.id === edit.id) ? cards.map((c) => (c.id === edit.id ? next : c)) : [...cards, next];
+        onSave({ ...trip, suitcasePins: list }, 'Koffer-PINs gespeichert'); setEdit(null);
+      };
+      const del = (c) => { if (window.confirm(`Karte „${c.name}“ mit allen PINs löschen?`)) onSave({ ...trip, suitcasePins: cards.filter((x) => x.id !== c.id) }, 'Koffer-PINs gelöscht'); };
+      const setPin = (id, k, v) => setEdit({ ...edit, pins: edit.pins.map((p) => (p.id === id ? { ...p, [k]: v } : p)) });
+      return (
+        <section data-pin-section className="rounded-2xl border border-slate-300 bg-white shadow-sm overflow-hidden">
+          <div className="bg-slate-900 text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+            <div><h2 className="text-base sm:text-lg font-bold">Koffer-PINs</h2><p className="text-xs text-slate-300">Zahlenschlösser je Mitreisendem mit Beschreibung. Liegen in der Reisedatei, nicht in der Reisevorlage.</p></div>
+            <button type="button" data-pin-add-card onClick={startNew} className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-lg">+ Karte anlegen</button>
+          </div>
+          <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {cards.length === 0 && !edit && <div className="text-sm text-slate-500 md:col-span-3">Noch keine PINs hinterlegt.</div>}
+            {cards.map((c) => (edit && edit.id === c.id) ? null : (
+              <div key={c.id} data-pin-card={c.name} className="rounded-xl border border-slate-300 bg-slate-50/70 p-4 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-bold text-slate-900">{c.name}</h3>
+                  <div className="flex gap-1">
+                    <button type="button" data-readonly-allow onClick={() => setShown({ ...shown, [c.id]: !shown[c.id] })} className="text-xs bg-white border border-slate-300 px-2 py-1 rounded font-semibold">{shown[c.id] ? 'Verbergen' : 'Anzeigen'}</button>
+                    <button type="button" onClick={() => setEdit(JSON.parse(JSON.stringify(c)))} className="text-xs bg-white border border-slate-300 px-2 py-1 rounded font-semibold">Bearbeiten</button>
+                  </div>
+                </div>
+                {(c.pins || []).length === 0 && <div className="text-xs text-slate-500">Keine PINs.</div>}
+                {(c.pins || []).map((p) => (
+                  <div key={p.id} className="flex items-center justify-between gap-3 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                    <span className="text-slate-700">{p.label || 'PIN'}</span>
+                    <span className="font-mono font-bold text-slate-900">{shown[c.id] ? p.pin : '••••'}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+            {edit && (
+              <div data-pin-edit className="rounded-xl border-2 border-blue-500 bg-white p-4 space-y-3 md:col-span-2 lg:col-span-1">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Name</label>
+                  <input list="rt-pin-names" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="Mitreisende wählen oder tippen" className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-bold" />
+                  <datalist id="rt-pin-names">{people.map((n) => <option key={n} value={n} />)}</datalist>
+                </div>
+                <div className="space-y-2">
+                  {edit.pins.map((p) => (
+                    <div key={p.id} data-pin-row className="flex gap-2 items-center">
+                      <input value={p.label} onChange={(e) => setPin(p.id, 'label', e.target.value)} placeholder="Beschreibung, z. B. großer blauer Koffer" className="flex-1 min-w-0 px-2.5 py-2 rounded-lg border border-slate-300 text-sm" />
+                      <input value={p.pin} inputMode="numeric" onChange={(e) => setPin(p.id, 'pin', e.target.value)} placeholder="PIN" className="w-20 px-2.5 py-2 rounded-lg border border-slate-300 text-sm font-mono" />
+                      <button type="button" aria-label="PIN entfernen" title="PIN entfernen" onClick={() => setEdit({ ...edit, pins: edit.pins.filter((x) => x.id !== p.id) })} className="w-9 h-9 shrink-0 rounded-lg border border-slate-300 text-slate-500 hover:text-rose-600">✕</button>
+                    </div>
+                  ))}
+                  <button type="button" data-pin-add onClick={() => setEdit({ ...edit, pins: [...edit.pins, { id: uid(), label: '', pin: '' }] })} className="text-xs font-bold text-blue-700 min-h-[36px]">+ PIN hinzufügen</button>
+                </div>
+                <div className="flex flex-wrap justify-between gap-2 pt-1">
+                  {!edit.isNew ? <button type="button" onClick={() => { const c = cards.find((x) => x.id === edit.id); setEdit(null); if (c) del(c); }} className="text-xs font-semibold text-rose-700 px-2 min-h-[36px]">Karte löschen</button> : <span />}
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setEdit(null)} className="px-3 min-h-[36px] text-xs font-semibold text-slate-600">Abbrechen</button>
+                    <button type="button" data-pin-save onClick={save} className="px-4 min-h-[36px] rounded-lg bg-blue-600 text-white text-xs font-bold">Speichern</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    }
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
@@ -23551,6 +23624,7 @@ Quelle: ${lt.url}` : '') }] } });
                   </div></div>); })}
                   </div>
                 </section>
+                <RtPinCards trip={tripData} onSave={saveTripData} />
               </div>
             )}
 
