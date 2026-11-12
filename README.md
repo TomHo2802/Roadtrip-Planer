@@ -405,3 +405,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v87
 - Reise-Assistent: Klima und Feiertage je Etappe, Richtungsvergleich, Hurrikansaison-Hinweis.
+
+## v88
+- Reise-Assistent: Routenkarte, freie Tage bevorzugt an sehenswerten Orten.
