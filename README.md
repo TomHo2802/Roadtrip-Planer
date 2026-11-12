@@ -396,3 +396,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v84
 - Karten in Finder und Aktionen-Suche: Mausrad zoomt auf der Karte, neben der Karte scrollt die Seite.
+
+## v85
+- Reise-Assistent (assistent.html): Eckpunkte eingeben, Etappen und Tage berechnen, als Entwurf an den Planer übergeben.

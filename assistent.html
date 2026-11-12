@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reise-Assistent</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--ink:#0f172a;--mute:#64748b;--line:#cbd5e1;--pri:#1F4E8C;--priInk:#fff;--warn:#fffbeb;--warnLine:#fcd34d;--warnInk:#78350f;--ok:#ecfdf5;--okLine:#6ee7b7;--okInk:#064e3b;--err:#fef2f2;--errLine:#fca5a5;--errInk:#7f1d1d}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#111a2e;--ink:#e5e7eb;--mute:#94a3b8;--line:#334155;--pri:#5b9bf0;--priInk:#06101f;--warn:#2b2208;--warnLine:#a16207;--warnInk:#fde68a;--ok:#06281f;--okLine:#047857;--okInk:#a7f3d0;--err:#2a1010;--errLine:#b91c1c;--errInk:#fecaca}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 16px 40px}
+.wrap{max-width:760px;margin:0 auto;padding:16px 0}
+h1{font-size:1.5rem;margin:.2rem 0}
+h2{font-size:1.1rem;margin:0 0 .4rem}
+p{margin:.3rem 0}
+.mute{color:var(--mute);font-size:.875rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0}
+.grid{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
+label{display:block;font-weight:600;font-size:.9rem}
+input,select{width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;min-height:44px}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;min-height:44px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+button.pri,.btn.pri{background:var(--pri);color:var(--priInk);border-color:var(--pri)}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row>*{flex:1}.row>.fix{flex:0 0 auto}
+.fp{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0}
+.fp .grid{grid-template-columns:2fr 1fr 1fr}
+@media (max-width:560px){.fp .grid{grid-template-columns:1fr 1fr}.fp .grid>:first-child{grid-column:1/3}}
+.note{border-radius:12px;padding:10px 12px;margin:8px 0;font-size:.9rem;border:1px solid}
+.note.warn{background:var(--warn);border-color:var(--warnLine);color:var(--warnInk)}
+.note.ok{background:var(--ok);border-color:var(--okLine);color:var(--okInk)}
+.note.err{background:var(--err);border-color:var(--errLine);color:var(--errInk)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tablewrap{overflow-x:auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.steps{display:flex;gap:6px;font-size:.8rem;color:var(--mute);margin:6px 0 0}
+.steps b{color:var(--pri)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--pri);width:0;transition:width .3s}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Reise-Assistent</h1><p class="mute">Eckpunkte eingeben, Vorschlag prüfen, an den Planer übergeben.</p></div>
+    <a class="btn" href="index.html" data-back>Zum Planer</a>
+  </div>
+  <div class="steps"><span><b>1</b> Eckpunkte</span> › <span>2 Wünsche (folgt)</span> › <span><b>3</b> Vorschlag</span> › <span>4 Übergabe</span></div>
+
+  <section class="card" data-sec="input">
+    <h2>1 · Eckpunkte</h2>
+    <div class="grid">
+      <label>Reisetitel (optional)<input data-f="title" placeholder="z. B. Texas nach Florida"></label>
+      <label>Nächte am Zielort<input data-f="endNights" type="number" min="0" max="30" value="1"></label>
+      <label>Startort<input data-f="start" placeholder="z. B. Dallas, Texas" autocomplete="off"></label>
+      <label>Abreise am Start (Datum)<input data-f="startDate" type="date"></label>
+      <label>Zielort<input data-f="end" placeholder="z. B. Orlando, Florida" autocomplete="off"></label>
+      <label>Abreise vom Zielort (Datum)<input data-f="endDate" type="date"></label>
+    </div>
+    <p class="mute" style="margin-top:8px"><label style="display:inline;font-weight:400"><input type="checkbox" data-f="roundTrip" style="width:auto;min-height:0;margin-right:6px">Rundreise: Ziel ist gleich Start</label></p>
+
+    <h2 style="margin-top:16px">Fixpunkte auf der Strecke</h2>
+    <p class="mute">Orte, an denen du sein willst. Mit Datum: „an diesem Tag bin ich dort“. Ohne Datum plant der Assistent die Tage selbst. Die Reihenfolge ist die Fahrtreihenfolge.</p>
+    <div data-fplist></div>
+    <button type="button" data-fp-add>+ Fixpunkt hinzufügen</button>
+
+    <h2 style="margin-top:16px">Wegstrecke pro Tag</h2>
+    <div class="grid">
+      <label>Mindestens (km)<input data-f="minKm" type="number" min="0" step="10" value="0"></label>
+      <label>Höchstens (km)<input data-f="maxKm" type="number" min="50" step="10" value="500"></label>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="pri" data-calc>Vorschlag berechnen</button>
+      <button type="button" data-reset>Eingaben löschen</button>
+    </div>
+    <div data-msg></div>
+  </section>
+
+  <section class="card" data-sec="result" hidden>
+    <h2>3 · Vorschlag</h2>
+    <div data-prog hidden><p class="mute" data-proglabel>Berechne …</p><div class="bar"><i data-progbar></i></div></div>
+    <div data-result></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var KEY = 'rt_draft_v1';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var uid = function () { return 'x' + Math.random().toString(36).slice(2, 10); };
+
+  var S = { v: 1, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 };
+
+  function load() { try { var j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.v === 1 && j.input) { S = Object.assign(S, j); S.input = Object.assign({ fixpoints: [] }, S.input); } } catch (e) {} }
+  function save() { S.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  // ---------- Datum ----------
+  function pd(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null; }
+  function fd(ms) { return new Date(ms).toISOString().slice(0, 10); }
+  function addDays(s, n) { return fd(pd(s) + n * 864e5); }
+  function diffDays(a, b) { return Math.round((pd(b) - pd(a)) / 864e5); }
+  function de(s) { return s ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' : ''; }
+  function deY(s) { return de(s) + s.slice(0, 4); }
+
+  // ---------- Eingabe ----------
+  function renderFps() {
+    var box = $('[data-fplist]'); box.innerHTML = '';
+    S.input.fixpoints.forEach(function (f, i) {
+      var d = document.createElement('div'); d.className = 'fp'; d.setAttribute('data-fp', i);
+      d.innerHTML = '<div class="grid"><label>Ort<input data-fpf="name" value="' + esc(f.name) + '" placeholder="z. B. New Orleans"></label>' +
+        '<label>Datum (optional)<input data-fpf="date" type="date" value="' + esc(f.date) + '"></label>' +
+        '<label>Nächte (optional)<input data-fpf="nights" type="number" min="0" max="30" value="' + esc(f.nights) + '"></label></div>' +
+        '<div style="display:flex;gap:6px;margin-top:8px"><button type="button" data-fp-up="' + i + '" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Nach oben">↑</button><button type="button" data-fp-down="' + i + '" ' + (i === S.input.fixpoints.length - 1 ? 'disabled' : '') + ' aria-label="Nach unten">↓</button><button type="button" data-fp-del="' + i + '">Entfernen</button></div>';
+      box.appendChild(d);
+    });
+  }
+  function fillForm() {
+    $$('[data-f]').forEach(function (el) { var k = el.getAttribute('data-f'); if (el.type === 'checkbox') el.checked = !!S.input[k]; else el.value = S.input[k] == null ? '' : S.input[k]; });
+    renderFps(); syncRound();
+  }
+  function syncRound() { var e = $('[data-f="end"]'); if (S.input.roundTrip) { e.value = S.input.start; e.disabled = true; S.input.end = S.input.start; } else e.disabled = false; }
+  function readForm() {
+    $$('[data-f]').forEach(function (el) { var k = el.getAttribute('data-f'); S.input[k] = el.type === 'checkbox' ? el.checked : (el.type === 'number' ? (el.value === '' ? '' : Number(el.value)) : el.value.trim()); });
+    if (S.input.roundTrip) S.input.end = S.input.start;
+    $$('[data-fp]').forEach(function (d) { var i = +d.getAttribute('data-fp'), f = S.input.fixpoints[i]; if (!f) return; f.name = $('[data-fpf=name]', d).value.trim(); f.date = $('[data-fpf=date]', d).value; var n = $('[data-fpf=nights]', d).value; f.nights = n === '' ? '' : Number(n); });
+  }
+  function msg(kind, html) { $('[data-msg]').innerHTML = html ? '<div class="note ' + kind + '" role="' + (kind === 'err' ? 'alert' : 'status') + '">' + html + '</div>' : ''; }
+
+  document.addEventListener('input', function (e) { if (!e.target.closest('[data-sec=input]')) return; readForm(); if (e.target.matches('[data-f=roundTrip],[data-f=start]')) syncRound(); S.status = S.status === 'ready' ? 'input' : S.status; save(); });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.hasAttribute('data-fp-add')) { readForm(); S.input.fixpoints.push({ id: uid(), name: '', date: '', nights: '' }); renderFps(); save(); }
+    else if (t.hasAttribute('data-fp-del')) { readForm(); S.input.fixpoints.splice(+t.getAttribute('data-fp-del'), 1); renderFps(); save(); }
+    else if (t.hasAttribute('data-fp-up') || t.hasAttribute('data-fp-down')) { readForm(); var up = t.hasAttribute('data-fp-up'), i = +t.getAttribute(up ? 'data-fp-up' : 'data-fp-down'), j = up ? i - 1 : i + 1, a = S.input.fixpoints; var x = a[i]; a[i] = a[j]; a[j] = x; renderFps(); save(); }
+    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
+    else if (t.hasAttribute('data-calc')) calc();
+    else if (t.hasAttribute('data-handover')) handover();
+    else if (t.hasAttribute('data-download')) download();
+  });
+
+  // ---------- Dienste ----------
+  function fetchJ(url, ms) { var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, ms || 12000); return fetch(url, { signal: ac.signal }).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; }); }
+  function geocode(name) {
+    var k = name.toLowerCase(); if (S.geo[k]) return Promise.resolve(S.geo[k]);
+    return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(name), 12000).then(function (j) { if (!j || !j[0]) return null; var g = [Number(j[0].lat), Number(j[0].lon)]; S.geo[k] = g; return g; });
+  }
+  function hav(a, b) { var R = 6371, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r, x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
+  function leg(a, b) {
+    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + '?overview=false', 15000).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); return { km: r.distance / 1000, min: r.duration / 60, est: false }; })
+      .catch(function () { var km = hav(a, b) * 1.3; return { km: km, min: km / 70 * 60, est: true }; });
+  }
+  function prog(p, l) { $('[data-prog]').hidden = false; $('[data-progbar]').style.width = p + '%'; $('[data-proglabel]').textContent = l; }
+
+  // ---------- Berechnung ----------
+  function validate(I) {
+    var errs = [];
+    if (!I.start) errs.push('Startort fehlt.'); if (!I.end) errs.push('Zielort fehlt.');
+    if (!pd(I.startDate)) errs.push('Abreisedatum am Start fehlt.'); if (!pd(I.endDate)) errs.push('Abreisedatum vom Zielort fehlt.');
+    if (pd(I.startDate) && pd(I.endDate) && pd(I.endDate) < pd(I.startDate)) errs.push('Das Enddatum liegt vor dem Startdatum.');
+    var mx = Number(I.maxKm), mn = Number(I.minKm) || 0; if (!(mx >= 50)) errs.push('Höchststrecke pro Tag fehlt (mindestens 50 km).'); else if (mn > mx) errs.push('Die Mindeststrecke ist größer als die Höchststrecke.');
+    I.fixpoints.forEach(function (f, i) { if (!f.name) errs.push('Fixpunkt ' + (i + 1) + ' hat keinen Ort.'); if (f.date && pd(I.startDate) && pd(I.endDate) && (pd(f.date) < pd(I.startDate) || pd(f.date) > pd(I.endDate))) errs.push('Fixpunkt „' + f.name + '“: Das Datum liegt außerhalb der Reise.'); });
+    var dated = I.fixpoints.filter(function (f) { return f.date; });
+    for (var i = 1; i < dated.length; i++) if (pd(dated[i].date) < pd(dated[i - 1].date)) errs.push('Fixpunkte mit Datum müssen in zeitlicher Reihenfolge stehen („' + dated[i].name + '“ liegt vor „' + dated[i - 1].name + '“).');
+    return errs;
+  }
+
+  function plan(I, pts, legs) {
+    // pts: [{name,gps,date?,nights?}] 0 = Start, n = Ziel
+    var n = pts.length - 1, mx = Number(I.maxKm), mn = Number(I.minKm) || 0, warns = [];
+    var arr = new Array(n + 1), dep = new Array(n + 1), nights = new Array(n + 1), need = [];
+    legs.forEach(function (l, j) { need[j] = Math.max(1, Math.ceil(l.km / mx)); });
+    var endN = Math.max(0, Number(I.endNights) || 0);
+    var fixedArr = function (i) { return i === n ? addDays(I.endDate, -endN) : (pts[i].date || null); };
+    dep[0] = I.startDate;
+    var anchors = [0]; for (var i = 1; i <= n; i++) if (fixedArr(i)) anchors.push(i);
+    if (anchors[anchors.length - 1] !== n) anchors.push(n);
+    for (var s = 0; s < anchors.length - 1; s++) {
+      var a = anchors[s], b = anchors[s + 1], k = b - a - 1, sumNeed = 0;
+      for (var j = a; j < b; j++) sumNeed += need[j];
+      var avail = diffDays(dep[a], fixedArr(b)), userN = 0, free = [];
+      for (var q = a + 1; q < b; q++) { if (pts[q].nights !== '' && pts[q].nights != null) userN += Number(pts[q].nights); else free.push(q); }
+      var spare = avail - sumNeed - userN;
+      if (avail < 0) warns.push('Die Termine passen nicht zusammen: ' + pts[b].name + ' (Ankunft ' + deY(fixedArr(b)) + ') liegt vor der Abreise aus ' + pts[a].name + ' (' + deY(dep[a]) + '). Prüfe Daten und Nächte.');
+      else if (spare < 0) warns.push('Zu wenig Zeit zwischen ' + pts[a].name + ' und ' + pts[b].name + ': nötig sind mindestens ' + (sumNeed + userN) + ' Tage, verfügbar sind ' + avail + '.');
+      var extra = {}; if (spare > 0) { if (free.length) { var base = Math.floor(spare / free.length), rem = spare % free.length; free.forEach(function (q, ix) { extra[q] = base + (ix < rem ? 1 : 0); }); } else if (a >= 1) { extra[a] = spare; } else warns.push(spare + ' freie Tage zwischen Start und ' + pts[b].name + ': der Start kann später erfolgen oder du fügst einen Fixpunkt ein.'); }
+      var cur = dep[a];
+      if (a >= 1 && extra[a]) { nights[a] = (nights[a] || 0) + extra[a]; dep[a] = addDays(dep[a], extra[a]); cur = dep[a]; }
+      for (var j2 = a; j2 < b; j2++) {
+        var next = j2 + 1, ar = addDays(cur, need[j2]);
+        if (next === b) ar = fixedArr(b);
+        arr[next] = ar;
+        var nn;
+        if (next === n) nn = endN; else if (next < b) nn = (pts[next].nights !== '' && pts[next].nights != null ? Number(pts[next].nights) : 0) + (extra[next] || 0); else nn = Number(pts[next].nights) || 0;
+        nights[next] = nn; dep[next] = addDays(ar, nn); cur = dep[next];
+      }
+    }
+    var stages = [];
+    for (var m = 1; m <= n; m++) {
+      var l = legs[m - 1], flags = [];
+      if (need[m - 1] > 1) flags.push('Braucht ' + need[m - 1] + ' Fahrtage (' + Math.round(l.km) + ' km, Höchstwert ' + mx + ' km/Tag). Zwischenübernachtung ergänzen.');
+      if (need[m - 1] === 1 && mn > 0 && l.km < mn && m > 0) flags.push('Kurzer Tag: unter ' + mn + ' km.');
+      if (l.est) flags.push('Strecke geschätzt (Luftlinie × 1,3), Routing nicht erreichbar.');
+      stages.push({ id: 'stage-' + m, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est });
+    }
+    return { stages: stages, warns: warns };
+  }
+
+  async function calc() {
+    readForm(); save(); var I = S.input, errs = validate(I);
+    if (errs.length) { msg('err', '<b>Bitte prüfen:</b><br>' + errs.map(esc).join('<br>')); return; }
+    msg(); var sec = $('[data-sec=result]'); sec.hidden = false; $('[data-result]').innerHTML = ''; var btn = $('[data-calc]'); btn.disabled = true;
+    try {
+      var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
+      var pts = [], failed = [];
+      for (var i = 0; i < names.length; i++) {
+        prog(5 + Math.round(35 * i / names.length), 'Suche Ort: ' + names[i]);
+        var g = null; try { g = await geocode(names[i]); } catch (e) { g = null; }
+        if (!g) failed.push(names[i]);
+        var fp = i > 0 && i < names.length - 1 ? I.fixpoints[i - 1] : null;
+        pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '' });
+      }
+      if (failed.length) { prog(0, ''); $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Diese Orte wurden nicht gefunden: <b>' + failed.map(esc).join(', ') + '</b>. Bitte eindeutiger schreiben (mit Bundesstaat oder Land) und noch einmal berechnen. Ohne Internet ist die Suche nicht möglich.</div>'; return; }
+      var legs = [];
+      for (var j = 0; j < pts.length - 1; j++) { prog(40 + Math.round(55 * j / (pts.length - 1)), 'Berechne Strecke ' + (j + 1) + ' von ' + (pts.length - 1)); legs.push(await leg(pts[j].gps, pts[j + 1].gps)); }
+      prog(100, 'Fertig');
+      var r = plan(I, pts, legs); S.proposal = { stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, created: Date.now() }; S.status = 'proposal'; S.trip = null; save();
+      $('[data-prog]').hidden = true; renderResult();
+    } catch (e) { $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Berechnung fehlgeschlagen: ' + esc(String(e && e.message || e).slice(0, 200)) + '</div>'; }
+    finally { btn.disabled = false; }
+  }
+
+  function hrs(min) { var h = Math.floor(min / 60), m = min % 60; return h ? h + ' h ' + String(m).padStart(2, '0') + ' min' : m + ' min'; }
+  function renderResult() {
+    var P = S.proposal; if (!P) return; $('[data-sec=result]').hidden = false;
+    var tk = P.stages.reduce(function (a, s) { return a + s.km; }, 0), tm = P.stages.reduce(function (a, s) { return a + s.min; }, 0);
+    var h = '<div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b> · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
+    P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
+    h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th></tr></thead><tbody>';
+    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + s.nights + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td></tr>'; });
+    h += '</tbody></table></div><p class="mute">Zwischenstopps und Hotels folgen in den nächsten Ausbaustufen. Im Planer kannst du alles weiter bearbeiten.</p>';
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>An den Planer übergeben</button><button type="button" data-download>Als Datei speichern</button></div>';
+    if (S.status === 'ready') h += '<div class="note ok" data-ready>Der Entwurf liegt im Planer bereit. <a href="index.html"><b>Planer öffnen</b></a> und dort „Als neue Reise übernehmen“ wählen.</div>';
+    $('[data-result]').innerHTML = h;
+  }
+
+  // ---------- Übergabe ----------
+  function buildTrip() {
+    var I = S.input, P = S.proposal;
+    var hotel = function (gps) { return { name: '', rating: '', address: '', gps: gps ? gps[0].toFixed(5) + ', ' + gps[1].toFixed(5) : '', checkIn: '', checkOut: '', breakfast: '', parking: '', cancelUntil: '', priceOldEur: '', priceNewEur: '', priceUsd: '', prepaid: '', creditCard: '', paidBy: '', splitAmong: [], parkingGarageName: '', parkingGarageAddress: '', parkingGarageGps: '', remarks: '', chargeAnnounced: '', cardCharged: '', bookingCode: '' }; };
+    var stages = P.stages.map(function (s, i) {
+      var range = s.nights > 0 ? de(s.arrive) + ' – ' + deY(addDays(s.arrive, s.nights)) : deY(s.arrive);
+      var note = s.flags.filter(function (f) { return !/geschätzt/.test(f); }).join(' ');
+      var h = hotel(s.gps);
+      return { id: 'stage-' + (i + 1), fromCity: s.fromCity, toCity: s.toCity, dateRange: range, nights: s.nights,
+        routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Reise-Assistenten: ' + note : '', stopsOnWay: [] },
+        hotel: h, localAttractions: [] };
+    });
+    var id = ''; for (var i2 = 0; i2 < 18; i2++) id += ('0' + Math.floor(Math.random() * 256).toString(16)).slice(-2);
+    var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
+    return { meta: { title: I.title || ((I.roundTrip ? 'Rundreise ab ' : '') + I.start + (I.roundTrip ? '' : ' – ' + I.end)), subtitle: names.map(function (n) { return n.split(',')[0]; }).join(' • '), startDate: I.startDate, endDate: I.endDate, schemaVersion: 2, version: 1, lastUpdated: new Date().toISOString(), tripId: id, draftSource: 'assistent-v1' },
+      participants: [], customExpenses: [], creditCards: [], emergencyContacts: [], flights: [], rentalCars: [], stages: stages, checklist: [] };
+  }
+  function handover() {
+    if (!S.proposal) return; S.trip = buildTrip(); S.status = 'ready'; save(); renderResult(); var r = $('[data-ready]'); if (r) r.scrollIntoView({ block: 'nearest' });
+  }
+  function download() {
+    var t = S.trip || buildTrip(); var b = new Blob([JSON.stringify(t, null, 2)], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'reise-entwurf.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+
+  load(); fillForm(); if (S.proposal && S.status !== 'input') renderResult();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  window.__assistant = { plan: plan, S: function () { return S; } };
+})();
+</script>
+</body>
+</html>

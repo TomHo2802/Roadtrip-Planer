@@ -18680,6 +18680,7 @@ var qrcode = function() {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(e.trip)); localStorage.setItem(ACTIVE_ID_KEY, e.id);
       await replaceDocs(e.docs || []); if (e.handle) await fsIdbPut(e.handle); else await fsIdbDel();
     };
+    window.__rtAdoptDraft = async (trip) => { await stashActive(); await installTripData(trip, null); await fsIdbDel(); };
     const startBlankTrip = async () => { await stashActive(); localStorage.removeItem(LOCAL_STORAGE_KEY); localStorage.removeItem(ACTIVE_ID_KEY); await replaceDocs([]); await fsIdbDel(); };
     const fsSync = {
       handle: null, name: '', status: 'none', lastWrite: null, error: '', listeners: new Set(), timer: null, lastSeen: 0, dirty: false, incoming: null, polling: false, baseStamp: '',
@@ -18775,6 +18776,8 @@ var qrcode = function() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button type="button" data-demo-open disabled={busy} onClick={() => run(async () => { await loadDemo(); location.reload(); })} className="text-left rounded-2xl border-2 border-blue-600 bg-white p-4 space-y-1 min-h-[112px]"><span className="block text-base font-extrabold text-slate-900">Demo ansehen</span><span className="block text-xs text-slate-600">Beispielreise Florida mit allen Funktionen zum Ausprobieren. Deine Daten bleiben getrennt.</span><span className="inline-block mt-1 px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold">Empfohlen für den Einstieg</span></button>
               <button type="button" data-new-trip onClick={onSkip} className="text-left rounded-2xl border border-slate-300 bg-white p-4 space-y-1 min-h-[112px]"><span className="block text-base font-extrabold text-slate-900">Eigene Reise anlegen</span><span className="block text-xs text-slate-600">Der Assistent fragt Reisedaten, Mitreisende und Etappen Schritt für Schritt ab.</span></button>
+              <a href="assistent.html" data-open-assistant className="sm:col-span-2 block rounded-2xl border border-slate-300 bg-white p-4 space-y-1 no-underline"><span className="block text-base font-extrabold text-slate-900">Reise-Assistent (neu)</span><span className="block text-xs text-slate-600">Du gibst Zeitraum, Start, Ziel, Fixpunkte und Tagesstrecke an. Der Assistent baut daraus ein Reisegerüst für den Planer.</span></a>
+              <div className="sm:col-span-2"><RtDraftBar hasTrip={false} gate={true} /></div>
             </div>
             {lib.length > 0 && (
               <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
@@ -19247,7 +19250,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 84</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 85</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19257,7 +19260,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 84'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 85'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -21731,6 +21734,32 @@ var qrcode = function() {
           </div>
         </div>
       );
+    }
+
+    /* ===== v85: Entwurf vom Reise-Assistenten übernehmen ===== */
+    const RT_DRAFT_KEY = 'rt_draft_v1';
+    function rtReadDraft() { try { const d = JSON.parse(localStorage.getItem(RT_DRAFT_KEY) || 'null'); return d && d.v === 1 && d.status === 'ready' && d.trip && d.trip.meta && Array.isArray(d.trip.stages) ? d : null; } catch (e) { return null; } }
+    function rtSetDraftStatus(st) { try { const d = JSON.parse(localStorage.getItem(RT_DRAFT_KEY) || 'null'); if (d) { d.status = st; localStorage.setItem(RT_DRAFT_KEY, JSON.stringify(d)); } } catch (e) {} }
+    function RtDraftBar({ hasTrip, gate }) {
+      const [, f] = useState(0); const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
+      useEffect(() => { const h = () => f((x) => x + 1); window.addEventListener('storage', h); window.addEventListener('focus', h); document.addEventListener('visibilitychange', h); return () => { window.removeEventListener('storage', h); window.removeEventListener('focus', h); document.removeEventListener('visibilitychange', h); }; }, []);
+      if (IS_READ_ONLY_COPY || (!gate && !hasTrip)) return null;
+      const d = rtReadDraft(); if (!d) return null;
+      const t = d.trip, n = (t.stages || []).length;
+      const adopt = async () => {
+        if (hasTrip && !window.confirm('Der Entwurf wird als neue Reise geöffnet. Deine aktuelle Reise bleibt erhalten und liegt danach unter „Gespeicherte Reisen“. Fortfahren?')) return;
+        setBusy(true); setErr('');
+        try { const trip = normalizeTrip(JSON.parse(JSON.stringify(t))); await window.__rtAdoptDraft(trip); rtSetDraftStatus('adopted'); location.reload(); }
+        catch (e) { setBusy(false); setErr(String(e && e.message || e).slice(0, 200)); }
+      };
+      const drop = () => { if (window.confirm('Entwurf verwerfen? Im Reise-Assistenten bleiben deine Eingaben erhalten.')) { rtSetDraftStatus('dismissed'); f((x) => x + 1); } };
+      const body = <>
+        <span data-draft-text><b>Entwurf vom Reise-Assistenten:</b> {t.meta.title || 'Ohne Titel'} · {n} Etappen · {t.meta.startDate} bis {t.meta.endDate}{err ? ` · Fehler: ${err}` : ''}</span>
+        <span className="inline-flex gap-2"><button type="button" data-draft-adopt data-readonly-allow disabled={busy} onClick={adopt}>{busy ? 'Übernehme …' : 'Als neue Reise übernehmen'}</button><button type="button" data-draft-drop data-readonly-allow disabled={busy} onClick={drop}>Verwerfen</button></span>
+      </>;
+      return gate
+        ? <section data-draft-bar className="rounded-2xl border-2 border-blue-600 bg-white p-4 space-y-2 text-sm text-slate-900">{body}</section>
+        : <div role="status" data-draft-bar className="rt-bkbar">{body}</div>;
     }
 
     function App() {
@@ -24539,6 +24568,7 @@ Quelle: ${lt.url}` : '') }] } });
               <AppErrorBoundary>
               <div className="space-y-6">
                 <RtGroupHead title="Reise" sub="Reisen wechseln, laden und als Vorlage speichern." />
+                <a href="assistent.html" data-open-assistant-opt data-readonly-allow className="block rounded-xl border border-slate-300 bg-white p-3 text-sm font-semibold text-[#1F4E8C] no-underline">Reise-Assistent öffnen: neue Reise aus Eckpunkten aufbauen</a>
                 <TripsCard trip={tripData} />
                 <TemplateBar trip={tripData} onSave={saveTripData} />
                 <RtGroupHead title="Daten & Sicherung" sub="Deine Reise als Datei sichern oder mit Drive verbinden." />
@@ -26354,6 +26384,7 @@ Quelle: ${lt.url}` : '') }] } });
           <RtFsBanner trip={tripData} />
           <RtHelpHost hasTrip={(tripData.stages || []).length > 0} />
           <RtBackupBar trip={tripData} />
+          <RtDraftBar hasTrip={((tripData.stages || []).length > 0)} />
           {cloudConflict && <div className="fixed inset-0 z-[80] bg-slate-950/75 flex items-center justify-center p-4"><section role="dialog" aria-modal="true" aria-labelledby="conflict-title" className="bg-white rounded-2xl p-5 max-w-lg w-full space-y-4"><h2 id="conflict-title" className="text-lg font-bold text-amber-800">Drive-Konflikt erkannt</h2><p>Lokale Version {Number(tripData.meta?.version)||1} · Drive-Version {cloudConflict.version}. Es wurde nichts automatisch überschrieben. Vorher JSON exportieren empfohlen.</p><div className="grid gap-2"><button onClick={()=>{setCloudConflict(null);uploadCloud(tripData,true);}} className="p-3 rounded bg-teal-700 text-white font-bold">Lokal behalten – Drive bewusst überschreiben</button><button onClick={applyCloud} className="p-3 rounded border font-bold">Drive übernehmen – lokale Version ersetzen</button><button onClick={mergeCloud} className="p-3 rounded border font-bold">Zusammenführen – Listen nach ID kombinieren (lokale Felder gewinnen)</button><button onClick={()=>setCloudConflict(null)} className="p-2 text-slate-600">Später entscheiden</button></div></section></div>}
         </div>
       );
