@@ -96,7 +96,7 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var uid = function () { return 'x' + Math.random().toString(36).slice(2, 10); };
 
-  var S = { v: 1, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 };
+  var S = { v: 1, cc: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 };
 
   function load() { try { var j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.v === 1 && j.input) { S = Object.assign(S, j); S.input = Object.assign({ fixpoints: [] }, S.input); } } catch (e) {} }
   function save() { S.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -139,17 +139,19 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
     if (t.hasAttribute('data-fp-add')) { readForm(); S.input.fixpoints.push({ id: uid(), name: '', date: '', nights: '' }); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-del')) { readForm(); S.input.fixpoints.splice(+t.getAttribute('data-fp-del'), 1); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-up') || t.hasAttribute('data-fp-down')) { readForm(); var up = t.hasAttribute('data-fp-up'), i = +t.getAttribute(up ? 'data-fp-up' : 'data-fp-down'), j = up ? i - 1 : i + 1, a = S.input.fixpoints; var x = a[i]; a[i] = a[j]; a[j] = x; renderFps(); save(); }
-    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
+    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, cc: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
     else if (t.hasAttribute('data-calc')) calc();
     else if (t.hasAttribute('data-handover')) handover();
     else if (t.hasAttribute('data-download')) download();
+    else if (t.hasAttribute('data-climate')) checkClimate();
+    else if (t.hasAttribute('data-flip')) flip();
   });
 
   // ---------- Dienste ----------
   function fetchJ(url, ms) { var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, ms || 12000); return fetch(url, { signal: ac.signal }).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; }); }
   function geocode(name) {
     var k = name.toLowerCase(); if (S.geo[k]) return Promise.resolve(S.geo[k]);
-    return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(name), 12000).then(function (j) { if (!j || !j[0]) return null; var g = [Number(j[0].lat), Number(j[0].lon)]; S.geo[k] = g; return g; });
+    return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&q=' + encodeURIComponent(name), 12000).then(function (j) { if (!j || !j[0]) return null; var g = [Number(j[0].lat), Number(j[0].lon)]; S.geo[k] = g; S.cc = S.cc || {}; var c = j[0].address && j[0].address.country_code; if (c) S.cc[k] = c.toUpperCase(); return g; });
   }
   function hav(a, b) { var R = 6371, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r, x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
   function leg(a, b, geom) {
@@ -266,7 +268,7 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
       }
       pts = withStops;
       prog(100, 'Fertig');
-      var r = plan(I, pts, legs); S.proposal = { stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, created: Date.now() }; S.status = 'proposal'; S.trip = null; save();
+      var r = plan(I, pts, legs); S.proposal = { stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
       $('[data-prog]').hidden = true; renderResult();
     } catch (e) { $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Berechnung fehlgeschlagen: ' + esc(String(e && e.message || e).slice(0, 200)) + '</div>'; }
     finally { btn.disabled = false; }
@@ -279,12 +281,127 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
     var tk = P.stages.reduce(function (a, s) { return a + s.km; }, 0), tm = P.stages.reduce(function (a, s) { return a + s.min; }, 0);
     var h = '<div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenstopps)' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
-    h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th></tr></thead><tbody>';
-    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + s.nights + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td></tr>'; });
+    h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th></tr></thead><tbody>';
+    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + s.nights + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td></tr>'; });
     h += '</tbody></table></div><p class="mute">Zwischenstopps sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Hotels, Klima und Richtungsvergleich folgen in den nächsten Ausbaustufen. Im Planer kannst du alles weiter bearbeiten.</p>';
-    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>An den Planer übergeben</button><button type="button" data-download>Als Datei speichern</button></div>';
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>An den Planer übergeben</button><button type="button" data-climate>Klima, Feiertage und Richtung prüfen</button><button type="button" data-download>Als Datei speichern</button></div><div data-climate-box></div>';
     if (S.status === 'ready') h += '<div class="note ok" data-ready>Der Entwurf liegt im Planer bereit. <a href="index.html"><b>Planer öffnen</b></a> und dort „Als neue Reise übernehmen“ wählen.</div>';
-    $('[data-result]').innerHTML = h;
+    $('[data-result]').innerHTML = h; renderClimate();
+  }
+
+
+  // ---------- Klima, Feiertage, Richtung ----------
+  function key(g) { return g[0].toFixed(2) + ',' + g[1].toFixed(2); }
+  function shiftYears(s, y) { var d = new Date(pd(s)); d.setUTCFullYear(d.getUTCFullYear() - y); return fd(d.getTime()); }
+  function dayComfort(tx, tn, pr) {
+    if (tx == null) return null; var c = 1;
+    if (tx < 20) c = 1 - (20 - tx) / 15; else if (tx > 28) c = 1 - (tx - 28) / 10;
+    if (tn != null && tn < 5) c *= 0.8;
+    if (pr != null) { if (pr >= 5) c *= 0.5; else if (pr >= 1) c *= 0.8; }
+    return Math.max(0, Math.min(1, c));
+  }
+  async function climateFor(g, from, to) {
+    var res = await Promise.all([1, 2].map(function (y) {
+      var url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + g[0].toFixed(3) + '&longitude=' + g[1].toFixed(3) + '&start_date=' + shiftYears(from, y) + '&end_date=' + shiftYears(to, y) + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto';
+      return fetchJ(url, 20000).then(function (j) { return j && j.daily ? { d: j.daily, utc: j.utc_offset_seconds } : null; }).catch(function () { return null; });
+    }));
+    var ok = res.filter(Boolean); if (!ok.length) return null;
+    var n = Math.min.apply(null, ok.map(function (r) { return (r.d.time || []).length; })); if (!n) return null;
+    var avg = function (f) { var out = []; for (var i = 0; i < n; i++) { var v = ok.map(function (r) { return r.d[f][i]; }).filter(function (x) { return x != null; }); out.push(v.length ? v.reduce(function (p, q) { return p + q; }, 0) / v.length : null); } return out; };
+    return { tmax: avg('temperature_2m_max'), tmin: avg('temperature_2m_min'), pr: avg('precipitation_sum'), utc: ok[0].utc, years: ok.length };
+  }
+  function stageRange(s) { return [s.arrive, s.nights > 0 ? addDays(s.arrive, s.nights) : s.arrive]; }
+  function winStats(g, from, to) {
+    var C = S.climate && S.climate.places && S.climate.places[key(g)]; if (!C) return null;
+    var i0 = Math.max(0, diffDays(S.input.startDate, from)), i1 = Math.min(C.tmax.length - 1, diffDays(S.input.startDate, to));
+    var tx = [], tn = [], rd = 0, rs = 0, days = [];
+    for (var i = i0; i <= i1; i++) { if (C.tmax[i] == null) continue; tx.push(C.tmax[i]); tn.push(C.tmin[i]); if ((C.pr[i] || 0) >= 1) rd++; rs += C.pr[i] || 0; days.push(dayComfort(C.tmax[i], C.tmin[i], C.pr[i])); }
+    if (!tx.length) return null; var m = function (a) { return a.reduce(function (p, q) { return p + q; }, 0) / a.length; };
+    return { tmax: m(tx), tmin: m(tn.filter(function (x) { return x != null; }).concat(tn.length ? [] : [0])), rainDays: rd, rain: rs, days: days, n: tx.length };
+  }
+  function evalPlan(stages) {
+    var all = [], ts = [], rd = 0, rs = 0;
+    stages.forEach(function (s) { var r = stageRange(s), w = winStats(s.gps, r[0], r[1]); if (w) { all = all.concat(w.days); ts.push(w.tmax); rd += w.rainDays; rs += w.rain; } });
+    if (!all.length) return null; var m = function (a) { return a.reduce(function (p, q) { return p + q; }, 0) / a.length; };
+    var third = Math.max(1, Math.round(all.length / 3)), mean = m(all), end = m(all.slice(-third));
+    return { score: Math.round((0.7 * mean + 0.3 * end) * 100), mean: Math.round(mean * 100), end: Math.round(end * 100), tmax: m(ts), rainDays: rd, rain: rs, endT: ts[ts.length - 1] };
+  }
+  function holidaysIn(s, cc) {
+    var H = S.climate && S.climate.holidays || {}, r = stageRange(s), out = [], y = Number(r[0].slice(0, 4));
+    [y, Number(r[1].slice(0, 4))].filter(function (v, i, a) { return a.indexOf(v) === i; }).forEach(function (yy) { (H[cc + '-' + yy] || []).forEach(function (h) { if (h.date >= r[0] && h.date <= r[1]) out.push(de(h.date) + ' ' + h.name); }); });
+    return out;
+  }
+  function wxCell(s) {
+    if (!S.climate || !S.climate.places) return '<span class="mute">–</span>';
+    var r = stageRange(s), w = winStats(s.gps, r[0], r[1]), parts = [];
+    if (w) parts.push('Ø ' + Math.round(w.tmax) + ' °C tags, ' + Math.round(w.tmin) + ' °C nachts' + (w.rainDays ? ', ' + w.rainDays + ' Regentag' + (w.rainDays > 1 ? 'e' : '') : ', trocken'));
+    var cc = s.cc, hol = cc ? holidaysIn(s, cc) : []; hol.forEach(function (h) { parts.push('Feiertag: ' + esc(h)); });
+    return parts.length ? parts.map(function (p) { return '<span class="mute">' + p + '</span>'; }).join('<br>') : '<span class="mute">keine Daten</span>';
+  }
+  function hurricane(stages) {
+    var hit = stages.some(function (s) { var g = s.gps; if (!g || g[0] < 8 || g[0] > 42 || g[1] > -55 || g[1] < -100) return false; var r = stageRange(s), a = r[0].slice(5), b = r[1].slice(5); return (a >= '06-01' && a <= '11-30') || (b >= '06-01' && b <= '11-30'); });
+    if (!hit) return '';
+    var peak = stages.some(function (s) { var r = stageRange(s); return s.gps && s.gps[0] < 42 && s.gps[1] < -55 && s.gps[1] > -100 && ((r[0].slice(5) >= '08-15' && r[0].slice(5) <= '10-15') || (r[1].slice(5) >= '08-15' && r[1].slice(5) <= '10-15')); });
+    return 'Die Reise liegt in der Atlantischen Hurrikansaison (1. Juni bis 30. November)' + (peak ? ', teils in der Hauptzeit (Mitte August bis Mitte Oktober)' : ', aber nach der Hauptzeit') + '. Wetterlage kurz vor der Abreise prüfen, Buchungen möglichst stornierbar halten.';
+  }
+  function dirText(label, e) { return '<b>' + label + '</b>: Wetterwert ' + e.score + ' von 100, Ø ' + Math.round(e.tmax) + ' °C tags, ' + e.rainDays + ' Regentage, gegen Ende ' + Math.round(e.endT) + ' °C.'; }
+
+  async function checkClimate() {
+    var P = S.proposal; if (!P) return; var I = S.input, btn = $('[data-climate]'); btn.disabled = true;
+    try {
+      S.climate = { places: {}, holidays: {}, done: false, failed: 0 };
+      var raw = P.raw || { pts: [] }, seen = {}, places = [];
+      P.stages.forEach(function (s) { var k = key(s.gps); if (!seen[k]) { seen[k] = 1; places.push(s.gps); } });
+      var st0 = P.start && P.start.gps; if (st0 && !seen[key(st0)]) places.push(st0);
+      for (var i = 0; i < places.length; i++) { prog(5 + Math.round(70 * i / places.length), 'Klimadaten ' + (i + 1) + ' von ' + places.length); var c = await climateFor(places[i], I.startDate, I.endDate); if (c) S.climate.places[key(places[i])] = c; else S.climate.failed++; }
+      // Länder und Feiertage
+      var ccOf = {}; var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
+      names.forEach(function (n) { var c = S.cc && S.cc[n.toLowerCase()]; if (c) ccOf[n.toLowerCase()] = c; });
+      var last = ccOf[I.start.toLowerCase()] || '';
+      P.stages.forEach(function (s) { var c = ccOf[s.toCity.toLowerCase()]; if (c) last = c; s.cc = c || last; });
+      var need = {}, yrs = [Number(I.startDate.slice(0, 4)), Number(I.endDate.slice(0, 4))];
+      P.stages.forEach(function (s) { if (s.cc) yrs.forEach(function (y) { need[s.cc + '-' + y] = [s.cc, y]; }); });
+      var ks = Object.keys(need);
+      for (var q = 0; q < ks.length; q++) { prog(78 + Math.round(15 * q / ks.length), 'Feiertage ' + ks[q]); try { var hj = await fetchJ('https://date.nager.at/api/v3/PublicHolidays/' + need[ks[q]][1] + '/' + need[ks[q]][0], 12000); S.climate.holidays[ks[q]] = (hj || []).filter(function (h) { return h.global !== false; }).map(function (h) { return { date: h.date, name: h.localName || h.name }; }); } catch (e) { S.climate.holidays[ks[q]] = []; } }
+      // Richtungsvergleich nur ohne Fixpunkte mit Datum
+      var dated = I.fixpoints.some(function (f) { return f.date; });
+      var cur = evalPlan(P.stages); S.climate.cur = cur; S.climate.dated = dated;
+      if (!dated && raw.pts.length > 1 && cur) {
+        var rp = raw.pts.slice().reverse().map(function (p) { return { name: p.name, gps: p.gps, date: '', nights: p.nights, auto: p.auto, unnamed: p.unnamed }; });
+        var rl = raw.legs.slice().reverse();
+        var I2 = JSON.parse(JSON.stringify(I)); I2.start = I.end; I2.end = I.start;
+        var rr = plan(I2, rp, rl); rr.stages.forEach(function (s) { s.cc = null; });
+        S.climate.rev = { eval: evalPlan(rr.stages), stages: rr.stages, from: I.end, to: I.start };
+      }
+      var u = function (g) { var c = S.climate.places[key(g)]; return c ? c.utc : null; };
+      var us = u(P.start.gps), ue = u(P.stages[P.stages.length - 1].gps); S.climate.tz = us != null && ue != null ? Math.round((ue - us) / 3600) : null;
+      S.climate.done = true; S.climate.hurr = hurricane(P.stages); save();
+      prog(100, 'Fertig'); $('[data-prog]').hidden = true; renderResult();
+    } catch (e) { $('[data-prog]').hidden = true; var bx = $('[data-climate-box]'); if (bx) bx.innerHTML = '<div class="note err" role="alert">Prüfung fehlgeschlagen: ' + esc(String(e && e.message || e).slice(0, 200)) + '</div>'; }
+    finally { var b2 = $('[data-climate]'); if (b2) b2.disabled = false; }
+  }
+  function renderClimate() {
+    var box = $('[data-climate-box]'), C = S.climate; if (!box || !C || !C.done) return; var h = '';
+    if (!Object.keys(C.places).length) h += '<div class="note warn">Klimadaten waren nicht erreichbar. Ohne Netz oder bei Überlastung des Dienstes (Open-Meteo) noch einmal versuchen.</div>';
+    else if (C.failed) h += '<div class="note warn">Für ' + C.failed + ' Orte fehlen Klimadaten.</div>';
+    if (C.hurr) h += '<div class="note warn" data-hurr>' + esc(C.hurr) + '</div>';
+    if (C.cur) {
+      h += '<div class="note ok" data-dir><b>Richtung</b><br>';
+      if (C.dated) h += 'Die Richtung ist durch Fixpunkte mit Datum festgelegt. Ein Vergleich ist nur ohne feste Termine möglich.';
+      else if (C.rev && C.rev.eval) {
+        var A = C.cur, B = C.rev.eval, diff = A.score - B.score, same = Math.abs(diff) < 3, bestA = diff >= 0;
+        h += dirText(esc(S.input.start.split(',')[0]) + ' → ' + esc(S.input.end.split(',')[0]), A) + '<br>' + dirText(esc(S.input.end.split(',')[0]) + ' → ' + esc(S.input.start.split(',')[0]), B) + '<br>';
+        if (C.tz) h += 'Zeitzonen: ' + (C.tz > 0 ? 'Fährst du nach Osten, verlierst du ' + C.tz + ' Std.' : 'Fährst du nach Westen, gewinnst du ' + (-C.tz) + ' Std.') + ' (Richtung ' + esc(S.input.start.split(',')[0]) + ' → ' + esc(S.input.end.split(',')[0]) + (C.tz > 0 ? ' = nach Osten' : ' = nach Westen') + ').<br>';
+        h += same ? '<b>Beide Richtungen sind beim Wetter praktisch gleichwertig.</b> Entscheide nach Flughäfen, Mietwagen und Highlights.' : '<b>Empfehlung: ' + (bestA ? esc(S.input.start.split(',')[0]) + ' → ' + esc(S.input.end.split(',')[0]) : esc(S.input.end.split(',')[0]) + ' → ' + esc(S.input.start.split(',')[0])) + '</b> (Wetterwert ' + Math.max(A.score, B.score) + ' gegen ' + Math.min(A.score, B.score) + ').';
+        if (!same && !bestA) h += '<div style="margin-top:8px"><button type="button" class="pri" data-flip>Richtung umkehren und neu berechnen</button></div>';
+      } else h += 'Für den Vergleich fehlen Klimadaten.';
+      h += '<div class="mute" style="margin-top:6px">Grundlage: tatsächliches Wetter derselben Tage in den beiden Vorjahren (Open-Meteo), kein Wetterbericht. Wohlfühlwert: Tageshöchstwerte 20 bis 28 °C und wenig Regen zählen am besten, die letzten Reisetage zählen etwas mehr. Veranstaltungen und Preise fließen nicht ein.</div></div>';
+    }
+    box.innerHTML = h;
+  }
+  function flip() {
+    readForm(); var I = S.input, t = I.start; I.start = I.end; I.end = t; I.fixpoints.reverse(); I.roundTrip = false;
+    S.proposal = null; S.climate = null; S.trip = null; S.status = 'input'; save(); fillForm(); window.scrollTo({ top: 0, behavior: 'smooth' }); calc().then(function () { return checkClimate(); });
   }
 
   // ---------- Übergabe ----------

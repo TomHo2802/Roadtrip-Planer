@@ -402,3 +402,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v86
 - Reise-Assistent: Zwischenübernachtungen bei Etappen über der Höchststrecke.
+
+## v87
+- Reise-Assistent: Klima und Feiertage je Etappe, Richtungsvergleich, Hurrikansaison-Hinweis.
