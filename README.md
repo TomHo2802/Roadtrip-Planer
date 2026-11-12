@@ -399,3 +399,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v85
 - Reise-Assistent (assistent.html): Eckpunkte eingeben, Etappen und Tage berechnen, als Entwurf an den Planer übergeben.
+
+## v86
+- Reise-Assistent: Zwischenübernachtungen bei Etappen über der Höchststrecke.

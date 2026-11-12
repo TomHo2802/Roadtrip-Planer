@@ -152,9 +152,29 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
     return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(name), 12000).then(function (j) { if (!j || !j[0]) return null; var g = [Number(j[0].lat), Number(j[0].lon)]; S.geo[k] = g; return g; });
   }
   function hav(a, b) { var R = 6371, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r, x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
-  function leg(a, b) {
-    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + '?overview=false', 15000).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); return { km: r.distance / 1000, min: r.duration / 60, est: false }; })
+  function leg(a, b, geom) {
+    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + (geom ? '?overview=simplified&geometries=geojson' : '?overview=false'), 15000).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); var o = { km: r.distance / 1000, min: r.duration / 60, est: false }; if (geom && r.geometry && r.geometry.coordinates) o.coords = r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }); return o; })
       .catch(function () { var km = hav(a, b) * 1.3; return { km: km, min: km / 70 * 60, est: true }; });
+  }
+  // Punkt bei Streckenanteil entlang der Route (oder Luftlinie, falls keine Geometrie)
+  function pointAt(a, b, l, frac) {
+    var c = l.coords && l.coords.length > 1 ? l.coords : [a, b], cum = [0], i;
+    for (i = 1; i < c.length; i++) cum.push(cum[i - 1] + hav(c[i - 1], c[i]));
+    var t = cum[cum.length - 1] * frac;
+    for (i = 1; i < c.length; i++) if (cum[i] >= t) { var f = (t - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return [c[i - 1][0] + (c[i][0] - c[i - 1][0]) * f, c[i - 1][1] + (c[i][1] - c[i - 1][1]) * f]; }
+    return c[c.length - 1];
+  }
+  // Übernachtungsort nahe einem Streckenpunkt: größte Stadt im Umkreis, sonst Nominatim
+  function pickTown(p) {
+    var q = '[out:json][timeout:25];(node["place"~"^(city|town)$"](around:30000,' + p[0].toFixed(4) + ',' + p[1].toFixed(4) + '););out 80;';
+    return fetchJ('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q), 25000).then(function (j) {
+      var els = (j.elements || []).filter(function (e) { return e.tags && e.tags.name; });
+      if (!els.length) throw new Error('none');
+      els.sort(function (x, y) { var px = Number(x.tags.population) || 0, py = Number(y.tags.population) || 0; if (!px && !py) return hav(p, [x.lat, x.lon]) - hav(p, [y.lat, y.lon]); return py - px; });
+      var e = els[0]; return { name: e.tags.name, gps: [e.lat, e.lon], found: true };
+    }).catch(function () {
+      return fetchJ('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=de&lat=' + p[0] + '&lon=' + p[1], 12000).then(function (j) { var ad = (j && j.address) || {}; var n = ad.city || ad.town || ad.village || ad.municipality || ad.county; return n ? { name: n, gps: p, found: true } : { name: 'Zwischenstopp', gps: p, found: false }; }).catch(function () { return { name: 'Zwischenstopp', gps: p, found: false }; });
+    });
   }
   function prog(p, l) { $('[data-prog]').hidden = false; $('[data-progbar]').style.width = p + '%'; $('[data-proglabel]').textContent = l; }
 
@@ -205,9 +225,11 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
     for (var m = 1; m <= n; m++) {
       var l = legs[m - 1], flags = [];
       if (need[m - 1] > 1) flags.push('Braucht ' + need[m - 1] + ' Fahrtage (' + Math.round(l.km) + ' km, Höchstwert ' + mx + ' km/Tag). Zwischenübernachtung ergänzen.');
-      if (need[m - 1] === 1 && mn > 0 && l.km < mn && m > 0) flags.push('Kurzer Tag: unter ' + mn + ' km.');
+      if (need[m - 1] === 1 && mn > 0 && l.km < mn && !pts[m].auto) flags.push('Kurzer Tag: unter ' + mn + ' km.');
       if (l.est) flags.push('Strecke geschätzt (Luftlinie × 1,3), Routing nicht erreichbar.');
-      stages.push({ id: 'stage-' + m, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est });
+      if (pts[m].auto) flags.unshift(pts[m].unnamed ? 'Zwischenübernachtung, Ort bitte selbst wählen (Name nicht ermittelt).' : 'Zwischenübernachtung, vom Assistenten vorgeschlagen. Bitte prüfen.');
+      if (l.km > mx * 1.1 && need[m - 1] === 1) flags.push('Etwas über dem Höchstwert (' + Math.round(l.km) + ' km).');
+      stages.push({ id: 'stage-' + m, auto: !!pts[m].auto, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est });
     }
     return { stages: stages, warns: warns };
   }
@@ -227,8 +249,22 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
         pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '' });
       }
       if (failed.length) { prog(0, ''); $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Diese Orte wurden nicht gefunden: <b>' + failed.map(esc).join(', ') + '</b>. Bitte eindeutiger schreiben (mit Bundesstaat oder Land) und noch einmal berechnen. Ohne Internet ist die Suche nicht möglich.</div>'; return; }
-      var legs = [];
-      for (var j = 0; j < pts.length - 1; j++) { prog(40 + Math.round(55 * j / (pts.length - 1)), 'Berechne Strecke ' + (j + 1) + ' von ' + (pts.length - 1)); legs.push(await leg(pts[j].gps, pts[j + 1].gps)); }
+      var legs = [], mxk = Number(I.maxKm), withStops = [pts[0]];
+      for (var j = 0; j < pts.length - 1; j++) {
+        prog(40 + Math.round(50 * j / (pts.length - 1)), 'Berechne Strecke ' + (j + 1) + ' von ' + (pts.length - 1));
+        var l0 = await leg(pts[j].gps, pts[j + 1].gps, true), nd = Math.max(1, Math.ceil(l0.km / mxk));
+        if (nd > 1) {
+          var prev = pts[j];
+          for (var s = 1; s < nd; s++) {
+            prog(40 + Math.round(50 * j / (pts.length - 1)), 'Suche Übernachtungsort ' + s + ' von ' + (nd - 1) + ' zwischen ' + pts[j].name.split(',')[0] + ' und ' + pts[j + 1].name.split(',')[0]);
+            var tp = await pickTown(pointAt(pts[j].gps, pts[j + 1].gps, l0, s / nd));
+            var stop = { name: tp.name, gps: tp.gps, date: '', nights: 0, auto: true, unnamed: !tp.found };
+            legs.push(await leg(prev.gps, stop.gps)); withStops.push(stop); prev = stop;
+          }
+          legs.push(await leg(prev.gps, pts[j + 1].gps)); withStops.push(pts[j + 1]);
+        } else { legs.push(l0); withStops.push(pts[j + 1]); }
+      }
+      pts = withStops;
       prog(100, 'Fertig');
       var r = plan(I, pts, legs); S.proposal = { stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, created: Date.now() }; S.status = 'proposal'; S.trip = null; save();
       $('[data-prog]').hidden = true; renderResult();
@@ -239,12 +275,13 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
   function hrs(min) { var h = Math.floor(min / 60), m = min % 60; return h ? h + ' h ' + String(m).padStart(2, '0') + ' min' : m + ' min'; }
   function renderResult() {
     var P = S.proposal; if (!P) return; $('[data-sec=result]').hidden = false;
+    var na = P.stages.filter(function (s) { return s.auto; }).length;
     var tk = P.stages.reduce(function (a, s) { return a + s.km; }, 0), tm = P.stages.reduce(function (a, s) { return a + s.min; }, 0);
-    var h = '<div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b> · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
+    var h = '<div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenstopps)' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
     h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th></tr></thead><tbody>';
-    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + s.nights + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td></tr>'; });
-    h += '</tbody></table></div><p class="mute">Zwischenstopps und Hotels folgen in den nächsten Ausbaustufen. Im Planer kannst du alles weiter bearbeiten.</p>';
+    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + s.nights + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td></tr>'; });
+    h += '</tbody></table></div><p class="mute">Zwischenstopps sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Hotels, Klima und Richtungsvergleich folgen in den nächsten Ausbaustufen. Im Planer kannst du alles weiter bearbeiten.</p>';
     h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>An den Planer übergeben</button><button type="button" data-download>Als Datei speichern</button></div>';
     if (S.status === 'ready') h += '<div class="note ok" data-ready>Der Entwurf liegt im Planer bereit. <a href="index.html"><b>Planer öffnen</b></a> und dort „Als neue Reise übernehmen“ wählen.</div>';
     $('[data-result]').innerHTML = h;
