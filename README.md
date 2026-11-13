@@ -408,3 +408,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v88
 - Reise-Assistent: Routenkarte, freie Tage bevorzugt an sehenswerten Orten.
+
+## v89
+- Reise-Assistent: Vorschlag bearbeiten (Naechte, Orte verschieben/hinzufuegen/entfernen).

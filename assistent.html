@@ -47,6 +47,13 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertic
 .mk.hl{outline:3px solid #f59e0b}
 tr.flash td{background:var(--warn)}
 tr[data-stage-row]{cursor:pointer}
+.nstep{display:inline-flex;gap:2px;align-items:center;white-space:nowrap}
+.nstep input{width:54px;margin:0;text-align:center;min-height:36px;padding:4px}
+.nstep button{min-height:36px;padding:2px 10px}
+.nstep.user input{border-color:var(--pri);border-width:2px}
+.act{white-space:nowrap}.act button{min-height:36px;padding:2px 9px}
+.leaflet-container.adding{cursor:crosshair}
+.editor{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
 .bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
 .bar>i{display:block;height:100%;background:var(--pri);width:0;transition:width .3s}
 </style>
@@ -227,7 +234,7 @@ tr[data-stage-row]{cursor:pointer}
       var spare = avail - sumNeed - userN;
       if (avail < 0) warns.push('Die Termine passen nicht zusammen: ' + pts[b].name + ' (Ankunft ' + deY(fixedArr(b)) + ') liegt vor der Abreise aus ' + pts[a].name + ' (' + deY(dep[a]) + '). Prüfe Daten und Nächte.');
       else if (spare < 0) warns.push('Zu wenig Zeit zwischen ' + pts[a].name + ' und ' + pts[b].name + ': nötig sind mindestens ' + (sumNeed + userN) + ' Tage, verfügbar sind ' + avail + '.');
-      var extra = {}; if (spare > 0) { if (free.length) { var given = {}; free.forEach(function (q) { given[q] = 0; }); for (var nn0 = 0; nn0 < spare; nn0++) { var best = -1, bv = -1, cap = nn0 < free.length * 3 ? 3 : 99; free.forEach(function (q) { if (given[q] >= cap) return; var v = ((pts[q].score || 0) + 1) / (1 + given[q] * 1.5); if (v > bv) { bv = v; best = q; } }); if (best < 0) best = free[0]; given[best]++; } free.forEach(function (q) { if (given[q]) extra[q] = given[q]; }); } else if (a >= 1) { extra[a] = spare; } else warns.push(spare + ' freie Tage zwischen Start und ' + pts[b].name + ': der Start kann später erfolgen oder du fügst einen Fixpunkt ein.'); }
+      var extra = {}; if (spare > 0) { if (free.length) { var given = {}; free.forEach(function (q) { given[q] = 0; }); for (var nn0 = 0; nn0 < spare; nn0++) { var best = -1, bv = -1, cap = nn0 < free.length * 3 ? 3 : 99; free.forEach(function (q) { if (given[q] >= cap) return; var v = ((pts[q].score || 0) + 1) / (1 + given[q] * 1.5); if (v > bv) { bv = v; best = q; } }); if (best < 0) best = free[0]; given[best]++; } free.forEach(function (q) { if (given[q]) extra[q] = given[q]; }); } else if (a >= 1 && (pts[a].nights === '' || pts[a].nights == null)) { extra[a] = spare; } else if (a >= 1) { warns.push(spare + ' freie Tage zwischen ' + pts[a].name.split(',')[0] + ' und ' + pts[b].name.split(',')[0] + ' sind nicht verplant. Erhöhe die Nächte an einem Ort oder ändere das Enddatum.'); } else warns.push(spare + ' freie Tage zwischen Start und ' + pts[b].name + ': der Start kann später erfolgen oder du fügst einen Fixpunkt ein.'); }
       for (var ek in extra) extraN[ek] = (extraN[ek] || 0) + extra[ek];
       var cur = dep[a];
       if (a >= 1 && extra[a]) { nights[a] = (nights[a] || 0) + extra[a]; dep[a] = addDays(dep[a], extra[a]); cur = dep[a]; }
@@ -256,6 +263,8 @@ tr[data-stage-row]{cursor:pointer}
 
   async function calc() {
     readForm(); save(); var I = S.input, errs = validate(I);
+    if (S.proposal && S.proposal.edited && !window.confirm('Dein bearbeiteter Vorschlag wird durch eine neue Berechnung ersetzt. Fortfahren?')) return;
+    MAPVIEW = null; ADDMODE = false;
     if (errs.length) { msg('err', '<b>Bitte prüfen:</b><br>' + errs.map(esc).join('<br>')); return; }
     msg(); var sec = $('[data-sec=result]'); sec.hidden = false; $('[data-result]').innerHTML = ''; var btn = $('[data-calc]'); btn.disabled = true;
     try {
@@ -287,7 +296,7 @@ tr[data-stage-row]{cursor:pointer}
       pts = withStops;
       for (var si = 1; si < pts.length - 1; si++) { var pp = pts[si]; if (!pp.date && (pp.nights === '' || pp.nights == null)) { prog(92 + Math.round(7 * si / pts.length), 'Prüfe Sehenswürdigkeiten: ' + pp.name.split(',')[0]); var sc = await wikiScore(pp.gps); if (sc != null) pp.score = sc; } }
       prog(100, 'Fertig');
-      var r = plan(I, pts, legs); S.proposal = { stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
+      var r = plan(I, pts, legs); S.proposal = { edited: false, stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
       $('[data-prog]').hidden = true; renderResult();
     } catch (e) { $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Berechnung fehlgeschlagen: ' + esc(String(e && e.message || e).slice(0, 200)) + '</div>'; }
     finally { btn.disabled = false; }
@@ -298,11 +307,11 @@ tr[data-stage-row]{cursor:pointer}
     var P = S.proposal; if (!P) return; $('[data-sec=result]').hidden = false;
     var na = P.stages.filter(function (s) { return s.auto; }).length;
     var tk = P.stages.reduce(function (a, s) { return a + s.km; }, 0), tm = P.stages.reduce(function (a, s) { return a + s.min; }, 0);
-    var h = '<div data-routemap class="map" role="img" aria-label="Karte der Route"></div><div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenstopps)' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
+    var h = editorHtml() + '<div data-routemap class="map" role="img" aria-label="Karte der Route"></div><div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenstopps)' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
-    h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th></tr></thead><tbody>';
-    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + s.nights + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td></tr>'; });
-    h += '</tbody></table></div><p class="mute">Zwischenstopps sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Freie Tage gehen bevorzugt an Orte mit vielen Sehenswürdigkeiten (Dichte an Wikipedia-Artikeln im Umkreis von 10 km, höchstens 3 zusätzliche Tage je Ort). Tippe auf einen Kartenpunkt oder eine Zeile. Hotels, Klima und Richtungsvergleich folgen in den nächsten Ausbaustufen. Im Planer kannst du alles weiter bearbeiten.</p>';
+    h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th><th>Bearbeiten</th></tr></thead><tbody>';
+    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
+    h += '</tbody></table></div><p class="mute">Zwischenstopps sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Freie Tage gehen bevorzugt an Orte mit vielen Sehenswürdigkeiten (Dichte an Wikipedia-Artikeln im Umkreis von 10 km, höchstens 3 zusätzliche Tage je Ort). Du kannst Zwischenorte auf der Karte verschieben (ziehen), mit „Ort hinzufügen“ ergänzen, mit den Pfeilen umsortieren, entfernen und die Nächte je Ort einstellen. Von dir gesetzte Nächte (blauer Rahmen) bleiben fest, freie Tage verteilt der Assistent auf die übrigen Orte. Im Planer kannst du danach alles weiter bearbeiten.</p>';
     h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>An den Planer übergeben</button><button type="button" data-climate>Klima, Feiertage und Richtung prüfen</button><button type="button" data-download>Als Datei speichern</button></div><div data-climate-box></div>';
     if (S.status === 'ready') h += '<div class="note ok" data-ready>Der Entwurf liegt im Planer bereit. <a href="index.html"><b>Planer öffnen</b></a> und dort „Als neue Reise übernehmen“ wählen.</div>';
     $('[data-result]').innerHTML = h; renderClimate(); drawMap();
@@ -419,7 +428,7 @@ tr[data-stage-row]{cursor:pointer}
     box.innerHTML = h;
   }
   function flip() {
-    readForm(); var I = S.input, t = I.start; I.start = I.end; I.end = t; I.fixpoints.reverse(); I.roundTrip = false;
+    MAPVIEW = null; ADDMODE = false; readForm(); var I = S.input, t = I.start; I.start = I.end; I.end = t; I.fixpoints.reverse(); I.roundTrip = false;
     S.proposal = null; S.climate = null; S.trip = null; S.status = 'input'; save(); fillForm(); window.scrollTo({ top: 0, behavior: 'smooth' }); calc().then(function () { return checkClimate(); });
   }
 
@@ -428,7 +437,7 @@ tr[data-stage-row]{cursor:pointer}
   var MAP = null;
   function drawMap() {
     var el = $('[data-routemap]'), P = S.proposal; if (!el || !P || !P.raw) return;
-    if (MAP) { try { MAP.remove(); } catch (e) {} MAP = null; }
+    if (MAP) { try { MAPVIEW = { c: MAP.getCenter(), z: MAP.getZoom() }; MAP.remove(); } catch (e) {} MAP = null; }
     if (!window.L) { el.innerHTML = '<div style="padding:16px" class="mute">Die Karte konnte nicht geladen werden.</div>'; return; }
     var L = window.L, pts = P.raw.pts, map = L.map(el, { scrollWheelZoom: true }); MAP = map;
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap-Mitwirkende' }).addTo(map);
@@ -437,12 +446,15 @@ tr[data-stage-row]{cursor:pointer}
       var s = i > 0 ? P.stages[i - 1] : null, isEnd = i === pts.length - 1, label = i === 0 ? 'S' : (isEnd ? 'Z' : String(i));
       var cls = 'mk' + (p.auto ? ' auto' : '') + (isEnd ? ' end' : '') + (s && s.extra ? ' hl' : '');
       var size = p.auto ? 20 : 26;
-      var m = L.marker(p.gps, { icon: L.divIcon({ className: '', html: '<div class="' + cls + '">' + label + '</div>', iconSize: [size, size], iconAnchor: [size / 2, size / 2] }), title: p.name }).addTo(map);
+      var m = L.marker(p.gps, { icon: L.divIcon({ className: '', html: '<div class="' + cls + '">' + label + '</div>', iconSize: [size, size], iconAnchor: [size / 2, size / 2] }), title: p.name, draggable: i > 0 && !isEnd }).addTo(map);
       m.bindTooltip('<b>' + esc(p.name.split(',')[0]) + '</b>' + (s ? '<br>Ankunft ' + deY(s.arrive) + (s.nights ? ' · ' + s.nights + ' Nacht' + (s.nights > 1 ? 'e' : '') : '') + (s.extra ? '<br>mehrere Tage: sehenswert' : '') + (p.auto ? '<br>Zwischenstopp' : '') : '<br>Start ' + deY(S.input.startDate)));
       m.on('click', function () { var rows = $$('[data-stage-row]'), r = rows[i - 1] || rows[0]; if (!r) return; r.scrollIntoView({ block: 'center', behavior: 'smooth' }); r.classList.add('flash'); setTimeout(function () { r.classList.remove('flash'); }, 1600); });
+      if (i > 0 && !isEnd) m.on('dragend', function () { dragWaypoint(i, m.getLatLng()); });
       markers.push(m);
     });
-    map.fitBounds(L.latLngBounds(ll), { padding: [30, 30] });
+    if (MAPVIEW) map.setView(MAPVIEW.c, MAPVIEW.z); else map.fitBounds(L.latLngBounds(ll), { padding: [30, 30] });
+    if (ADDMODE) el.classList.add('adding');
+    map.on('click', function (e) { if (!ADDMODE) return; ADDMODE = false; el.classList.remove('adding'); var b = $('[data-add-map]'); if (b) b.setAttribute('aria-pressed', 'false'); addAt([e.latlng.lat, e.latlng.lng], null); });
     var dashed = L.polyline(ll, { color: '#1F4E8C', weight: 3, opacity: 0.6, dashArray: '6 8' }).addTo(map), mine = map;
     var draw = function (coords) { if (MAP !== mine) return; map.removeLayer(dashed); L.polyline(coords, { color: '#1F4E8C', weight: 5, opacity: 0.85 }).addTo(map); };
     if (P.geom) draw(P.geom);
@@ -453,6 +465,80 @@ tr[data-stage-row]{cursor:pointer}
     $$('[data-stage-row]').forEach(function (r, i) { r.addEventListener('click', function () { if (markers[i + 1]) { map.flyTo(pts[i + 1].gps, Math.max(map.getZoom(), 7)); markers[i + 1].openTooltip(); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }); });
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
+
+
+  // ---------- Bearbeiten ----------
+  var ADDMODE = false, MAPVIEW = null, BUSY = false, EDITMSG = '';
+  function nightsCell(s, i, n) {
+    var m = i + 1, user = m === n ? true : (S.proposal.raw.pts[m].nights !== '' && S.proposal.raw.pts[m].nights != null);
+    return '<span class="nstep' + (user ? ' user' : '') + '"><button type="button" data-n-dec="' + m + '" aria-label="Eine Nacht weniger">−</button><input type="number" min="0" max="30" value="' + s.nights + '" data-n-in="' + m + '" aria-label="Nächte in ' + esc(s.toCity) + '"><button type="button" data-n-inc="' + m + '" aria-label="Eine Nacht mehr">+</button></span>' + (user && m < n ? ' <button type="button" data-n-reset="' + m + '" title="Wieder automatisch verteilen" aria-label="Nächte wieder automatisch">↺</button>' : '');
+  }
+  function actCell(i, n) {
+    var m = i + 1; if (m === n) return '<span class="mute">Ziel</span>';
+    return '<button type="button" data-wp-up="' + m + '" ' + (m === 1 ? 'disabled' : '') + ' aria-label="Nach oben">↑</button> <button type="button" data-wp-down="' + m + '" ' + (m === n - 1 ? 'disabled' : '') + ' aria-label="Nach unten">↓</button> <button type="button" data-wp-del="' + m + '" aria-label="Entfernen">✕</button>';
+  }
+  function editorHtml() {
+    return '<div class="editor" data-editor><div class="row"><label>Ort hinzufügen<input data-add-name placeholder="z. B. Pensacola, Florida" autocomplete="off"></label><button type="button" class="fix" data-add-name-btn>Hinzufügen</button></div>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" data-add-map aria-pressed="' + (ADDMODE ? 'true' : 'false') + '">' + (ADDMODE ? 'Tippe jetzt auf die Karte …' : 'Ort auf der Karte setzen') + '</button><span class="mute">Zwischenorte lassen sich auf der Karte ziehen.</span></div>' +
+      (EDITMSG ? '<div class="note warn" data-editmsg role="status">' + EDITMSG + '</div>' : '') + '</div>';
+  }
+  async function relegs(i0, i1) { var R = S.proposal.raw; for (var k = Math.max(0, i0); k <= Math.min(i1, R.pts.length - 2); k++) { prog(30 + Math.round(60 * (k - i0 + 1) / (i1 - i0 + 2)), 'Berechne Strecke'); R.legs[k] = await leg(R.pts[k].gps, R.pts[k + 1].gps); } }
+  function recompute() {
+    var P = S.proposal; P.edited = true; P.geom = null; S.climate = null; S.trip = null; if (S.status === 'ready') S.status = 'proposal';
+    var r = plan(S.input, P.raw.pts, P.raw.legs); P.stages = r.stages; P.warns = r.warns; save(); $('[data-prog]').hidden = true; renderResult();
+  }
+  async function guarded(fn) { if (BUSY) return; BUSY = true; EDITMSG = ''; try { await fn(); } catch (e) { EDITMSG = 'Das hat nicht geklappt: ' + esc(String(e && e.message || e).slice(0, 120)); $('[data-prog]').hidden = true; renderResult(); } finally { BUSY = false; } }
+  function nameAt(g) {
+    return fetchJ('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=de&lat=' + g[0] + '&lon=' + g[1], 12000).then(function (j) { var ad = (j && j.address) || {}; return ad.city || ad.town || ad.village || ad.municipality || ad.county || ''; }).catch(function () { return ''; });
+  }
+  function addAt(g, name) {
+    return guarded(async function () {
+      var R = S.proposal.raw, best = 1, bv = 1e18;
+      for (var i = 0; i < R.pts.length - 1; i++) { var d = hav(R.pts[i].gps, g) + hav(g, R.pts[i + 1].gps) - hav(R.pts[i].gps, R.pts[i + 1].gps); if (d < bv) { bv = d; best = i + 1; } }
+      prog(10, 'Suche Ortsnamen'); var nm = name || await nameAt(g);
+      var pt = { name: nm || 'Wegpunkt', gps: g, date: '', nights: '', auto: false, unnamed: !nm };
+      R.pts.splice(best, 0, pt); R.legs.splice(best - 1, 1, null, null); await relegs(best - 1, best);
+      prog(95, 'Prüfe Sehenswürdigkeiten'); var sc = await wikiScore(g); if (sc != null) pt.score = sc;
+      EDITMSG = 'Hinzugefügt: <b>' + esc(pt.name) + '</b> als Etappe ' + best + (pt.unnamed ? ' (Ortsname nicht ermittelt, bitte im Planer benennen)' : '') + '.'; recompute();
+    });
+  }
+  function addByName() {
+    var inp = $('[data-add-name]'), q = inp ? inp.value.trim() : ''; if (!q) return;
+    return guarded(async function () {
+      prog(10, 'Suche Ort: ' + q); var g = null; try { g = await geocode(q); } catch (e) {}
+      if (!g) { $('[data-prog]').hidden = true; EDITMSG = 'Ort „' + esc(q) + '“ wurde nicht gefunden. Bitte mit Bundesstaat oder Land schreiben.'; renderResult(); return; }
+      BUSY = false; await addAt(g, q);
+    });
+  }
+  function dragWaypoint(m, ll) {
+    return guarded(async function () {
+      var R = S.proposal.raw, p = R.pts[m]; prog(10, 'Suche Ortsnamen'); var g = [ll.lat, ll.lng], nm = await nameAt(g);
+      p.gps = g; p.name = nm || 'Wegpunkt'; p.unnamed = !nm; p.auto = false; p.score = undefined;
+      await relegs(m - 1, m); var sc = await wikiScore(g); if (sc != null) p.score = sc;
+      EDITMSG = 'Verschoben: <b>' + esc(p.name) + '</b>.'; recompute();
+    });
+  }
+  function delWaypoint(m) { return guarded(async function () { var R = S.proposal.raw, nm = R.pts[m].name; R.pts.splice(m, 1); R.legs.splice(m - 1, 2, null); await relegs(m - 1, m - 1); EDITMSG = 'Entfernt: <b>' + esc(nm) + '</b>.'; recompute(); }); }
+  function moveWaypoint(m, dir) { return guarded(async function () { var R = S.proposal.raw, j = m + dir; if (j < 1 || j > R.pts.length - 2) return; var t = R.pts[m]; R.pts[m] = R.pts[j]; R.pts[j] = t; var lo = Math.min(m, j); await relegs(lo - 1, lo + 1); recompute(); }); }
+  function setNights(m, v) {
+    v = Math.max(0, Math.min(30, Math.round(Number(v)))); if (isNaN(v)) return;
+    var R = S.proposal.raw; if (m === R.pts.length - 1) { S.input.endNights = v; var f = $('[data-f=endNights]'); if (f) f.value = v; } else R.pts[m].nights = v;
+    EDITMSG = ''; recompute();
+  }
+  function resetNights(m) { S.proposal.raw.pts[m].nights = ''; EDITMSG = ''; recompute(); }
+  document.addEventListener('change', function (e) { var t = e.target; if (t && t.hasAttribute && t.hasAttribute('data-n-in')) setNights(+t.getAttribute('data-n-in'), t.value); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-add-name]')) { e.preventDefault(); addByName(); } });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t || !S.proposal) return; var g = function (k) { return t.hasAttribute(k) ? +t.getAttribute(k) : null; }, v;
+    if ((v = g('data-n-dec')) != null) setNights(v, S.proposal.stages[v - 1].nights - 1);
+    else if ((v = g('data-n-inc')) != null) setNights(v, S.proposal.stages[v - 1].nights + 1);
+    else if ((v = g('data-n-reset')) != null) resetNights(v);
+    else if ((v = g('data-wp-up')) != null) moveWaypoint(v, -1);
+    else if ((v = g('data-wp-down')) != null) moveWaypoint(v, 1);
+    else if ((v = g('data-wp-del')) != null) delWaypoint(v);
+    else if (t.hasAttribute('data-add-name-btn')) addByName();
+    else if (t.hasAttribute('data-add-map')) { ADDMODE = !ADDMODE; t.setAttribute('aria-pressed', ADDMODE ? 'true' : 'false'); t.textContent = ADDMODE ? 'Tippe jetzt auf die Karte …' : 'Ort auf der Karte setzen'; var el = $('[data-routemap]'); if (el) el.classList.toggle('adding', ADDMODE); }
+  });
 
   // ---------- Übergabe ----------
   function buildTrip() {
