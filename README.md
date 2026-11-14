@@ -419,3 +419,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Ortsergaenzung in allen Orts- und Adressfeldern des Planers.
 - Reise-Assistent: Datumsrechnung korrigiert (keine Luecken zwischen Etappen), Naechte am Startort.
 - Etappen verschieben/loeschen haelt Daten und Startorte konsistent, abgebrochene neue Etappe wird verworfen.
+
+## v92
+- Namen: Routen-Vorschlag und Schritt-Assistent. Startseite mit zwei Wegen. Uebergabe aus dem Vorschlag in einem Klick.

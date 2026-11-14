@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Reise-Assistent</title>
+<title>Routen-Vorschlag</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="stylesheet" href="leaflet/leaflet.css">
@@ -65,7 +65,7 @@ tr[data-stage-row]{cursor:pointer}
 <body>
 <div class="wrap">
   <div class="top">
-    <div><h1>Reise-Assistent</h1><p class="mute">Eckpunkte eingeben, Vorschlag prüfen, an den Planer übergeben.</p></div>
+    <div><h1>Routen-Vorschlag</h1><p class="mute">Eckpunkte eingeben, Vorschlag prüfen, an den Planer übergeben.</p></div>
     <a class="btn" href="index.html" data-back>Zum Planer</a>
   </div>
   <div class="steps"><span><b>1</b> Eckpunkte</span> › <span>2 Wünsche (folgt)</span> › <span><b>3</b> Vorschlag</span> › <span>4 Übergabe</span></div>
@@ -321,8 +321,9 @@ tr[data-stage-row]{cursor:pointer}
     h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th><th>Bearbeiten</th></tr></thead><tbody>';
     P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
     h += '</tbody></table></div><p class="mute">Zwischenstopps sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Freie Tage gehen bevorzugt an Orte mit vielen Sehenswürdigkeiten (Dichte an Wikipedia-Artikeln im Umkreis von 10 km, höchstens 3 zusätzliche Tage je Ort). Du kannst Zwischenorte auf der Karte verschieben (ziehen), mit „Ort hinzufügen“ ergänzen, mit den Pfeilen umsortieren, entfernen und die Nächte je Ort einstellen. Von dir gesetzte Nächte (blauer Rahmen) bleiben fest, freie Tage verteilt der Assistent auf die übrigen Orte. Im Planer kannst du danach alles weiter bearbeiten.</p>';
-    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>An den Planer übergeben</button><button type="button" data-climate>Klima, Feiertage und Richtung prüfen</button><button type="button" data-download>Als Datei speichern</button></div><div data-climate-box></div>';
-    if (S.status === 'ready') h += '<div class="note ok" data-ready>Der Entwurf liegt im Planer bereit. <a href="index.html"><b>Planer öffnen</b></a> und dort „Als neue Reise übernehmen“ wählen.</div>';
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>Im Planer anlegen und öffnen</button><button type="button" data-climate>Klima, Feiertage und Richtung prüfen</button><button type="button" data-download>Als Datei speichern</button></div><div data-climate-box></div>';
+    if (S.status === 'ready') h += '<div class="note ok" data-ready>Der Vorschlag liegt im Planer bereit. <a href="index.html#adopt"><b>Jetzt im Planer anlegen</b></a></div>';
+    if (S.status === 'adopted') h += '<div class="note ok" data-adopted>Dieser Vorschlag wurde im Planer als Reise angelegt. <a href="index.html"><b>Zum Planer</b></a>. Du kannst ihn hier ändern und erneut anlegen, dann entsteht eine weitere Reise.</div>';
     $('[data-result]').innerHTML = h; renderClimate(); drawMap();
   }
 
@@ -623,18 +624,18 @@ tr[data-stage-row]{cursor:pointer}
       var note = s.flags.filter(function (f) { return !/geschätzt/.test(f); }).join(' ');
       var h = hotel(s.gps);
       return { id: 'stage-' + (i + 1), fromCity: s.fromCity, toCity: s.toCity, dateRange: range, nights: s.nights,
-        routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Reise-Assistenten: ' + note : '', stopsOnWay: [] },
+        routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Routen-Vorschlag: ' + note : '', stopsOnWay: [] },
         hotel: h, localAttractions: [] };
     });
     var sN = Math.max(0, Number(I.startNights) || 0);
     if (sN > 0) { stages.unshift({ id: 'stage-0', fromCity: I.start, toCity: I.start, dateRange: de(I.startDate) + ' – ' + deY(addDays(I.startDate, sN)), nights: sN, routeToHotel: { distanceKm: '', duration: '', routeDescription: 'Ankunft am Startort, Übernachtung vor der ersten Fahrt.', stopsOnWay: [] }, hotel: hotel(P.start && P.start.gps), localAttractions: [] }); stages.forEach(function (st, k) { st.id = 'stage-' + (k + 1); }); }
     var id = ''; for (var i2 = 0; i2 < 18; i2++) id += ('0' + Math.floor(Math.random() * 256).toString(16)).slice(-2);
     var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
-    return { meta: { title: I.title || ((I.roundTrip ? 'Rundreise ab ' : '') + I.start + (I.roundTrip ? '' : ' – ' + I.end)), subtitle: names.map(function (n) { return n.split(',')[0]; }).join(' • '), startDate: I.startDate, endDate: I.endDate, schemaVersion: 2, version: 1, lastUpdated: new Date().toISOString(), tripId: id, draftSource: 'assistent-v1' },
+    return { meta: { title: I.title || ((I.roundTrip ? 'Rundreise ab ' : '') + I.start + (I.roundTrip ? '' : ' – ' + I.end)), subtitle: names.map(function (n) { return n.split(',')[0]; }).join(' • '), startDate: I.startDate, endDate: I.endDate, startLocation: I.start, endLocation: I.end, returnStageAsked: true, maxDriveHours: ([2, 3, 4, 5, 6, 7, 8, 10].filter(function (h) { return h >= Number(I.maxKm) / 85; })[0] || 10), schemaVersion: 2, version: 1, lastUpdated: new Date().toISOString(), tripId: id, draftSource: 'assistent-v1' },
       participants: [], customExpenses: [], creditCards: [], emergencyContacts: [], flights: [], rentalCars: [], stages: stages, checklist: [] };
   }
   function handover() {
-    if (!S.proposal) return; S.trip = buildTrip(); S.status = 'ready'; save(); renderResult(); var r = $('[data-ready]'); if (r) r.scrollIntoView({ block: 'nearest' });
+    if (!S.proposal) return; S.trip = buildTrip(); S.status = 'ready'; save(); location.href = 'index.html#adopt';
   }
   function download() {
     var t = S.trip || buildTrip(); var b = new Blob([JSON.stringify(t, null, 2)], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'reise-entwurf.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
