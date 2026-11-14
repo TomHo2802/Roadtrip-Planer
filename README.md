@@ -414,3 +414,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v90
 - Reise-Assistent: Ortsvorschlaege beim Tippen, Warnung bei Orten in verschiedenen Laendern.
+
+## v91
+- Ortsergaenzung in allen Orts- und Adressfeldern des Planers.
+- Reise-Assistent: Datumsrechnung korrigiert (keine Luecken zwischen Etappen), Naechte am Startort.
+- Etappen verschieben/loeschen haelt Daten und Startorte konsistent, abgebrochene neue Etappe wird verworfen.

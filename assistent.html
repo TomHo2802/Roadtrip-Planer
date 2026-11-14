@@ -76,7 +76,8 @@ tr[data-stage-row]{cursor:pointer}
       <label>Reisetitel (optional)<input data-f="title" placeholder="z. B. Texas nach Florida"></label>
       <label>Nächte am Zielort<input data-f="endNights" type="number" min="0" max="30" value="1"></label>
       <label>Startort<input data-f="start" placeholder="z. B. Dallas, Texas" autocomplete="off"></label>
-      <label>Abreise am Start (Datum)<input data-f="startDate" type="date"></label>
+      <label>Reisebeginn am Startort (Datum)<input data-f="startDate" type="date"></label>
+      <label>Nächte am Startort vor der ersten Fahrt<input data-f="startNights" type="number" min="0" max="30" value="0"><small class="mute">0 = du fährst am ersten Tag los. 1 = zum Beispiel nach einem Flug erst übernachten.</small></label>
       <label>Zielort<input data-f="end" placeholder="z. B. Orlando, Florida" autocomplete="off"></label>
       <label>Abreise vom Zielort (Datum)<input data-f="endDate" type="date"></label>
     </div>
@@ -116,7 +117,7 @@ tr[data-stage-row]{cursor:pointer}
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var uid = function () { return 'x' + Math.random().toString(36).slice(2, 10); };
 
-  var S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 };
+  var S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', startNights: 0, endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 };
 
   function load() { try { var j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.v === 1 && j.input) { S = Object.assign(S, j); S.input = Object.assign({ fixpoints: [] }, S.input); } } catch (e) {} }
   function save() { S.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -159,7 +160,7 @@ tr[data-stage-row]{cursor:pointer}
     if (t.hasAttribute('data-fp-add')) { readForm(); S.input.fixpoints.push({ id: uid(), name: '', date: '', nights: '' }); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-del')) { readForm(); S.input.fixpoints.splice(+t.getAttribute('data-fp-del'), 1); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-up') || t.hasAttribute('data-fp-down')) { readForm(); var up = t.hasAttribute('data-fp-up'), i = +t.getAttribute(up ? 'data-fp-up' : 'data-fp-down'), j = up ? i - 1 : i + 1, a = S.input.fixpoints; var x = a[i]; a[i] = a[j]; a[j] = x; renderFps(); save(); }
-    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
+    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', startNights: 0, endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
     else if (t.hasAttribute('data-calc')) calc();
     else if (t.hasAttribute('data-handover')) handover();
     else if (t.hasAttribute('data-download')) download();
@@ -211,7 +212,7 @@ tr[data-stage-row]{cursor:pointer}
   function validate(I) {
     var errs = [];
     if (!I.start) errs.push('Startort fehlt.'); if (!I.end) errs.push('Zielort fehlt.');
-    if (!pd(I.startDate)) errs.push('Abreisedatum am Start fehlt.'); if (!pd(I.endDate)) errs.push('Abreisedatum vom Zielort fehlt.');
+    if (!pd(I.startDate)) errs.push('Datum für den Reisebeginn fehlt.'); if (!pd(I.endDate)) errs.push('Abreisedatum vom Zielort fehlt.');
     if (pd(I.startDate) && pd(I.endDate) && pd(I.endDate) < pd(I.startDate)) errs.push('Das Enddatum liegt vor dem Startdatum.');
     var mx = Number(I.maxKm), mn = Number(I.minKm) || 0; if (!(mx >= 50)) errs.push('Höchststrecke pro Tag fehlt (mindestens 50 km).'); else if (mn > mx) errs.push('Die Mindeststrecke ist größer als die Höchststrecke.');
     I.fixpoints.forEach(function (f, i) { if (!f.name) errs.push('Fixpunkt ' + (i + 1) + ' hat keinen Ort.'); if (f.date && pd(I.startDate) && pd(I.endDate) && (pd(f.date) < pd(I.startDate) || pd(f.date) > pd(I.endDate))) errs.push('Fixpunkt „' + f.name + '“: Das Datum liegt außerhalb der Reise.'); });
@@ -227,34 +228,35 @@ tr[data-stage-row]{cursor:pointer}
     legs.forEach(function (l, j) { need[j] = Math.max(1, Math.ceil(l.km / mx)); });
     var endN = Math.max(0, Number(I.endNights) || 0);
     var fixedArr = function (i) { return i === n ? addDays(I.endDate, -endN) : (pts[i].date || null); };
-    dep[0] = I.startDate;
+    var startN = Math.max(0, Number(I.startNights) || 0); dep[0] = addDays(I.startDate, startN);
+    var isSet = function (q) { return pts[q].nights !== '' && pts[q].nights != null; }, baseN = function (q) { return isSet(q) ? Math.max(0, Number(pts[q].nights)) : 1; };
     var anchors = [0]; for (var i = 1; i <= n; i++) if (fixedArr(i)) anchors.push(i);
     if (anchors[anchors.length - 1] !== n) anchors.push(n);
     for (var s = 0; s < anchors.length - 1; s++) {
       var a = anchors[s], b = anchors[s + 1], k = b - a - 1, sumNeed = 0;
-      for (var j = a; j < b; j++) sumNeed += need[j];
+      for (var j = a; j < b; j++) sumNeed += need[j] - 1;
       var avail = diffDays(dep[a], fixedArr(b)), userN = 0, free = [];
-      for (var q = a + 1; q < b; q++) { if (pts[q].nights !== '' && pts[q].nights != null) userN += Number(pts[q].nights); else free.push(q); }
+      for (var q = a + 1; q < b; q++) { userN += baseN(q); if (!isSet(q)) free.push(q); }
       var spare = avail - sumNeed - userN;
       if (avail < 0) warns.push('Die Termine passen nicht zusammen: ' + pts[b].name + ' (Ankunft ' + deY(fixedArr(b)) + ') liegt vor der Abreise aus ' + pts[a].name + ' (' + deY(dep[a]) + '). Prüfe Daten und Nächte.');
-      else if (spare < 0) warns.push('Zu wenig Zeit zwischen ' + pts[a].name + ' und ' + pts[b].name + ': nötig sind mindestens ' + (sumNeed + userN) + ' Tage, verfügbar sind ' + avail + '.');
-      var extra = {}; if (spare > 0) { if (free.length) { var given = {}; free.forEach(function (q) { given[q] = 0; }); for (var nn0 = 0; nn0 < spare; nn0++) { var best = -1, bv = -1, cap = nn0 < free.length * 3 ? 3 : 99; free.forEach(function (q) { if (given[q] >= cap) return; var v = ((pts[q].score || 0) + 1) / (1 + given[q] * 1.5); if (v > bv) { bv = v; best = q; } }); if (best < 0) best = free[0]; given[best]++; } free.forEach(function (q) { if (given[q]) extra[q] = given[q]; }); } else if (a >= 1 && (pts[a].nights === '' || pts[a].nights == null)) { extra[a] = spare; } else if (a >= 1) { warns.push(spare + ' freie Tage zwischen ' + pts[a].name.split(',')[0] + ' und ' + pts[b].name.split(',')[0] + ' sind nicht verplant. Erhöhe die Nächte an einem Ort oder ändere das Enddatum.'); } else warns.push(spare + ' freie Tage zwischen Start und ' + pts[b].name + ': der Start kann später erfolgen oder du fügst einen Fixpunkt ein.'); }
+      else if (spare < 0) warns.push('Zu wenig Zeit zwischen ' + pts[a].name + ' und ' + pts[b].name + ': nötig sind mindestens ' + (sumNeed + userN) + ' Tage (Fahrtage und Übernachtungen), verfügbar sind ' + avail + '.');
+      var extra = {}; if (spare > 0) { if (free.length) { var given = {}; free.forEach(function (q) { given[q] = 0; }); for (var nn0 = 0; nn0 < spare; nn0++) { var best = -1, bv = -1, cap = nn0 < free.length * 3 ? 3 : 99; free.forEach(function (q) { if (given[q] >= cap) return; var v = ((pts[q].score || 0) + 1) / (1 + given[q] * 1.5); if (v > bv) { bv = v; best = q; } }); if (best < 0) best = free[0]; given[best]++; } free.forEach(function (q) { if (given[q]) extra[q] = given[q]; }); } else if (a >= 1 && !isSet(a)) { extra[a] = spare; } else if (a >= 1) { warns.push(spare + ' freie Tage zwischen ' + pts[a].name.split(',')[0] + ' und ' + pts[b].name.split(',')[0] + ' sind nicht verplant. Erhöhe die Nächte an einem Ort oder ändere das Enddatum.'); } else warns.push(spare + ' freie Tage zwischen Start und ' + pts[b].name + ': der Start kann später erfolgen oder du fügst einen Fixpunkt ein.'); }
       for (var ek in extra) extraN[ek] = (extraN[ek] || 0) + extra[ek];
       var cur = dep[a];
       if (a >= 1 && extra[a]) { nights[a] = (nights[a] || 0) + extra[a]; dep[a] = addDays(dep[a], extra[a]); cur = dep[a]; }
       for (var j2 = a; j2 < b; j2++) {
-        var next = j2 + 1, ar = addDays(cur, need[j2]);
+        var next = j2 + 1, ar = addDays(cur, need[j2] - 1);
         if (next === b) ar = fixedArr(b);
         arr[next] = ar;
         var nn;
-        if (next === n) nn = endN; else if (next < b) nn = (pts[next].nights !== '' && pts[next].nights != null ? Number(pts[next].nights) : 0) + (extra[next] || 0); else nn = Number(pts[next].nights) || 0;
+        if (next === n) nn = endN; else if (next < b) nn = baseN(next) + (extra[next] || 0); else nn = baseN(next);
         nights[next] = nn; dep[next] = addDays(ar, nn); cur = dep[next];
       }
     }
     var stages = [];
     for (var m = 1; m <= n; m++) {
       var l = legs[m - 1], flags = [];
-      if (need[m - 1] > 1) flags.push('Braucht ' + need[m - 1] + ' Fahrtage (' + Math.round(l.km) + ' km, Höchstwert ' + mx + ' km/Tag). Zwischenübernachtung ergänzen.');
+      if (need[m - 1] > 1) flags.push('Braucht ' + need[m - 1] + ' Fahrtage (' + Math.round(l.km) + ' km, Höchstwert ' + mx + ' km/Tag). Abfahrt am ' + de(addDays(arr[m], 1 - need[m - 1])) + ', Zwischenübernachtung ergänzen.');
       if (need[m - 1] === 1 && mn > 0 && l.km < mn && !pts[m].auto) flags.push('Kurzer Tag: unter ' + mn + ' km.');
       if (extraN[m]) flags.unshift('+' + extraN[m] + ' Tag' + (extraN[m] > 1 ? 'e' : '') + ' eingeplant: ' + (pts[m].score ? 'viele Sehenswürdigkeiten (' + (pts[m].score >= 500 ? '500+' : pts[m].score) + ' Wikipedia-Artikel im Umkreis von 10 km).' : 'freie Tage verteilt.'));
       if (l.est) flags.push('Strecke geschätzt (Luftlinie × 1,3), Routing nicht erreichbar.');
@@ -262,7 +264,7 @@ tr[data-stage-row]{cursor:pointer}
       if (l.km > mx * 1.1 && need[m - 1] === 1) flags.push('Etwas über dem Höchstwert (' + Math.round(l.km) + ' km).');
       stages.push({ id: 'stage-' + m, auto: !!pts[m].auto, extra: extraN[m] || 0, score: pts[m].score || 0, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est });
     }
-    return { stages: stages, warns: warns };
+    return { stages: stages, warns: warns, startNights: startN, startDepart: dep[0] };
   }
 
   async function calc() {
@@ -314,6 +316,8 @@ tr[data-stage-row]{cursor:pointer}
     var h = editorHtml() + '<div data-routemap class="map" role="img" aria-label="Karte der Route"></div><div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenstopps)' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
     h += resolvedHtml(P);
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
+    var sN0 = Math.max(0, Number(S.input.startNights) || 0);
+    h += '<p class="mute" data-start-info>' + (sN0 > 0 ? 'Start: ' + sN0 + ' Nacht' + (sN0 > 1 ? 'e' : '') + ' in ' + esc(String(S.input.start).split(',')[0]) + ' (' + de(S.input.startDate) + ' – ' + deY(addDays(S.input.startDate, sN0)) + '), erste Fahrt am ' + deY(addDays(S.input.startDate, sN0)) + '. Im Planer wird daraus eine eigene Etappe.' : 'Erste Fahrt am ' + deY(S.input.startDate) + '. Ein Fahrtag endet am selben Tag am Etappenziel, die Nächte zählen ab der Ankunft.') + '</p>';
     h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th><th>Bearbeiten</th></tr></thead><tbody>';
     P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
     h += '</tbody></table></div><p class="mute">Zwischenstopps sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Freie Tage gehen bevorzugt an Orte mit vielen Sehenswürdigkeiten (Dichte an Wikipedia-Artikeln im Umkreis von 10 km, höchstens 3 zusätzliche Tage je Ort). Du kannst Zwischenorte auf der Karte verschieben (ziehen), mit „Ort hinzufügen“ ergänzen, mit den Pfeilen umsortieren, entfernen und die Nächte je Ort einstellen. Von dir gesetzte Nächte (blauer Rahmen) bleiben fest, freie Tage verteilt der Assistent auf die übrigen Orte. Im Planer kannst du danach alles weiter bearbeiten.</p>';
@@ -622,6 +626,8 @@ tr[data-stage-row]{cursor:pointer}
         routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Reise-Assistenten: ' + note : '', stopsOnWay: [] },
         hotel: h, localAttractions: [] };
     });
+    var sN = Math.max(0, Number(I.startNights) || 0);
+    if (sN > 0) { stages.unshift({ id: 'stage-0', fromCity: I.start, toCity: I.start, dateRange: de(I.startDate) + ' – ' + deY(addDays(I.startDate, sN)), nights: sN, routeToHotel: { distanceKm: '', duration: '', routeDescription: 'Ankunft am Startort, Übernachtung vor der ersten Fahrt.', stopsOnWay: [] }, hotel: hotel(P.start && P.start.gps), localAttractions: [] }); stages.forEach(function (st, k) { st.id = 'stage-' + (k + 1); }); }
     var id = ''; for (var i2 = 0; i2 < 18; i2++) id += ('0' + Math.floor(Math.random() * 256).toString(16)).slice(-2);
     var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
     return { meta: { title: I.title || ((I.roundTrip ? 'Rundreise ab ' : '') + I.start + (I.roundTrip ? '' : ' – ' + I.end)), subtitle: names.map(function (n) { return n.split(',')[0]; }).join(' • '), startDate: I.startDate, endDate: I.endDate, schemaVersion: 2, version: 1, lastUpdated: new Date().toISOString(), tripId: id, draftSource: 'assistent-v1' },

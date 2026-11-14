@@ -14114,7 +14114,7 @@ html[data-dark="1"] .rt-fspill{background:rgba(20,30,48,.92)!important;border-co
 html[data-dark="1"] .rt-fsbar{background:#12301f!important;border-color:#2f7d52!important;color:#d6f5e3!important}
 html[data-dark="1"] .rt-fsbar.warn{background:#3a2a10!important;border-color:#F2A044!important;color:#ffe2bd!important}
 html[data-dark="1"] .rt-fsbar button.ghost{background:#1f3150!important;color:#e5ecf7!important;border-color:#2c3e5c!important}
-</style></head>
+</style><style id="rt-ac-css">.rt-ac{position:absolute;z-index:100000;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px;font-size:14px}.rt-ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}.rt-ac li small{display:block;opacity:.75;font-size:12px}.rt-ac .rt-ac-kind{opacity:.7}.rt-ac li[aria-selected=true],.rt-ac li:hover{background:#1d4ed8;color:#fff}html[data-dark="1"] .rt-ac{background:#1e293b;color:#f1f5f9;border-color:#475569}html[data-dark="1"] .rt-ac li[aria-selected=true],html[data-dark="1"] .rt-ac li:hover{background:#60a5fa;color:#0f172a}@media print{.rt-ac{display:none}}</style></head>
 <body>
   <div id="root" aria-live="polite"></div>
 
@@ -19250,7 +19250,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 90</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 91</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19260,7 +19260,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 90'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 91'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -19319,6 +19319,7 @@ var qrcode = function() {
         /* ===== v20: Etappen-Finder (Entfernung / Fahrzeit) ===== */
     const sfFmtH = (min) => { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`; };
     async function sfGeocode(q) {
+      const pk = rtPickGet(q); if (pk) return pk;
       const j = await fetchJsonT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`, 12000);
       return j && j[0] ? [Number(j[0].lat), Number(j[0].lon)] : null;
     }
@@ -20503,9 +20504,9 @@ var qrcode = function() {
                 </div>
                 <div className="text-sm font-bold text-slate-900 pt-2">Start und Fahren</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="block text-sm font-semibold text-slate-900">Start / Abflughafen<input data-wz-from type="text" value={d.startLocation} onChange={(e) => setF({ startLocation: e.target.value })} placeholder="z. B. München (MUC)" className={WZ_IN} /></label>
-                  <label className="block text-sm font-semibold text-slate-900">Zielregion<input type="text" value={d.destination} onChange={(e) => setF({ destination: e.target.value })} placeholder="z. B. Florida" className={WZ_IN} /></label>
-                  <label className="block text-sm font-semibold text-slate-900">Rückreise von (optional)<input type="text" value={d.endLocation} onChange={(e) => setF({ endLocation: e.target.value })} placeholder="z. B. Orlando (MCO)" className={WZ_IN} /></label>
+                  <label className="block text-sm font-semibold text-slate-900">Start / Abflughafen<input data-place="city" data-wz-from type="text" value={d.startLocation} onChange={(e) => setF({ startLocation: e.target.value })} placeholder="z. B. München (MUC)" className={WZ_IN} /></label>
+                  <label className="block text-sm font-semibold text-slate-900">Zielregion<input data-place="city" type="text" value={d.destination} onChange={(e) => setF({ destination: e.target.value })} placeholder="z. B. Florida" className={WZ_IN} /></label>
+                  <label className="block text-sm font-semibold text-slate-900">Rückreise von (optional)<input data-place="city" type="text" value={d.endLocation} onChange={(e) => setF({ endLocation: e.target.value })} placeholder="z. B. Orlando (MCO)" className={WZ_IN} /></label>
                   <label className="block text-sm font-semibold text-slate-900">Fahrzeug (optional)<input type="text" value={d.vehicle} onChange={(e) => setF({ vehicle: e.target.value })} placeholder="z. B. Mietwagen SUV" className={WZ_IN} /></label>
                 </div>
                 <label className="block text-sm font-semibold text-slate-900">Maximale Fahrzeit pro Tag<select value={d.maxDrive} onChange={(e) => setF({ maxDrive: e.target.value })} className={WZ_IN}>{[2, 3, 4, 5, 6, 7, 8, 10].map((h) => <option key={h} value={h}>{h} Stunden</option>)}</select></label>
@@ -20534,7 +20535,7 @@ var qrcode = function() {
                     <li key={x.id} data-wz-row className="rounded-xl border border-slate-200 bg-white p-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="h-8 w-8 shrink-0 rounded-full bg-[#1F4E8C] text-white font-bold flex items-center justify-center text-sm">{i + 1}</span>
-                        <input data-wz-city type="text" aria-label={`Ort der Etappe ${i + 1}`} value={x.city} onChange={(e) => upd(i, { city: e.target.value })} placeholder={i === 0 ? 'Erster Übernachtungsort, z. B. Miami' : 'Ort der Übernachtung'} className="flex-1 min-w-[140px] h-11 px-3 rounded-lg border border-slate-300 bg-white text-slate-900" />
+                        <input data-place="city" data-wz-city type="text" aria-label={`Ort der Etappe ${i + 1}`} value={x.city} onChange={(e) => upd(i, { city: e.target.value })} placeholder={i === 0 ? 'Erster Übernachtungsort, z. B. Miami' : 'Ort der Übernachtung'} className="flex-1 min-w-[140px] h-11 px-3 rounded-lg border border-slate-300 bg-white text-slate-900" />
                         <div className="flex items-center gap-1" aria-label="Nächte">
                           <button type="button" aria-label="Eine Nacht weniger" data-wz-less disabled={Number(x.nights) <= 1} onClick={() => nightsLess(i)} className="h-11 w-11 rounded-lg border border-slate-300 text-lg font-bold disabled:opacity-30">−</button>
                           <span data-wz-nights className="w-20 text-center text-sm font-bold text-slate-900">{x.nights} {Number(x.nights) === 1 ? 'Nacht' : 'Nächte'}</span>
@@ -20567,7 +20568,7 @@ var qrcode = function() {
                 <fieldset className="rounded-xl border border-slate-200 p-3 space-y-3"><legend className="px-1 text-sm font-bold text-slate-900"><Ic n="hotel" />Unterkunft{Number(stg.nights) > 1 ? ` (eine für alle ${stg.nights} Nächte)` : ''}</legend>
                   <label className="block text-sm font-semibold text-slate-900">Name<input data-wz-hotel type="text" value={dd.name} onChange={(e) => setDd({ ...dd, name: e.target.value })} className={WZ_IN} /></label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <label className="block text-sm font-semibold text-slate-900 sm:col-span-2">Adresse<input type="text" value={dd.address} onChange={(e) => setDd({ ...dd, address: e.target.value })} className={WZ_IN} /></label>
+                    <label className="block text-sm font-semibold text-slate-900 sm:col-span-2">Adresse<input data-place="addr" data-place-near={(stg && stg.toCity) || ''} type="text" value={dd.address} onChange={(e) => setDd({ ...dd, address: e.target.value })} className={WZ_IN} /></label>
                     <label className="block text-sm font-semibold text-slate-900">Check-in<input type="text" value={dd.checkIn} onChange={(e) => setDd({ ...dd, checkIn: e.target.value })} placeholder="z. B. ab 15 Uhr" className={WZ_IN} /></label>
                   </div>
                   <button type="button" data-wz-launch="hotel" onClick={() => launch(stg.id, 'hotel')} className="v18-btn sm"><Ic n="hotel" />Hotels suchen und vergleichen</button>
@@ -21762,6 +21763,128 @@ var qrcode = function() {
         : <div role="status" data-draft-bar className="rt-bkbar">{body}</div>;
     }
 
+    /* ===== v91: Ortsergaenzung fuer alle Ortsfelder (data-place="city" | "addr") ===== */
+    const RT_PICK_KEY = 'rt_place_pick_v1';
+    const rtPickRead = () => { try { return JSON.parse(localStorage.getItem(RT_PICK_KEY) || '{}') || {}; } catch (e) { return {}; } };
+    const rtPickGet = (name) => { const k = String(name || '').trim().toLowerCase(); if (!k) return null; const e = rtPickRead()[k]; return e && Array.isArray(e.g) ? e.g : null; };
+    const rtPickPut = (name, gps) => { try { const k = String(name || '').trim().toLowerCase(); if (!k) return; const m = rtPickRead(); m[k] = { g: [Number(gps[0].toFixed(5)), Number(gps[1].toFixed(5))], t: Date.now() }; const ks = Object.keys(m); if (ks.length > 300) ks.sort((a, b) => m[a].t - m[b].t).slice(0, ks.length - 300).forEach((x) => delete m[x]); localStorage.setItem(RT_PICK_KEY, JSON.stringify(m)); localStorage.setItem('rt_place_last_v1', JSON.stringify(m[k].g)); } catch (e) {} };
+    const RT_AC_KIND = { city: 'Stadt', town: 'Stadt', village: 'Ort', hamlet: 'Ort', suburb: 'Stadtteil', neighbourhood: 'Stadtteil', borough: 'Stadtteil', state: 'Bundesland', county: 'Landkreis', country: 'Land', island: 'Insel', aerodrome: 'Flughafen', hotel: 'Hotel', motel: 'Motel', guest_house: 'Pension', national_park: 'Nationalpark', attraction: 'Sehenswürdigkeit', beach: 'Strand', house: 'Adresse', street: 'Straße', car_rental: 'Autovermietung', parking: 'Parkplatz' };
+    const RT_AC_NUMFIRST = { US: 1, CA: 1, GB: 1, AU: 1, NZ: 1, IE: 1, FR: 1 };
+    function rtAcPhoton(f, mode) {
+      const p = f.properties || {}, c = f.geometry && f.geometry.coordinates; if (!c) return null;
+      const isAddr = p.type === 'house' || p.type === 'street';
+      if (mode !== 'addr' && (isAddr || !p.name)) return null;
+      const cc = String(p.countrycode || '').toUpperCase();
+      const street = p.street || (p.type === 'street' ? p.name : '');
+      const line = street ? (p.housenumber ? (RT_AC_NUMFIRST[cc] ? `${p.housenumber} ${street}` : `${street} ${p.housenumber}`) : street) : '';
+      const city = p.city || p.town || p.village || (p.type === 'city' ? p.name : '') || p.county || '';
+      const reg = p.state && p.state !== p.name ? p.state : p.country;
+      const subs = []; if (mode === 'addr' && line && p.name && p.name !== street) subs.push(line);
+      if (city && city !== p.name) subs.push(city); if (p.state && p.state !== p.name && p.state !== city) subs.push(p.state); if (p.country) subs.push(p.country);
+      let value, name;
+      if (mode === 'addr') {
+        name = p.name && p.type !== 'street' && p.name !== street ? p.name : (line || p.name || '');
+        const parts = []; if (line) parts.push(line); else if (p.name) parts.push(p.name);
+        const cl = [p.postcode, city].filter(Boolean).join(' '); if (cl && cl !== parts[0]) parts.push(cl);
+        if (p.state && p.state !== city && RT_AC_NUMFIRST[cc]) parts.push(p.state); if (p.country) parts.push(p.country);
+        value = parts.join(', ');
+      } else { name = p.name; value = p.name + (reg && reg !== p.name ? ', ' + reg : ''); }
+      if (!name || !value) return null;
+      return { value, name, sub: subs.join(', '), gps: [c[1], c[0]], kind: RT_AC_KIND[p.osm_value] || RT_AC_KIND[p.type] || '' };
+    }
+    function rtAcNom(j, mode) {
+      const ad = j.address || {}, nm = j.name || String(j.display_name || '').split(',')[0];
+      const reg = ad.state && ad.state !== nm ? ad.state : ad.country, subs = []; if (ad.state && ad.state !== nm) subs.push(ad.state); if (ad.country) subs.push(ad.country);
+      const value = mode === 'addr' ? String(j.display_name || nm) : nm + (reg && reg !== nm ? ', ' + reg : '');
+      return { value, name: nm, sub: subs.join(', '), gps: [Number(j.lat), Number(j.lon)], kind: RT_AC_KIND[j.type] || '' };
+    }
+    const RT_AC = { ul: null, input: null, items: [], idx: -1, seq: 0, timer: null, cache: {}, skip: false };
+    const rtAcOk = (el) => !!(el && el.matches && el.matches('input[data-place]') && !el.disabled && !el.readOnly);
+    async function rtAcFetch(q, mode, bias) {
+      const ck = `${mode}|${q.toLowerCase()}|${bias ? bias.map((x) => x.toFixed(1)).join(',') : ''}`; if (RT_AC.cache[ck]) return RT_AC.cache[ck];
+      let items = [];
+      try {
+        const j = await fetchJsonT(`https://photon.komoot.io/api/?limit=8&lang=de&q=${encodeURIComponent(q)}${bias ? `&lat=${bias[0].toFixed(2)}&lon=${bias[1].toFixed(2)}` : ''}`, 8000);
+        items = ((j && j.features) || []).map((f) => rtAcPhoton(f, mode)).filter(Boolean);
+      } catch (e) {
+        try { const j = await fetchJsonT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=1&accept-language=de&q=${encodeURIComponent(q)}`, 10000); items = (j || []).map((x) => rtAcNom(x, mode)); } catch (e2) { items = []; }
+      }
+      const seen = {}; items = items.filter((i) => { const k = `${i.value}|${i.gps[0].toFixed(1)}${i.gps[1].toFixed(1)}`; if (seen[k]) return false; seen[k] = 1; return true; }).slice(0, 6);
+      RT_AC.cache[ck] = items; return items;
+    }
+    function rtAcHide() { if (RT_AC.ul) RT_AC.ul.hidden = true; RT_AC.idx = -1; if (RT_AC.input) RT_AC.input.setAttribute('aria-expanded', 'false'); }
+    function rtAcRender() {
+      if (!RT_AC.ul) { const u = document.createElement('ul'); u.className = 'rt-ac'; u.id = 'rt-ac-list'; u.setAttribute('role', 'listbox'); u.setAttribute('data-ac-list', ''); document.body.appendChild(u); RT_AC.ul = u; }
+      const el = RT_AC.input; if (!el || !RT_AC.items.length || !document.body.contains(el)) { rtAcHide(); return; }
+      const r = el.getBoundingClientRect(), w = Math.min(Math.max(r.width, 260), window.innerWidth - 16);
+      RT_AC.ul.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + window.scrollX}px`; RT_AC.ul.style.top = `${r.bottom + window.scrollY + 2}px`; RT_AC.ul.style.width = `${w}px`;
+      RT_AC.ul.textContent = '';
+      RT_AC.items.forEach((it, i) => {
+        const li = document.createElement('li'); li.setAttribute('role', 'option'); li.setAttribute('data-ac-i', String(i)); li.setAttribute('aria-selected', String(i === RT_AC.idx));
+        const b = document.createElement('b'); b.textContent = it.name; li.appendChild(b);
+        if (it.kind) { const k = document.createElement('span'); k.className = 'rt-ac-kind'; k.textContent = ` · ${it.kind}`; li.appendChild(k); }
+        if (it.sub) { const s = document.createElement('small'); s.textContent = it.sub; li.appendChild(s); }
+        RT_AC.ul.appendChild(li);
+      });
+      RT_AC.ul.hidden = false; el.setAttribute('role', 'combobox'); el.setAttribute('aria-autocomplete', 'list'); el.setAttribute('aria-controls', 'rt-ac-list'); el.setAttribute('aria-expanded', 'true');
+    }
+    function rtAcSet(el, v) { const d = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value'); d.set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); }
+    function rtAcGpsField(el) {
+      let a = el.parentElement;
+      for (let n = 0; a && n < 7; n++, a = a.parentElement) {
+        const g = Array.from(a.querySelectorAll('input[placeholder^="GPS-Koordinaten"]')); if (!g.length) continue;
+        if (g.length === 1) return g[0];
+        return g.find((x) => el.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING) || null;
+      }
+      return null;
+    }
+    function rtAcPick(i) {
+      const it = RT_AC.items[i], el = RT_AC.input; if (!it || !el) return;
+      const mode = el.getAttribute('data-place') || 'city';
+      if (mode !== 'addr') rtPickPut(it.value, it.gps); else { try { localStorage.setItem('rt_place_last_v1', JSON.stringify(it.gps)); } catch (e) {} }
+      RT_AC.skip = true; rtAcSet(el, it.value); RT_AC.skip = false; rtAcHide(); RT_AC.items = [];
+      if (mode === 'addr') setTimeout(() => { const g = rtAcGpsField(el); if (g && !g.disabled && !g.readOnly) { RT_AC.skip = true; rtAcSet(g, `${it.gps[0].toFixed(5)},${it.gps[1].toFixed(5)}`); RT_AC.skip = false; } }, 80);
+    }
+    async function rtAcBias(el) {
+      const near = (el.getAttribute('data-place-near') || '').trim();
+      if (near) { const g = parseGps(near) || rtPickGet(near); if (g) return g; try { const x = await sfGeocode(near); if (x) return x; } catch (e) {} }
+      try { const l = JSON.parse(localStorage.getItem('rt_place_last_v1') || 'null'); if (Array.isArray(l)) return l; } catch (e) {}
+      return null;
+    }
+    if (!window.__rtAcInit) {
+      window.__rtAcInit = true;
+      document.addEventListener('input', (e) => {
+        const el = e.target; if (RT_AC.skip || !rtAcOk(el)) return; RT_AC.input = el; clearTimeout(RT_AC.timer);
+        const q = el.value.trim(); if (q.length < 3) { rtAcHide(); RT_AC.items = []; return; }
+        const my = ++RT_AC.seq, mode = el.getAttribute('data-place') || 'city';
+        RT_AC.timer = setTimeout(async () => { const bias = await rtAcBias(el); const items = await rtAcFetch(q, mode, bias); if (my !== RT_AC.seq || document.activeElement !== el) return; RT_AC.items = items; RT_AC.idx = -1; rtAcRender(); }, 300);
+      });
+      document.addEventListener('keydown', (e) => {
+        const el = e.target; if (!rtAcOk(el) || !RT_AC.ul || RT_AC.ul.hidden || !RT_AC.items.length) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); RT_AC.idx = (RT_AC.idx + (e.key === 'ArrowDown' ? 1 : -1) + RT_AC.items.length) % RT_AC.items.length; rtAcRender(); }
+        else if (e.key === 'Enter' && RT_AC.idx >= 0) { e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation(); rtAcPick(RT_AC.idx); }
+        else if (e.key === 'Escape') { e.stopPropagation(); rtAcHide(); }
+      }, true);
+      const pick = (e) => { const li = e.target.closest && e.target.closest('#rt-ac-list [data-ac-i]'); if (li) { e.preventDefault(); rtAcPick(Number(li.getAttribute('data-ac-i'))); } };
+      document.addEventListener('mousedown', pick);
+      
+      document.addEventListener('focusout', (e) => { if (rtAcOk(e.target)) { const t = e.target; setTimeout(() => { if (document.activeElement !== t) rtAcHide(); }, 200); } });
+      document.addEventListener('scroll', () => { if (RT_AC.ul && !RT_AC.ul.hidden) rtAcRender(); }, { passive: true, capture: true });
+      window.addEventListener('resize', () => { if (RT_AC.ul && !RT_AC.ul.hidden) rtAcRender(); });
+    }
+    /* v91: Etappenkette nach Verschieben/Loeschen neu aufbauen (Datum, Startorte) */
+    const rtRechain = (stages, meta, firstFrom, staleIdx) => {
+      const nn = (s) => Math.max(0, parseInt(s.nights, 10) || 0);
+      const iso = /^\d{4}-\d{2}-\d{2}$/.test((meta || {}).startDate || '') ? meta.startDate : null; let cur = iso;
+      return stages.map((s, i) => {
+        const o = { ...s };
+        if (i === 0) { if (firstFrom) o.fromCity = firstFrom; } else if (stages[i - 1].toCity) o.fromCity = stages[i - 1].toCity;
+        if (cur) { const end = isoAdd(cur, nn(s)); const nr = wzRange(cur, end); o.dateRange = String(s.dateRange || '').startsWith(nr) ? s.dateRange : nr; cur = end; }
+        if ((staleIdx || []).includes(i) && o.routeToHotel && (o.routeToHotel.distanceKm || o.routeToHotel.duration)) o.routeToHotel = { ...o.routeToHotel, distanceKm: '', duration: '' };
+        return o;
+      });
+    };
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
@@ -22539,6 +22662,7 @@ var qrcode = function() {
         setDeleteConfirmModal({type:'hotel',id:stage.id,title:`Hotel/Unterkunft für „${stage.toCity || stage.fromCity}“`,detail:'Etappe, Übernachtungen und sonstige Etappendaten bleiben erhalten.'}); setDeletePhrase(''); setDeleteBackup(true);
       };
 
+      const cancelStageEditor = () => { const m = editingStageModal; setEditingStageModal(null); if (m && window.__rtNewStageId === m.id) { window.__rtNewStageId = null; saveTripData({ ...tripData, stages: (tripData.stages || []).filter((s) => s.id !== m.id) }, 'Neue Etappe verworfen'); } };
       const handleAddStage = () => {
         const stages = tripData.stages || [];
         const lastStage = stages[stages.length - 1];
@@ -22584,6 +22708,7 @@ var qrcode = function() {
         const updated = [...stages, newStage];
         setExpandedStages((prev) => ({ ...prev, [newId]: true }));
         saveTripData({ ...tripData, stages: updated }, 'Neue Etappe angelegt');
+        window.__rtNewStageId = newId;
         setEditingStageModal(JSON.parse(JSON.stringify(newStage)));
       };
 
@@ -22630,14 +22755,14 @@ Quelle: ${lt.url}` : '') }] } });
         const temp = stages[index];
         stages[index] = stages[targetIndex];
         stages[targetIndex] = temp;
-        saveTripData({ ...tripData, stages }, 'Etappen-Reihenfolge geändert');
+        { const lo = Math.min(index, targetIndex); const first = ((tripData.stages || [])[0] || {}).fromCity; saveTripData({ ...tripData, stages: rtRechain(stages, tripData.meta, first, [lo, lo + 1, lo + 2]) }, 'Reihenfolge geändert. Daten und Startorte angepasst, Strecken bitte neu ermitteln.'); }
       };
 
       const confirmDeleteEntity = () => {
         if (!deleteConfirmModal) return;
         const { type, id } = deleteConfirmModal;
         if (type === 'stage') {
-          saveTripData({ ...tripData, stages: (tripData.stages || []).filter((s) => s.id !== id) }, 'Etappe gelöscht');
+          { const old = tripData.stages || []; const di = old.findIndex((s) => s.id === id); const isLast = di === old.length - 1; saveTripData({ ...tripData, stages: rtRechain(old.filter((s) => s.id !== id), tripData.meta, (old[0] || {}).fromCity, isLast ? [] : [di]) }, 'Etappe gelöscht' + (isLast ? '' : '. Daten der folgenden Etappen angepasst.')); }
         } else if (type === 'flight') {
           saveTripData({ ...tripData, flights: (tripData.flights || []).filter((f) => f.id !== id) }, 'Flug gelöscht');
         } else if (type === 'car') {
@@ -24758,7 +24883,7 @@ Quelle: ${lt.url}` : '') }] } });
                     </p>
                   </div>
                   <button
-                    onClick={() => setEditingStageModal(null)}
+                    onClick={cancelStageEditor}
                     className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold"
                   >
                     ✕
@@ -24775,7 +24900,7 @@ Quelle: ${lt.url}` : '') }] } });
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Startort (Von)</label>
-                        <input
+                        <input data-place="city"
                           type="text"
                           value={editingStageModal.fromCity || ''}
                           onChange={(e) => setEditingStageModal({ ...editingStageModal, fromCity: e.target.value })}
@@ -24784,7 +24909,7 @@ Quelle: ${lt.url}` : '') }] } });
                       </div>
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Zielort (Stadt / Ort)</label>
-                        <input
+                        <input data-place="city"
                           type="text"
                           value={editingStageModal.toCity || ''}
                           onChange={(e) => setEditingStageModal({ ...editingStageModal, toCity: e.target.value })}
@@ -24977,7 +25102,7 @@ Quelle: ${lt.url}` : '') }] } });
                               }}
                               className="px-2.5 py-1.5 rounded border border-slate-300"
                             />
-                            <input
+                            <input data-place="addr" data-place-near={editingStageModal.hotel?.gps || editingStageModal.toCity || ''}
                               type="text"
                               placeholder="Adresse"
                               value={stop.address || ''}
@@ -25079,7 +25204,7 @@ Quelle: ${lt.url}` : '') }] } });
 
                       <div className="sm:col-span-2">
                         <label className="block font-semibold text-slate-700 mb-1">Hotel-Adresse</label>
-                        <input
+                        <input data-place="addr" data-place-near={editingStageModal.hotel?.gps || editingStageModal.toCity || ''}
                           type="text"
                           value={editingStageModal.hotel?.address || ''}
                           onChange={(e) =>
@@ -25262,7 +25387,7 @@ Quelle: ${lt.url}` : '') }] } });
                       </div>
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Parkhaus Adresse</label>
-                        <input
+                        <input data-place="addr" data-place-near={editingStageModal.hotel?.gps || editingStageModal.toCity || ''}
                           type="text"
                           value={editingStageModal.hotel?.parkingGarageAddress || ''}
                           onChange={(e) =>
@@ -25446,7 +25571,7 @@ Quelle: ${lt.url}` : '') }] } });
                               }}
                               className="px-2.5 py-1.5 rounded border border-slate-300 font-mono"
                             />
-                            <input
+                            <input data-place="addr" data-place-near={editingStageModal.hotel?.gps || editingStageModal.toCity || ''}
                               type="text"
                               placeholder="Adresse"
                               value={act.address || ''}
@@ -25479,7 +25604,7 @@ Quelle: ${lt.url}` : '') }] } });
 
                 <div className="bg-slate-100 px-5 py-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0">
                   <button
-                    onClick={() => setEditingStageModal(null)}
+                    onClick={cancelStageEditor}
                     className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200"
                   >
                     Abbrechen
@@ -25489,6 +25614,7 @@ Quelle: ${lt.url}` : '') }] } });
                       const cf = chainFix(tripData.stages || [], editingStageModal, tripData.meta || {});
                       saveTripData({ ...tripData, stages: cf.stages, ...(cf.meta ? { meta: cf.meta } : {}) }, `Etappe „${editingStageModal.toCity}“ gespeichert!`);
                       if (cf.notice) window.alert(cf.notice);
+                      window.__rtNewStageId = null;
                       setEditingStageModal(null);
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-xs"
@@ -25543,7 +25669,7 @@ Quelle: ${lt.url}` : '') }] } });
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Von (Abflughafen)</label>
-                    <input
+                    <input data-place="city"
                       type="text"
                       value={editingFlightModal.from || ''}
                       onChange={(e) => setEditingFlightModal({ ...editingFlightModal, from: e.target.value })}
@@ -25552,7 +25678,7 @@ Quelle: ${lt.url}` : '') }] } });
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Nach (Zielflughafen)</label>
-                    <input
+                    <input data-place="city"
                       type="text"
                       value={editingFlightModal.to || ''}
                       onChange={(e) => setEditingFlightModal({ ...editingFlightModal, to: e.target.value })}
@@ -25779,7 +25905,7 @@ Quelle: ${lt.url}` : '') }] } });
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Abholstation & Datum/Uhrzeit</label>
-                    <input
+                    <input data-place="city"
                       type="text"
                       placeholder="Abholort"
                       value={editingCarModal.pickupLocation || ''}
@@ -25806,7 +25932,7 @@ Quelle: ${lt.url}` : '') }] } });
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Rückgabestation & Datum/Uhrzeit</label>
-                    <input
+                    <input data-place="city"
                       type="text"
                       placeholder="Rückgabeort"
                       value={editingCarModal.dropoffLocation || ''}
@@ -26039,8 +26165,8 @@ Quelle: ${lt.url}` : '') }] } });
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <label className="font-bold block mb-1">Startort<input type="text" value={tripData.meta?.startLocation||''} onChange={e=>setTripData({...tripData,meta:{...tripData.meta,startLocation:e.target.value}})} className="mt-1 w-full px-3 py-2 rounded border" placeholder="Startort, z.B. München" /></label>
-                    <label className="font-bold block mb-1">Ziel / Zielregion<input type="text" value={tripData.meta?.destination||''} onChange={e=>setTripData({...tripData,meta:{...tripData.meta,destination:e.target.value}})} className="mt-1 w-full px-3 py-2 rounded border" placeholder="Ziel, z.B. Florida" /></label>
+                    <label className="font-bold block mb-1">Startort<input data-place="city" type="text" value={tripData.meta?.startLocation||''} onChange={e=>setTripData({...tripData,meta:{...tripData.meta,startLocation:e.target.value}})} className="mt-1 w-full px-3 py-2 rounded border" placeholder="Startort, z.B. München" /></label>
+                    <label className="font-bold block mb-1">Ziel / Zielregion<input data-place="city" type="text" value={tripData.meta?.destination||''} onChange={e=>setTripData({...tripData,meta:{...tripData.meta,destination:e.target.value}})} className="mt-1 w-full px-3 py-2 rounded border" placeholder="Ziel, z.B. Florida" /></label>
                     <label className="font-bold block mb-1">Fahrzeug<input type="text" value={tripData.meta?.vehicle||''} onChange={e=>setTripData({...tripData,meta:{...tripData.meta,vehicle:e.target.value}})} className="mt-1 w-full px-3 py-2 rounded border" placeholder="Fahrzeug, z.B. Mietwagen / SUV" /></label>
                     <label className="font-bold block mb-1">Reisebudget<input type="number" min="0" step="0.01" value={tripData.meta?.budget??''} onChange={e=>setTripData({...tripData,meta:{...tripData.meta,budget:e.target.value===''?null:Number(e.target.value)}})} className="mt-1 w-full px-3 py-2 rounded border" placeholder="Budget in €, z.B. 5000" /></label>
                     <label className="font-bold block mb-1">Währung<select value={tripData.meta?.currency||'EUR'} onChange={e=>setTripData({...tripData,meta:{...tripData.meta,currency:e.target.value}})} className="mt-1 w-full px-3 py-2 rounded border"><option>EUR</option><option>USD</option><option>GBP</option><option>CHF</option></select></label>
@@ -26361,7 +26487,7 @@ Quelle: ${lt.url}` : '') }] } });
                 </div>
                 <div className="p-5 sm:p-6 space-y-4">
                   {wizardStep === 0 && <><label className="block text-sm font-semibold">Reisename<input autoFocus type="text" value={wizardData.title} onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })} placeholder="z. B. Sommer-Roadtrip" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><label className="text-sm font-semibold">Startdatum<input type="date" value={wizardData.startDate} onChange={(e) => wzStart(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Reisetage<input type="number" min="1" max="120" value={wizardData.days} onChange={(e) => wzDays(e.target.value)} placeholder="z. B. 14" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="text-sm font-semibold">Enddatum<input type="date" min={wizardData.startDate || undefined} value={wizardData.endDate} onChange={(e) => wzEnd(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label></div><p className="text-xs text-slate-500">Gib entweder das Enddatum oder die Anzahl der Reisetage ein, das jeweils andere wird berechnet (Start- und Endtag zählen mit).</p><div aria-live="polite" className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950">{tripDayCount(wizardData.startDate,wizardData.endDate)>0 ? `Vorschau: ${tripDayCount(wizardData.startDate,wizardData.endDate)} Etappen – je eine pro Kalendertag; der letzte Tag ist die Rückreise (ohne Übernachtung).` : 'Bitte Start- und Enddatum eingeben, um die Etappenanzahl zu sehen.'}{tripDayCount(wizardData.startDate,wizardData.endDate)>120 && <span className="block text-rose-800">Maximal 120 Tage pro Reise.</span>}</div></>}
-                  {wizardStep === 1 && <><label className="block text-sm font-semibold">Startort / Abflughafen<input type="text" value={wizardData.startLocation} onChange={(e) => setWizardData({ ...wizardData, startLocation: e.target.value })} placeholder="z. B. München (MUC)" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Zielregion / Land oder erste Etappe<input type="text" value={wizardData.destination} onChange={(e) => setWizardData({ ...wizardData, destination: e.target.value })} placeholder="z. B. Florida / Miami" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Fahrzeug / Mietwagen (optional)<input type="text" value={wizardData.vehicle} onChange={(e) => setWizardData({ ...wizardData, vehicle: e.target.value })} placeholder="z. B. Mietwagen / SUV" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><p className="text-xs text-slate-500">Bei Angabe eines Ziels wird eine erste Etappe ohne Hotel angelegt. Weitere Details können später ergänzt werden.</p></>}
+                  {wizardStep === 1 && <><label className="block text-sm font-semibold">Startort / Abflughafen<input data-place="city" type="text" value={wizardData.startLocation} onChange={(e) => setWizardData({ ...wizardData, startLocation: e.target.value })} placeholder="z. B. München (MUC)" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Zielregion / Land oder erste Etappe<input data-place="city" type="text" value={wizardData.destination} onChange={(e) => setWizardData({ ...wizardData, destination: e.target.value })} placeholder="z. B. Florida / Miami" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><label className="block text-sm font-semibold">Fahrzeug / Mietwagen (optional)<input type="text" value={wizardData.vehicle} onChange={(e) => setWizardData({ ...wizardData, vehicle: e.target.value })} placeholder="z. B. Mietwagen / SUV" className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" /></label><p className="text-xs text-slate-500">Bei Angabe eines Ziels wird eine erste Etappe ohne Hotel angelegt. Weitere Details können später ergänzt werden.</p></>}
                   {wizardStep === 2 && <><label className="block text-sm font-semibold">Anzahl Reisende<input type="number" min="1" max="20" value={wizardData.people} onChange={(e) => setWizardData({ ...wizardData, people: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Anzahl Reisende, z.B. 2" /></label><div className="space-y-2"><div className="text-sm font-semibold">Namen der Reisenden</div><div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{Array.from({ length: Math.max(1, Math.min(20, parseInt(wizardData.people, 10) || 1)) }, (_, i) => <input key={i} type="text" aria-label={`Name Reisende ${i + 1}`} value={(wizardData.names || [])[i] || ''} onChange={(e) => { const nm = [...(wizardData.names || [])]; nm[i] = e.target.value; setWizardData({ ...wizardData, names: nm }); }} placeholder={`Reisende ${i + 1}`} className="w-full px-3 py-2 rounded-lg border border-slate-300" />)}</div></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-sm font-semibold">Budget (optional)<input type="number" min="0" step="0.01" value={wizardData.budget} onChange={(e) => setWizardData({ ...wizardData, budget: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Budget, z.B. 5000" /></label><label className="text-sm font-semibold">Währung<select value={wizardData.currency} onChange={(e) => setWizardData({ ...wizardData, currency: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"><option value="EUR">EUR (€)</option><option value="USD">USD ($)</option><option value="GBP">GBP (£)</option><option value="CHF">CHF</option></select></label></div><div className="rounded-xl bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">Die Eingaben werden in den Reisedaten gespeichert. Namen, die du leer lässt, werden als „Reisende 1, 2 …“ angelegt und lassen sich später ändern.</div></>}
                 </div>
                 <div className="bg-slate-50 border-t border-slate-200 px-5 py-4 flex items-center justify-between gap-2"><button type="button" onClick={() => wizardStep > 0 ? setWizardStep(wizardStep - 1) : setIsNewTripWizardOpen(false)} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm">{wizardStep === 0 ? 'Abbrechen' : 'Zurück'}</button><div className="flex gap-2">{wizardStep < 2 ? <button type="button" onClick={() => { if(wizardStep===0 && wizardData.startDate && wizardData.endDate && wizardData.endDate<wizardData.startDate){showToast('Das Enddatum darf nicht vor dem Startdatum liegen.');return;} if(wizardStep===0 && tripDayCount(wizardData.startDate,wizardData.endDate)>120){showToast('Maximal 120 Tage pro Reise.');return;} setWizardStep(wizardStep + 1); }} className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm">Weiter →</button> : <button type="button" onClick={handleCompleteNewTripWizard} className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm">Reise anlegen ✓</button>}</div></div>
