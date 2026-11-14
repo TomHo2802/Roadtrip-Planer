@@ -411,3 +411,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v89
 - Reise-Assistent: Vorschlag bearbeiten (Naechte, Orte verschieben/hinzufuegen/entfernen).
+
+## v90
+- Reise-Assistent: Ortsvorschlaege beim Tippen, Warnung bei Orten in verschiedenen Laendern.

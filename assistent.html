@@ -54,6 +54,10 @@ tr[data-stage-row]{cursor:pointer}
 .act{white-space:nowrap}.act button{min-height:36px;padding:2px 9px}
 .leaflet-container.adding{cursor:crosshair}
 .editor{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+.ac{position:absolute;z-index:1000;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px}
+.ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}
+.ac li small{display:block;opacity:.75;font-size:.8rem}
+.ac li[aria-selected=true],.ac li:hover{background:var(--pri);color:var(--priInk)}
 .bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
 .bar>i{display:block;height:100%;background:var(--pri);width:0;transition:width .3s}
 </style>
@@ -130,7 +134,7 @@ tr[data-stage-row]{cursor:pointer}
     var box = $('[data-fplist]'); box.innerHTML = '';
     S.input.fixpoints.forEach(function (f, i) {
       var d = document.createElement('div'); d.className = 'fp'; d.setAttribute('data-fp', i);
-      d.innerHTML = '<div class="grid"><label>Ort<input data-fpf="name" value="' + esc(f.name) + '" placeholder="z. B. New Orleans"></label>' +
+      d.innerHTML = '<div class="grid"><label>Ort<input data-fpf="name" value="' + esc(f.name) + '" placeholder="z. B. New Orleans" autocomplete="off"></label>' +
         '<label>Datum (optional)<input data-fpf="date" type="date" value="' + esc(f.date) + '"></label>' +
         '<label>Nächte (optional)<input data-fpf="nights" type="number" min="0" max="30" value="' + esc(f.nights) + '"></label></div>' +
         '<div style="display:flex;gap:6px;margin-top:8px"><button type="button" data-fp-up="' + i + '" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Nach oben">↑</button><button type="button" data-fp-down="' + i + '" ' + (i === S.input.fixpoints.length - 1 ? 'disabled' : '') + ' aria-label="Nach unten">↓</button><button type="button" data-fp-del="' + i + '">Entfernen</button></div>';
@@ -167,7 +171,7 @@ tr[data-stage-row]{cursor:pointer}
   function fetchJ(url, ms) { var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, ms || 12000); return fetch(url, { signal: ac.signal }).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; }); }
   function geocode(name) {
     var k = name.toLowerCase(); if (S.geo[k]) return Promise.resolve(S.geo[k]);
-    return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&q=' + encodeURIComponent(name), 12000).then(function (j) { if (!j || !j[0]) return null; var g = [Number(j[0].lat), Number(j[0].lon)]; S.geo[k] = g; S.cc = S.cc || {}; var c = j[0].address && j[0].address.country_code; if (c) S.cc[k] = c.toUpperCase(); return g; });
+    return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&q=' + encodeURIComponent(name), 12000).then(function (j) { if (!j || !j[0]) return null; var g = [Number(j[0].lat), Number(j[0].lon)]; S.geo[k] = g; S.cc = S.cc || {}; var ad = j[0].address || {}, c = ad.country_code; if (c) S.cc[k] = c.toUpperCase(); S.lab = S.lab || {}; S.lab[k] = [j[0].name || String(j[0].display_name || '').split(',')[0], ad.state, ad.country].filter(Boolean).join(', '); return g; });
   }
   function hav(a, b) { var R = 6371, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r, x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
   function leg(a, b, geom) {
@@ -269,13 +273,13 @@ tr[data-stage-row]{cursor:pointer}
     msg(); var sec = $('[data-sec=result]'); sec.hidden = false; $('[data-result]').innerHTML = ''; var btn = $('[data-calc]'); btn.disabled = true;
     try {
       var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
-      var pts = [], failed = [];
+      var pts = [], failed = [], resolved = [];
       for (var i = 0; i < names.length; i++) {
         prog(5 + Math.round(35 * i / names.length), 'Suche Ort: ' + names[i]);
         var g = null; try { g = await geocode(names[i]); } catch (e) { g = null; }
         if (!g) failed.push(names[i]);
         var fp = i > 0 && i < names.length - 1 ? I.fixpoints[i - 1] : null;
-        pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '' });
+        pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '' }); resolved.push({ input: names[i], label: (S.lab && S.lab[names[i].toLowerCase()]) || '', cc: (S.cc && S.cc[names[i].toLowerCase()]) || '', picked: !!(S.pick && S.pick[names[i].toLowerCase()]) });
       }
       if (failed.length) { prog(0, ''); $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Diese Orte wurden nicht gefunden: <b>' + failed.map(esc).join(', ') + '</b>. Bitte eindeutiger schreiben (mit Bundesstaat oder Land) und noch einmal berechnen. Ohne Internet ist die Suche nicht möglich.</div>'; return; }
       var legs = [], mxk = Number(I.maxKm), withStops = [pts[0]];
@@ -296,7 +300,7 @@ tr[data-stage-row]{cursor:pointer}
       pts = withStops;
       for (var si = 1; si < pts.length - 1; si++) { var pp = pts[si]; if (!pp.date && (pp.nights === '' || pp.nights == null)) { prog(92 + Math.round(7 * si / pts.length), 'Prüfe Sehenswürdigkeiten: ' + pp.name.split(',')[0]); var sc = await wikiScore(pp.gps); if (sc != null) pp.score = sc; } }
       prog(100, 'Fertig');
-      var r = plan(I, pts, legs); S.proposal = { edited: false, stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
+      var r = plan(I, pts, legs); S.proposal = { edited: false, resolved: resolved, stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
       $('[data-prog]').hidden = true; renderResult();
     } catch (e) { $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Berechnung fehlgeschlagen: ' + esc(String(e && e.message || e).slice(0, 200)) + '</div>'; }
     finally { btn.disabled = false; }
@@ -308,6 +312,7 @@ tr[data-stage-row]{cursor:pointer}
     var na = P.stages.filter(function (s) { return s.auto; }).length;
     var tk = P.stages.reduce(function (a, s) { return a + s.km; }, 0), tm = P.stages.reduce(function (a, s) { return a + s.min; }, 0);
     var h = editorHtml() + '<div data-routemap class="map" role="img" aria-label="Karte der Route"></div><div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenstopps)' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
+    h += resolvedHtml(P);
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
     h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th><th>Bearbeiten</th></tr></thead><tbody>';
     P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
@@ -463,7 +468,7 @@ tr[data-stage-row]{cursor:pointer}
       fetchJ(url, 20000).then(function (j) { var c = j.routes && j.routes[0] && j.routes[0].geometry.coordinates; if (c) { P.geom = c.map(function (x) { return [x[1], x[0]]; }); save(); draw(P.geom); } }).catch(function () {});
     }
     $$('[data-stage-row]').forEach(function (r, i) { r.addEventListener('click', function () { if (markers[i + 1]) { map.flyTo(pts[i + 1].gps, Math.max(map.getZoom(), 7)); markers[i + 1].openTooltip(); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }); });
-    setTimeout(function () { map.invalidateSize(); }, 200);
+    setTimeout(function () { if (MAP === map) { try { map.invalidateSize(); } catch (e) {} } }, 200);
   }
 
 
@@ -539,6 +544,71 @@ tr[data-stage-row]{cursor:pointer}
     else if (t.hasAttribute('data-add-name-btn')) addByName();
     else if (t.hasAttribute('data-add-map')) { ADDMODE = !ADDMODE; t.setAttribute('aria-pressed', ADDMODE ? 'true' : 'false'); t.textContent = ADDMODE ? 'Tippe jetzt auf die Karte …' : 'Ort auf der Karte setzen'; var el = $('[data-routemap]'); if (el) el.classList.toggle('adding', ADDMODE); }
   });
+
+
+  // ---------- Ortsvorschläge (Photon, sonst Nominatim) ----------
+  var KIND = { city: 'Stadt', town: 'Stadt', village: 'Dorf', hamlet: 'Weiler', suburb: 'Stadtteil', state: 'Bundesland', country: 'Land', county: 'Landkreis', island: 'Insel', aerodrome: 'Flughafen', attraction: 'Sehenswürdigkeit', national_park: 'Nationalpark', museum: 'Museum', theme_park: 'Freizeitpark', beach: 'Strand' };
+  function resolvedHtml(P) {
+    var R = P.resolved || []; if (!R.length) return '';
+    var ccs = {}; R.forEach(function (r) { if (r.cc) (ccs[r.cc] = ccs[r.cc] || []).push(r.input.split(',')[0]); });
+    var h = '';
+    if (Object.keys(ccs).length > 1) h += '<div class="note warn" data-multicountry role="alert"><b>Die Orte liegen in verschiedenen Ländern:</b> ' + Object.keys(ccs).map(function (c) { return esc(c) + ' (' + ccs[c].map(esc).join(', ') + ')'; }).join('; ') + '. Stimmt das? Sonst wähle den Ort beim Tippen aus der Vorschlagsliste, zum Beispiel „Saint Petersburg, Florida“.</div>';
+    h += '<details data-resolved style="margin:8px 0"><summary class="mute" style="cursor:pointer">So wurden deine Eingaben erkannt</summary><ul>' + R.map(function (r) { return '<li>' + esc(r.input) + ' → <b>' + esc(r.label || '?') + '</b>' + (r.cc ? ' (' + esc(r.cc) + ')' : '') + (r.picked ? ' <span class="mute">aus der Liste gewählt</span>' : '') + '</li>'; }).join('') + '</ul></details>';
+    return h;
+  }
+  var AC = { ul: null, input: null, items: [], idx: -1, seq: 0, timer: null, cache: {}, skip: false };
+  var AC_SEL = '[data-f=start],[data-f=end],[data-fpf=name],[data-add-name]';
+  function acOk(el) { return !!(el && el.matches && el.matches(AC_SEL) && !el.disabled); }
+  function photonItem(f) {
+    var p = f.properties || {}, c = f.geometry && f.geometry.coordinates; if (!c || !p.name || p.type === 'house' || p.type === 'street') return null;
+    var reg = p.state && p.state !== p.name ? p.state : p.country, subs = [];
+    if (p.county && p.county !== p.name && p.county !== p.state) subs.push(p.county); if (p.state && p.state !== p.name) subs.push(p.state); if (p.country) subs.push(p.country);
+    return { value: p.name + (reg ? ', ' + reg : ''), name: p.name, sub: subs.join(', '), gps: [c[1], c[0]], cc: String(p.countrycode || '').toUpperCase(), kind: KIND[p.osm_value] || KIND[p.type] || '' };
+  }
+  function nomItem(j) {
+    var ad = j.address || {}, nm = j.name || String(j.display_name || '').split(',')[0], reg = ad.state && ad.state !== nm ? ad.state : ad.country, subs = [];
+    if (ad.state && ad.state !== nm) subs.push(ad.state); if (ad.country) subs.push(ad.country);
+    return { value: nm + (reg ? ', ' + reg : ''), name: nm, sub: subs.join(', '), gps: [Number(j.lat), Number(j.lon)], cc: String(ad.country_code || '').toUpperCase(), kind: KIND[j.type] || '' };
+  }
+  function acFetch(q, bias) {
+    var ck = q.toLowerCase() + '|' + (bias ? key(bias) : ''); if (AC.cache[ck]) return Promise.resolve(AC.cache[ck]);
+    var url = 'https://photon.komoot.io/api/?limit=8&lang=de&q=' + encodeURIComponent(q) + (bias ? '&lat=' + bias[0].toFixed(2) + '&lon=' + bias[1].toFixed(2) : '');
+    return fetchJ(url, 8000).then(function (j) { return (j.features || []).map(photonItem).filter(Boolean); })
+      .catch(function () { return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=1&accept-language=de&q=' + encodeURIComponent(q), 10000).then(function (j) { return (j || []).map(nomItem); }).catch(function () { return []; }); })
+      .then(function (items) { var seen = {}; items = items.filter(function (i) { var k = i.value + '|' + i.gps[0].toFixed(1) + i.gps[1].toFixed(1); if (seen[k]) return false; seen[k] = 1; return true; }).slice(0, 6); AC.cache[ck] = items; return items; });
+  }
+  function acHide() { if (AC.ul) AC.ul.hidden = true; AC.idx = -1; if (AC.input) AC.input.setAttribute('aria-expanded', 'false'); }
+  function acRender() {
+    if (!AC.ul) { AC.ul = document.createElement('ul'); AC.ul.className = 'ac'; AC.ul.setAttribute('role', 'listbox'); AC.ul.id = 'ac-list'; AC.ul.setAttribute('data-ac-list', ''); document.body.appendChild(AC.ul); }
+    var el = AC.input; if (!el || !AC.items.length) { acHide(); return; }
+    var r = el.getBoundingClientRect(); AC.ul.style.left = (r.left + window.scrollX) + 'px'; AC.ul.style.top = (r.bottom + window.scrollY + 2) + 'px'; AC.ul.style.width = Math.max(r.width, 260) + 'px';
+    AC.ul.innerHTML = AC.items.map(function (it, i) { return '<li role="option" data-ac-i="' + i + '" aria-selected="' + (i === AC.idx) + '"><b>' + esc(it.name) + '</b>' + (it.kind ? ' <span style="opacity:.7">· ' + esc(it.kind) + '</span>' : '') + '<small>' + esc(it.sub) + '</small></li>'; }).join('');
+    AC.ul.hidden = false; el.setAttribute('aria-expanded', 'true'); el.setAttribute('aria-controls', 'ac-list'); el.setAttribute('aria-autocomplete', 'list'); el.setAttribute('role', 'combobox');
+  }
+  function acPick(i) {
+    var it = AC.items[i], el = AC.input; if (!it || !el) return; var k = it.value.toLowerCase();
+    S.geo[k] = it.gps; S.cc = S.cc || {}; if (it.cc) S.cc[k] = it.cc; S.lab = S.lab || {}; S.lab[k] = it.value + (it.sub ? ' (' + it.sub + ')' : ''); S.pick = S.pick || {}; S.pick[k] = 1;
+    el.value = it.value; AC.skip = true; el.dispatchEvent(new Event('input', { bubbles: true })); AC.skip = false; acHide(); AC.items = [];
+    if (el.matches('[data-add-name]')) addByName();
+  }
+  document.addEventListener('input', function (e) {
+    var el = e.target; if (AC.skip || !acOk(el)) return; AC.input = el; clearTimeout(AC.timer);
+    var q = el.value.trim(); if (q.length < 3) { acHide(); AC.items = []; return; }
+    var my = ++AC.seq, isStart = el.matches('[data-f=start]'), st = String(S.input.start || '').trim();
+    AC.timer = setTimeout(function () {
+      var bp = isStart || !st ? Promise.resolve(null) : (S.geo[st.toLowerCase()] ? Promise.resolve(S.geo[st.toLowerCase()]) : geocode(st).catch(function () { return null; }));
+      bp.then(function (bias) { return acFetch(q, bias); }).then(function (items) { if (my !== AC.seq || document.activeElement !== el) return; AC.items = items; AC.idx = -1; acRender(); });
+    }, 300);
+  });
+  document.addEventListener('keydown', function (e) {
+    var el = e.target; if (!acOk(el) || !AC.ul || AC.ul.hidden || !AC.items.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); AC.idx = (AC.idx + (e.key === 'ArrowDown' ? 1 : -1) + AC.items.length) % AC.items.length; acRender(); }
+    else if (e.key === 'Enter' && AC.idx >= 0) { e.preventDefault(); e.stopImmediatePropagation(); acPick(AC.idx); }
+    else if (e.key === 'Escape') { acHide(); }
+  }, true);
+  document.addEventListener('mousedown', function (e) { var li = e.target.closest && e.target.closest('[data-ac-i]'); if (li) { e.preventDefault(); acPick(+li.getAttribute('data-ac-i')); } });
+  document.addEventListener('focusout', function (e) { if (acOk(e.target)) setTimeout(function () { if (document.activeElement !== e.target) acHide(); }, 150); });
+  window.addEventListener('scroll', function () { if (AC.ul && !AC.ul.hidden) acRender(); }, { passive: true });
 
   // ---------- Übergabe ----------
   function buildTrip() {
