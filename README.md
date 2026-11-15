@@ -438,3 +438,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v97
 - Routen-Vorschlag: Wuensche-Dialog, KI-Anfrage zum Kopieren, Pruefung und Uebernahme der KI-Antwort.
+
+## v98
+- Gemeinsames Fenster „Ort waehlen“ (Tippen, Karte, Umkreis) fuer alle Ortsfelder in Planer und Routen-Vorschlag sowie den Etappen-Finder. Neue Datei ortwahl.js.

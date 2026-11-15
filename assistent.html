@@ -181,6 +181,7 @@ label small{display:block;font-weight:400}
 </div>
 
 <script src="leaflet/leaflet.js"></script>
+<script src="ortwahl.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1009,11 +1010,16 @@ label small{display:block;font-weight:400}
     if (!AC.ul) { AC.ul = document.createElement('ul'); AC.ul.className = 'ac'; AC.ul.setAttribute('role', 'listbox'); AC.ul.id = 'ac-list'; AC.ul.setAttribute('data-ac-list', ''); document.body.appendChild(AC.ul); }
     var el = AC.input; if (!el || !AC.items.length) { acHide(); return; }
     var r = el.getBoundingClientRect(); AC.ul.style.left = (r.left + window.scrollX) + 'px'; AC.ul.style.top = (r.bottom + window.scrollY + 2) + 'px'; AC.ul.style.width = Math.max(r.width, 260) + 'px';
-    AC.ul.innerHTML = AC.items.map(function (it, i) { return '<li role="option" data-ac-i="' + i + '" aria-selected="' + (i === AC.idx) + '"><b>' + esc(it.name) + '</b>' + (it.kind ? ' <span style="opacity:.7">· ' + esc(it.kind) + '</span>' : '') + '<small>' + esc(it.sub) + '</small></li>'; }).join('');
+    AC.ul.innerHTML = AC.items.map(function (it, i) { if (it.map) return '<li role="option" data-ac-map aria-selected="' + (i === AC.idx) + '" style="border-top:1px solid var(--line)"><b>🗺 Auf der Karte wählen</b><small>Karte öffnen, klicken oder im Umkreis suchen</small></li>'; return '<li role="option" data-ac-i="' + i + '" aria-selected="' + (i === AC.idx) + '"><b>' + esc(it.name) + '</b>' + (it.kind ? ' <span style="opacity:.7">· ' + esc(it.kind) + '</span>' : '') + '<small>' + esc(it.sub) + '</small></li>'; }).join('');
     AC.ul.hidden = false; el.setAttribute('aria-expanded', 'true'); el.setAttribute('aria-controls', 'ac-list'); el.setAttribute('aria-autocomplete', 'list'); el.setAttribute('role', 'combobox');
   }
   function acPick(i) {
-    var it = AC.items[i], el = AC.input; if (!it || !el) return; var k = it.value.toLowerCase();
+    var it = AC.items[i], el = AC.input; if (!it || !el) return;
+    if (it.map) { acHide(); AC.items = []; if (window.RtOrt) window.RtOrt.openFor(el); return; }
+    acApply(el, it);
+  }
+  function acApply(el, it) {
+    var k = it.value.toLowerCase();
     S.geo[k] = it.gps; S.cc = S.cc || {}; if (it.cc) S.cc[k] = it.cc; S.lab = S.lab || {}; S.lab[k] = it.value + (it.sub ? ' (' + it.sub + ')' : ''); S.pick = S.pick || {}; S.pick[k] = 1;
     el.value = it.value; AC.skip = true; el.dispatchEvent(new Event('input', { bubbles: true })); AC.skip = false; acHide(); AC.items = [];
     if (el.matches('[data-add-name]')) addByName();
@@ -1024,16 +1030,17 @@ label small{display:block;font-weight:400}
     var my = ++AC.seq, isStart = el.matches('[data-f=start],[data-f=home],[data-f=homeAirport]'), st = String(S.input.start || '').trim();
     AC.timer = setTimeout(function () {
       var bp = isStart || !st ? Promise.resolve(null) : (S.geo[st.toLowerCase()] ? Promise.resolve(S.geo[st.toLowerCase()]) : geocode(st).catch(function () { return null; }));
-      bp.then(function (bias) { return acFetch(q, bias); }).then(function (items) { if (my !== AC.seq || document.activeElement !== el) return; AC.items = items; AC.idx = -1; acRender(); });
+      bp.then(function (bias) { return acFetch(q, bias); }).then(function (items) { if (my !== AC.seq || document.activeElement !== el) return; AC.items = window.RtOrt ? items.concat([{ map: true }]) : items; AC.idx = -1; acRender(); });
     }, 300);
   });
   document.addEventListener('keydown', function (e) {
     var el = e.target; if (!acOk(el) || !AC.ul || AC.ul.hidden || !AC.items.length) return;
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); AC.idx = (AC.idx + (e.key === 'ArrowDown' ? 1 : -1) + AC.items.length) % AC.items.length; acRender(); }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); AC.idx = AC.idx < 0 && e.key === 'ArrowUp' ? AC.items.length - 1 : (AC.idx + (e.key === 'ArrowDown' ? 1 : -1) + AC.items.length) % AC.items.length; acRender(); }
     else if (e.key === 'Enter' && AC.idx >= 0) { e.preventDefault(); e.stopImmediatePropagation(); acPick(AC.idx); }
     else if (e.key === 'Escape') { acHide(); }
   }, true);
-  document.addEventListener('mousedown', function (e) { var li = e.target.closest && e.target.closest('[data-ac-i]'); if (li) { e.preventDefault(); acPick(+li.getAttribute('data-ac-i')); } });
+  document.addEventListener('mousedown', function (e) { var li = e.target.closest && e.target.closest('[data-ac-i]'); if (li) { e.preventDefault(); acPick(+li.getAttribute('data-ac-i')); return; } var mp = e.target.closest && e.target.closest('#ac-list [data-ac-map]'); if (mp) { e.preventDefault(); acPick(AC.items.length - 1); } });
+  if (window.RtOrt) { document.body.classList.add('rto-auto'); window.RtOrt.attach({ selector: AC_SEL, opts: function (el) { var st = String(S.input.start || '').trim().toLowerCase(), cur = el.value.trim().toLowerCase(), home = el.matches('[data-f=start],[data-f=home],[data-f=homeAirport]'), ctr = !home && st && S.geo[st] ? S.geo[st] : null; return { mode: 'city', gps: cur && S.geo[cur] ? S.geo[cur] : null, near: el.matches('[data-add-name],[data-fpf=name]') && ctr ? ctr : null, nearLabel: first(S.input.start), center: ctr, title: el.matches('[data-add-name]') ? 'Ort hinzufügen' : 'Ort wählen' }; }, onPick: function (el, it) { acHide(); AC.items = []; acApply(el, it); } }); }
   document.addEventListener('focusout', function (e) { if (acOk(e.target)) setTimeout(function () { if (document.activeElement !== e.target) acHide(); }, 150); });
   window.addEventListener('scroll', function () { if (AC.ul && !AC.ul.hidden) acRender(); }, { passive: true });
 

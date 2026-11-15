@@ -14114,7 +14114,7 @@ html[data-dark="1"] .rt-fspill{background:rgba(20,30,48,.92)!important;border-co
 html[data-dark="1"] .rt-fsbar{background:#12301f!important;border-color:#2f7d52!important;color:#d6f5e3!important}
 html[data-dark="1"] .rt-fsbar.warn{background:#3a2a10!important;border-color:#F2A044!important;color:#ffe2bd!important}
 html[data-dark="1"] .rt-fsbar button.ghost{background:#1f3150!important;color:#e5ecf7!important;border-color:#2c3e5c!important}
-</style><style id="rt-ac-css">.rt-ac{position:absolute;z-index:100000;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px;font-size:14px}.rt-ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}.rt-ac li small{display:block;opacity:.75;font-size:12px}.rt-ac .rt-ac-kind{opacity:.7}.rt-ac li[aria-selected=true],.rt-ac li:hover{background:#1d4ed8;color:#fff}html[data-dark="1"] .rt-ac{background:#1e293b;color:#f1f5f9;border-color:#475569}html[data-dark="1"] .rt-ac li[aria-selected=true],html[data-dark="1"] .rt-ac li:hover{background:#60a5fa;color:#0f172a}@media print{.rt-ac{display:none}}</style></head>
+</style><style id="rt-ac-css">.rt-ac{position:absolute;z-index:100000;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px;font-size:14px}.rt-ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}.rt-ac li small{display:block;opacity:.75;font-size:12px}.rt-ac .rt-ac-kind{opacity:.7}.rt-ac li[aria-selected=true],.rt-ac li:hover{background:#1d4ed8;color:#fff}html[data-dark="1"] .rt-ac{background:#1e293b;color:#f1f5f9;border-color:#475569}html[data-dark="1"] .rt-ac li[aria-selected=true],html[data-dark="1"] .rt-ac li:hover{background:#60a5fa;color:#0f172a}@media print{.rt-ac{display:none}}</style><style>.rt-ac li.rt-ac-map{border-top:1px solid #cbd5e1;border-radius:0 0 8px 8px}</style><script src="ortwahl.js"></script></head>
 <body>
   <div id="root" aria-live="polite"></div>
 
@@ -19252,7 +19252,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 97</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 98</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19262,7 +19262,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 97'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 98'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -19605,11 +19605,10 @@ var qrcode = function() {
             <RtRouteInline />
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" data-readonly-allow onClick={run} disabled={st.busy} className="v18-btn pri disabled:opacity-50">{st.busy ? 'Suche läuft …' : 'Orte suchen'}</button>
-              <button type="button" data-readonly-allow data-sf-pick-toggle aria-pressed={pickOn} onClick={() => setPickOn(!pickOn)} className={`v18-btn ${pickOn ? 'pri' : ''}`}>{pickOn ? 'Kartenwahl schließen' : 'Ort auf der Karte wählen'}</button>
+              <button type="button" data-readonly-allow data-sf-pick-toggle onClick={() => sfPickOpen({ from, startGps, startCity, mode, rng, dir, tol, onPick })} className="v18-btn">Ort auf der Karte wählen</button>
               <span className="text-xs text-slate-500">{!isNew ? `Start: ${startCity || '–'}. Das Ergebnis ersetzt das Ziel von Etappe ${from + 1} (${cur.toCity || '–'}).` : `Start: ${startCity || '–'}. Das Ergebnis wird als neue Etappe ${from + 1} angehängt.`}</span>
             </div>
             {(pg.busy) && <SfProgress pct={pg.pct} label={pg.label} onCancel={() => { cancelRef.current = true; }} />}
-            {pickOn && <SfPickMap key={`${from}|${startCity}`} startGps={startGps} startCity={startCity} mode={mode} rng={rng} dir={dir} tol={tol} onPick={(x) => onPick(from, x)} />}
             {st.err && <div role="alert" className="text-sm rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-3">{st.err}</div>}
             {st.items && st.items.length === 0 && <div className="text-sm rounded-lg bg-slate-50 border border-slate-200 p-3">Keine Orte gefunden. Weite den Abstandsbereich aus oder wähle eine andere Richtung.</div>}
             {st.items && st.items.length > 0 && (
@@ -21848,6 +21847,7 @@ var qrcode = function() {
       RT_AC.ul.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + window.scrollX}px`; RT_AC.ul.style.top = `${r.bottom + window.scrollY + 2}px`; RT_AC.ul.style.width = `${w}px`;
       RT_AC.ul.textContent = '';
       RT_AC.items.forEach((it, i) => {
+        if (it.map) { const lm = document.createElement('li'); lm.setAttribute('role', 'option'); lm.setAttribute('data-ac-map', ''); lm.setAttribute('aria-selected', String(i === RT_AC.idx)); lm.className = 'rt-ac-map'; const bm = document.createElement('b'); bm.textContent = '🗺 Auf der Karte wählen'; lm.appendChild(bm); const sm = document.createElement('small'); sm.textContent = 'Karte öffnen, klicken oder im Umkreis suchen'; lm.appendChild(sm); RT_AC.ul.appendChild(lm); return; }
         const li = document.createElement('li'); li.setAttribute('role', 'option'); li.setAttribute('data-ac-i', String(i)); li.setAttribute('aria-selected', String(i === RT_AC.idx));
         const b = document.createElement('b'); b.textContent = it.name; li.appendChild(b);
         if (it.kind) { const k = document.createElement('span'); k.className = 'rt-ac-kind'; k.textContent = ` · ${it.kind}`; li.appendChild(k); }
@@ -21868,6 +21868,10 @@ var qrcode = function() {
     }
     function rtAcPick(i) {
       const it = RT_AC.items[i], el = RT_AC.input; if (!it || !el) return;
+      if (it.map) { rtAcHide(); RT_AC.items = []; if (window.RtOrt) window.RtOrt.openFor(el); return; }
+      rtAcApply(el, it);
+    }
+    function rtAcApply(el, it) {
       const mode = el.getAttribute('data-place') || 'city';
       if (mode !== 'addr') rtPickPut(it.value, it.gps); else { try { localStorage.setItem('rt_place_last_v1', JSON.stringify(it.gps)); } catch (e) {} }
       RT_AC.skip = true; rtAcSet(el, it.value); RT_AC.skip = false; rtAcHide(); RT_AC.items = [];
@@ -21885,15 +21889,15 @@ var qrcode = function() {
         const el = e.target; if (RT_AC.skip || !rtAcOk(el)) return; RT_AC.input = el; clearTimeout(RT_AC.timer);
         const q = el.value.trim(); if (q.length < 3) { rtAcHide(); RT_AC.items = []; return; }
         const my = ++RT_AC.seq, mode = el.getAttribute('data-place') || 'city';
-        RT_AC.timer = setTimeout(async () => { const bias = await rtAcBias(el); const items = await rtAcFetch(q, mode, bias); if (my !== RT_AC.seq || document.activeElement !== el) return; RT_AC.items = items; RT_AC.idx = -1; rtAcRender(); }, 300);
+        RT_AC.timer = setTimeout(async () => { const bias = await rtAcBias(el); const items = await rtAcFetch(q, mode, bias); if (my !== RT_AC.seq || document.activeElement !== el) return; RT_AC.items = window.RtOrt ? items.concat([{ map: true }]) : items; RT_AC.idx = -1; rtAcRender(); }, 300);
       });
       document.addEventListener('keydown', (e) => {
         const el = e.target; if (!rtAcOk(el) || !RT_AC.ul || RT_AC.ul.hidden || !RT_AC.items.length) return;
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); RT_AC.idx = (RT_AC.idx + (e.key === 'ArrowDown' ? 1 : -1) + RT_AC.items.length) % RT_AC.items.length; rtAcRender(); }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); RT_AC.idx = RT_AC.idx < 0 && e.key === 'ArrowUp' ? RT_AC.items.length - 1 : (RT_AC.idx + (e.key === 'ArrowDown' ? 1 : -1) + RT_AC.items.length) % RT_AC.items.length; rtAcRender(); }
         else if (e.key === 'Enter' && RT_AC.idx >= 0) { e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation(); rtAcPick(RT_AC.idx); }
         else if (e.key === 'Escape') { e.stopPropagation(); rtAcHide(); }
       }, true);
-      const pick = (e) => { const li = e.target.closest && e.target.closest('#rt-ac-list [data-ac-i]'); if (li) { e.preventDefault(); rtAcPick(Number(li.getAttribute('data-ac-i'))); } };
+      const pick = (e) => { const li = e.target.closest && e.target.closest('#rt-ac-list [data-ac-i]'); if (li) { e.preventDefault(); rtAcPick(Number(li.getAttribute('data-ac-i'))); return; } const mp = e.target.closest && e.target.closest('#rt-ac-list [data-ac-map]'); if (mp) { e.preventDefault(); rtAcPick(RT_AC.items.length - 1); } };
       document.addEventListener('mousedown', pick);
       
       document.addEventListener('focusout', (e) => { if (rtAcOk(e.target)) { const t = e.target; setTimeout(() => { if (document.activeElement !== t) rtAcHide(); }, 200); } });
@@ -21950,6 +21954,42 @@ var qrcode = function() {
           <span className="text-slate-700">Etappen verschieben, Stopps setzen und die Richtung prüfen. Hotels und Buchungen unveränderter Etappen bleiben erhalten.</span>
         </div>
       );
+    }
+
+    /* ===== v98: gemeinsamer Baustein "Ort wählen" (ortwahl.js) ===== */
+    if (window.RtOrt && !window.__rtOrtInit) {
+      window.__rtOrtInit = true;
+      window.RtOrt.attach({
+        selector: 'input[data-place]',
+        opts: async (el) => {
+          const mode = el.getAttribute('data-place') || 'city', nearTxt = (el.getAttribute('data-place-near') || '').trim(), cur = el.value.trim();
+          let near = null; if (nearTxt) { near = parseGps(nearTxt) || rtPickGet(nearTxt) || (window.__rtTripGeo || {})[rtNormName(nearTxt)] || null; if (!near) { try { near = await sfGeocode(nearTxt); } catch (e) { near = null; } } }
+          let gps = null; if (mode === 'addr') { const gf = rtAcGpsField(el); gps = gf ? parseGps(gf.value || '') : null; } else if (cur) gps = rtPickGet(cur) || (window.__rtTripGeo || {})[rtNormName(cur)] || null;
+          let center = null; try { const l = JSON.parse(localStorage.getItem('rt_place_last_v1') || 'null'); if (Array.isArray(l)) center = l; } catch (e) {}
+          return { mode, near, nearLabel: nearTxt && !parseGps(nearTxt) ? nearTxt.split(',')[0] : (near ? 'dem Etappenort' : ''), gps, center };
+        },
+        onPick: (el, it) => { rtAcHide(); RT_AC.items = []; rtAcApply(el, it); },
+      });
+    }
+    async function sfPickOpen({ from, startGps, startCity, mode, rng, dir, tol, onPick }) {
+      if (!window.RtOrt) { window.alert('Die Kartenwahl konnte nicht geladen werden. Bitte die Seite neu laden.'); return; }
+      let org = startGps || null; if (!org && startCity) { try { org = await sfGeocode(startCity); } catch (e) { org = null; } }
+      if (!org) { window.alert('Der Startort der Etappe wurde nicht gefunden. Ohne Internet ist die Kartenwahl nicht möglich.'); return; }
+      const maxKm = mode === 'km' ? rng[1] : rng[1] * 70, minKm = mode === 'km' ? rng[0] : rng[0] * 70;
+      const res = await window.RtOrt.pick({ mode: 'city', title: 'Nächstes Etappenziel wählen', near: org, nearLabel: String(startCity || 'dem Startort').split(',')[0], radiusKm: maxKm, minKm,
+        onMap: (map, L) => {
+          const blue = { color: '#1F4E8C', weight: 2, fillColor: '#1F4E8C', fillOpacity: 0.08, interactive: false };
+          const secs = dir && dir.length ? sfSectors(org, maxKm, dir, SF_TOL[tol]) : null; let bounds;
+          if (secs) { secs.forEach((pg) => L.polygon(pg, blue).addTo(map)); bounds = L.latLngBounds(secs.flat()); } else { bounds = L.circle(org, { radius: maxKm * 1000, ...blue }).addTo(map).getBounds(); }
+          if (minKm > 0) L.circle(org, { radius: minKm * 1000, color: '#1F4E8C', weight: 2, dashArray: '6 6', fillColor: '#fff', fillOpacity: 0.55, interactive: false }).addTo(map);
+          L.circleMarker(org, { radius: 9, color: '#173B6B', weight: 3, fillColor: '#fff', fillOpacity: 1, interactive: false }).addTo(map);
+          map.fitBounds(bounds, { padding: [20, 20] });
+        } });
+      if (!res) return;
+      const lin = sfKmBetween(org, res.gps); let km = lin * 1.3, min = lin * 1.3 / 70 * 60;
+      try { const j = await fetchJsonT(`https://router.project-osrm.org/route/v1/driving/${org[1]},${org[0]};${res.gps[1]},${res.gps[0]}?overview=false`, 15000); const r = j.routes && j.routes[0]; if (r) { km = r.distance / 1000; min = r.duration / 60; } } catch (e) {}
+      rtPickPut(res.name, res.gps);
+      onPick(from, { id: `pick-${res.gps[0].toFixed(4)}-${res.gps[1].toFixed(4)}`, name: res.name, lat: res.gps[0], lon: res.gps[1], km, min });
     }
 
     function App() {
@@ -24979,7 +25019,7 @@ Quelle: ${lt.url}` : '') }] } });
                       </div>
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">Zielort (Stadt / Ort)</label>
-                        <input data-place="city"
+                        <input data-place-near={editingStageModal.fromCity || ''} data-place="city"
                           type="text"
                           value={editingStageModal.toCity || ''}
                           onChange={(e) => setEditingStageModal({ ...editingStageModal, toCity: e.target.value })}
