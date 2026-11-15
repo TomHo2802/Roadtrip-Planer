@@ -18777,7 +18777,7 @@ var qrcode = function() {
               <button type="button" data-demo-open disabled={busy} onClick={() => run(async () => { await loadDemo(); location.reload(); })} className="sm:col-span-2 text-left rounded-2xl border-2 border-blue-600 bg-white p-4 space-y-1"><span className="block text-base font-extrabold text-slate-900">Demo ansehen</span><span className="block text-xs text-slate-600">Beispielreise Florida mit allen Funktionen zum Ausprobieren. Deine Daten bleiben getrennt.</span><span className="inline-block mt-1 px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold">Empfohlen für den Einstieg</span></button>
               <h2 className="sm:col-span-2 text-base font-bold text-slate-900 pt-1">Eigene Reise planen</h2>
               <a href="assistent.html" data-open-assistant className="flex flex-col justify-center rounded-2xl border border-slate-300 bg-white p-4 space-y-1 min-h-[112px] no-underline"><span className="block text-base font-extrabold text-slate-900">Route vorschlagen lassen</span><span className="block text-xs text-slate-600">Du gibst Zeitraum, Start, Ziel, Fixpunkte und Tagesstrecke an. Daraus entsteht ein Routen-Vorschlag, den du prüfst und im Planer anlegst.</span></a>
-              <button type="button" data-new-trip onClick={onSkip} className="text-left rounded-2xl border border-slate-300 bg-white p-4 space-y-1 min-h-[112px]"><span className="block text-base font-extrabold text-slate-900">Etappen selbst eintragen</span><span className="block text-xs text-slate-600">Du kennst deine Route schon. Der Schritt-Assistent fragt Reisedaten, Mitreisende und Etappen der Reihe nach ab.</span></button>
+              <button type="button" data-new-trip onClick={onSkip} className="text-left rounded-2xl border border-slate-300 bg-white p-4 space-y-1 min-h-[112px]"><span className="block text-base font-extrabold text-slate-900">Etappen selbst eintragen</span><span className="block text-xs text-slate-600">Du kennst deine Route schon. In drei Schritten trägst du Zeitraum, Mitreisende und Etappen ein.</span></button>
               
               <div className="sm:col-span-2"><RtDraftBar hasTrip={false} gate={true} /></div>
             </div>
@@ -19244,7 +19244,7 @@ var qrcode = function() {
               <div className="min-w-0"><div className="font-bold text-[15px] leading-tight break-words">{String(meta.title || 'Roadtrip Planer').replace(/\s*\([^)]*\)\s*$/, '')}</div><div className="text-xs text-slate-500">{(String(meta.title || '').match(/\(([^)]*)\)\s*$/) || [])[1] ? (String(meta.title).match(/\(([^)]*)\)\s*$/))[1] + ' · ' : ''}{people} Personen</div></div>
             </div>
             {trip.meta && trip.meta.tripId === 'demo-florida-v1' && <div data-demo-chip className="v18-demo"><span>Demo-Reise</span><button type="button" data-demo-reset-chip onClick={async () => { if (window.confirm('Die Demo-Reise wird auf den Ursprungszustand zurückgesetzt. Alle Änderungen daran gehen verloren. Fortfahren?')) { await loadDemo(); location.reload(); } }}>Zurücksetzen</button></div>}
-            <button type="button" data-wizard-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard'))} className="v18-btn pri v18-edit-only w-full justify-center">Schritt-Assistent</button>
+            <RtSideStatus trip={trip} />
             {countdown && <button type="button" onClick={onMeta} className={cdCls} title="Abreisedatum, Titel oder Wechselkurs anpassen">{countdown.label}</button>}
             <nav className="flex flex-col gap-1" aria-label="Bereiche">
               {V18_GROUPS.filter((x) => x.id !== 'more').map((x) => <button key={x.id} type="button" data-nav={x.id} aria-current={x.id === g.id ? 'page' : undefined} onClick={() => go(x)} className={`v18-nav ${x.id === g.id ? 'on' : ''}`}><V18Icon n={x.id} />{x.label}</button>)}
@@ -19252,7 +19252,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 98</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 99</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19262,7 +19262,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 98'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 99'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -20313,9 +20313,7 @@ var qrcode = function() {
     const WZ_STEPS = [
       { id: 'frame', ph: 'Grundrahmen', label: 'Reise & Zeitraum' },
       { id: 'people', ph: 'Grundrahmen', label: 'Reisende & Start' },
-      { id: 'route', ph: 'Etappen', label: 'Etappen benennen' },
-      { id: 'details', ph: 'Etappen', label: 'Hotel & Aktivitäten' },
-      { id: 'check', ph: 'Etappen', label: 'Prüfen & fertig' }
+      { id: 'route', ph: 'Etappen', label: 'Etappen benennen' }
     ];
     const WZ_KEY = 'roadtrip_wizard_v1';
     const WZ_HOTEL = { name: '', bookingLink: '', hotelLink: '', rating: '', address: '', gps: '', checkIn: '', checkOut: '', breakfast: '', parking: '', cancelUntil: '', priceOldEur: '', priceNewEur: '', priceUsd: '', prepaid: '', creditCard: '', paidBy: '', splitAmong: [], parkingGarageName: '', parkingGarageAddress: '', parkingGarageGps: '', remarks: '', chargeAnnounced: '', cardCharged: '', bookingCode: '' };
@@ -20410,7 +20408,7 @@ var qrcode = function() {
       const addAct = (stage, k) => { const nm = (actIn[k] || '').trim(); if (!nm) return; putActs(stage.id, (list) => [...list, { id: `loc-${Date.now()}-${Math.floor(Math.random() * 1000)}`, name: nm, category: 'Aktivität', time: '', booked: '', priceEur: 0, address: '', gps: '', notes: '', day: k }]); setActIn({ ...actIn, [k]: '' }); };
       const rmAct = (stage, id) => putActs(stage.id, (list) => list.filter((a) => a.id !== id));
       const moveAct = (stage, id, k) => putActs(stage.id, (list) => list.map((a) => (a.id === id ? { ...a, day: k } : a)));
-      useEffect(() => { if (cur.id === 'details') initDd(Math.min(sIdx, Math.max(0, stages.length - 1))); }, [step, sIdx, stages.length]);
+      useEffect(() => { if (cur.id === 'route' && !sd.length && budgetNights > 0 && budgetNights <= 120) setSd(Array.from({ length: budgetNights }, (_, k) => ({ id: `new-${Date.now()}-${k}`, city: '', nights: 1 }))); }, [step]);
 
       const commit = (id) => (id === 'frame' ? commitFrame() : id === 'people' ? commitPeople() : id === 'route' ? commitRoute() : id === 'details' ? commitDetails() : true);
       const goStep = (n, si) => {
@@ -20418,6 +20416,7 @@ var qrcode = function() {
         if (!commit(cur.id)) return; setErr(''); const ns = si != null ? si : sIdx; setSIdx(ns); setStep(n); persist(n, ns);
       };
       const next = () => {
+        if (step === WZ_STEPS.length - 1) { if (!commit(cur.id)) return; setErr(''); wzSave(tid, null); onClose(); goTab('stages'); setTimeout(() => window.dispatchEvent(new CustomEvent('rt-status')), 200); return; }
         if (cur.id === 'details' && sIdx < stages.length - 1) { if (!commitDetails()) return; setSIdx(sIdx + 1); persist(step, sIdx + 1); return; }
         goStep(Math.min(WZ_STEPS.length - 1, step + 1));
       };
@@ -20467,7 +20466,7 @@ var qrcode = function() {
 
       const stg = stages[Math.min(sIdx, Math.max(0, stages.length - 1))];
       return (
-        <div data-wz className="fixed inset-0 z-[70] bg-slate-950/75 flex items-stretch sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-label="Schritt-Assistent">
+        <div data-wz className="fixed inset-0 z-[70] bg-slate-950/75 flex items-stretch sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-label="Reise einrichten">
           <div className="bg-white w-full sm:max-w-3xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-full overflow-hidden">
             <div className="bg-[#1F4E8C] text-white px-4 sm:px-5 pt-4 pb-3 shrink-0">
               <div className="flex items-start justify-between gap-3">
@@ -20512,7 +20511,7 @@ var qrcode = function() {
                   <label className="block text-sm font-semibold text-slate-900">Fahrzeug (optional)<input type="text" value={d.vehicle} onChange={(e) => setF({ vehicle: e.target.value })} placeholder="z. B. Mietwagen SUV" className={WZ_IN} /></label>
                 </div>
                 <label className="block text-sm font-semibold text-slate-900">Maximale Fahrzeit pro Tag<select value={d.maxDrive} onChange={(e) => setF({ maxDrive: e.target.value })} className={WZ_IN}>{[2, 3, 4, 5, 6, 7, 8, 10].map((h) => <option key={h} value={h}>{h} Stunden</option>)}</select></label>
-                <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-sm text-blue-950">Flüge und Mietwagen trägst du unter „Buchungen“ ein. Der Assistent erinnert dich am Ende daran.</div>
+                <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-sm text-blue-950">Flüge und Mietwagen trägst du unter „Buchungen“ ein. Der Planungsstand unter „Planen“ erinnert dich daran.</div>
                             </>}
               {cur.id === 'route' && <>
                 <p className="text-sm text-slate-700">Pro Nacht eine Etappe: Trage ein, wo du übernachtest. Die Daten rechnet der Assistent selbst aus. Brauchst du an einem Ort mehr Nächte, tippe auf „+“. Dafür entfällt dann eine andere Etappe, die Reise bleibt bei {budgetNights} Nächten.</p>
@@ -20624,7 +20623,7 @@ var qrcode = function() {
             </div>
             <div className="bg-slate-50 border-t border-slate-200 px-4 sm:px-5 py-3 flex items-center justify-between gap-2 shrink-0">
               <button type="button" data-wz-back disabled={step === 0 && sIdx === 0} onClick={back} className="min-h-[44px] px-4 rounded-lg border border-slate-300 bg-white text-slate-900 font-semibold text-sm disabled:opacity-40">Zurück</button>
-              {cur.id !== 'check' && <button type="button" data-wz-next onClick={next} className="min-h-[44px] px-6 rounded-lg bg-[#1F4E8C] text-white font-bold text-sm">{cur.id === 'details' && sIdx < stages.length - 1 ? 'Nächste Etappe' : 'Weiter'}</button>}
+              {cur.id !== 'check' && <button type="button" data-wz-next onClick={next} className="min-h-[44px] px-6 rounded-lg bg-[#1F4E8C] text-white font-bold text-sm">{step === WZ_STEPS.length - 1 ? 'Fertig' : 'Weiter'}</button>}
             </div>
           </div>
         </div>
@@ -21764,11 +21763,11 @@ var qrcode = function() {
           }
           return;
         }
-        if (note && note !== 'updated' && !gate) { try { sessionStorage.removeItem('rt_after_adopt'); } catch (e) {} let n = 0; const iv = setInterval(() => { if (++n > 6) { clearInterval(iv); return; } window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'details' } })); setTimeout(() => { if (document.querySelector('[data-wz]')) clearInterval(iv); }, 200); }, 900); return () => clearInterval(iv); }
+        if (note && note !== 'updated' && !gate) { try { sessionStorage.removeItem('rt_after_adopt'); } catch (e) {} let n = 0; const iv = setInterval(() => { if (++n > 6) { clearInterval(iv); return; } window.dispatchEvent(new CustomEvent('rt-status')); setTimeout(() => { if (document.querySelector('[data-plan-status]')) clearInterval(iv); }, 500); }, 900); return () => clearInterval(iv); }
       }, []);
       if (IS_READ_ONLY_COPY) return null;
       if (note === 'updated' && !gate) return <div role="status" data-draft-updated className="rt-bkbar"><span><b>Die geänderte Route ist übernommen.</b> Bitte Hotels und Buchungen der geänderten Etappen prüfen und die Strecken kontrollieren.</span><span className="inline-flex gap-2"><button type="button" data-draft-done-ok data-readonly-allow onClick={() => setNote('')}>OK</button></span></div>;
-      if (note && !gate) return <div role="status" data-draft-done className="rt-bkbar"><span><b>Routen-Vorschlag als neue Reise angelegt.</b> {note === 'kept' ? 'Deine bisherige Reise liegt unter „Reise wechseln“. ' : ''}Weiter geht es im Schritt-Assistenten mit Hotels und Aktivitäten.</span><span className="inline-flex gap-2"><button type="button" data-draft-done-ok data-readonly-allow onClick={() => setNote('')}>OK</button></span></div>;
+      if (note && !gate) return <div role="status" data-draft-done className="rt-bkbar"><span><b>Routen-Vorschlag als neue Reise angelegt.</b> {note === 'kept' ? 'Deine bisherige Reise liegt unter „Reise wechseln“. ' : ''}Der Planungsstand zeigt, bei welchen Etappen noch Hotel, Strecke oder Aktivitäten fehlen.</span><span className="inline-flex gap-2"><button type="button" data-draft-done-ok data-readonly-allow onClick={() => setNote('')}>OK</button></span></div>;
       if (!gate && !hasTrip) return null;
       const d = rtReadDraft(); if (!d) return null;
       const t = d.trip, n = (t.stages || []).length;
@@ -21921,6 +21920,7 @@ var qrcode = function() {
     const rtStageGps = (s) => { if (!s) return null; const g = parseGps(s.toGps || ''); if (g && rtNormName(s.toGpsFor) === rtNormName(s.toCity)) return g; return null; };
     const rtGeoFail = {};
     function RtGeoFill({ trip, onSave }) {
+      const latest = useRef(trip); latest.current = trip;
       const sig = (trip.stages || []).map((s) => `${s.id}|${s.toCity}|${s.toGps || ''}|${s.toGpsFor || ''}`).join(';');
       useEffect(() => {
         const stages = trip.stages || [], mem = {};
@@ -21930,7 +21930,7 @@ var qrcode = function() {
         const idx = stages.findIndex((s) => String(s.toCity || '').trim() && !rtStageGps(s) && !rtGeoFail[rtNormName(s.toCity)]);
         if (idx < 0) return;
         let dead = false; const s = stages[idx], name = String(s.toCity).trim();
-        const put = (g) => { if (dead || !g) return; const cur = trip.stages || []; if (!cur[idx] || cur[idx].id !== s.id) return; onSave({ ...trip, stages: cur.map((x, i) => i === idx ? { ...x, toGps: `${g[0].toFixed(5)},${g[1].toFixed(5)}`, toGpsFor: x.toCity } : x) }, ''); };
+        const put = (g) => { if (dead || !g) return; const now = latest.current, cur = now.stages || []; const k = cur.findIndex((x) => x.id === s.id); if (k < 0 || String(cur[k].toCity || '').trim() !== name) return; onSave({ ...now, stages: cur.map((x, i) => i === k ? { ...x, toGps: `${g[0].toFixed(5)},${g[1].toFixed(5)}`, toGpsFor: x.toCity } : x) }, ''); };
         const known = rtPickGet(name) || mem[rtNormName(name)];
         const t = setTimeout(async () => {
           if (known) { put(known); return; }
@@ -21990,6 +21990,78 @@ var qrcode = function() {
       try { const j = await fetchJsonT(`https://router.project-osrm.org/route/v1/driving/${org[1]},${org[0]};${res.gps[1]},${res.gps[0]}?overview=false`, 15000); const r = j.routes && j.routes[0]; if (r) { km = r.distance / 1000; min = r.duration / 60; } } catch (e) {}
       rtPickPut(res.name, res.gps);
       onPick(from, { id: `pick-${res.gps[0].toFixed(4)}-${res.gps[1].toFixed(4)}`, name: res.name, lat: res.gps[0], lon: res.gps[1], km, min });
+    }
+
+    /* ===== v99: Planungsstand (ersetzt Schritt 4 und 5 des Assistenten) ===== */
+    const rtPlanStats = (trip) => {
+      const st = (trip && trip.stages) || [], meta = (trip && trip.meta) || {}, nn = (s) => Math.max(0, parseInt(s.nights, 10) || 0), tx = (v) => String(v == null ? '' : v).trim();
+      const rows = st.map((s, i) => {
+        const n = nn(s), same = tx(s.fromCity).toLowerCase() === tx(s.toCity).toLowerCase() && !!tx(s.toCity), named = !!tx(s.toCity);
+        const hotelNeed = n > 0, hotel = !!tx((s.hotel || {}).name), routeNeed = !same, route = !!tx((s.routeToHotel || {}).distanceKm), acts = (s.localAttractions || []).length;
+        return { id: s.id, i, from: tx(s.fromCity) || (i === 0 ? 'Start' : '?'), to: tx(s.toCity) || 'Ziel offen', n, ret: rtIsRet(st, i), named, hotelNeed, hotel, hotelName: tx((s.hotel || {}).name), routeNeed, route, km: tx((s.routeToHotel || {}).distanceKm), acts, actsNeed: n > 0, open: (!named ? 1 : 0) + (hotelNeed && !hotel ? 1 : 0) + (routeNeed && !route ? 1 : 0) };
+      });
+      const hN = rows.filter((r) => r.hotelNeed).length, hOk = rows.filter((r) => r.hotelNeed && r.hotel).length, rN = rows.filter((r) => r.routeNeed).length, rOk = rows.filter((r) => r.routeNeed && r.route).length, aN = rows.filter((r) => r.actsNeed).length, aOk = rows.filter((r) => r.actsNeed && r.acts > 0).length;
+      const datesOk = wzOk(meta.startDate) && wzOk(meta.endDate) && meta.endDate >= meta.startDate, days = datesOk ? tripDayCount(meta.startDate, meta.endDate) : 0, sum = rows.reduce((a, r) => a + r.n, 0), nightsOk = datesOk && sum === days - 1;
+      const open = rows.reduce((a, r) => a + r.open, 0) + (datesOk ? 0 : 1) + (datesOk && !nightsOk ? 1 : 0);
+      const short = !st.length ? '' : hOk < hN ? `${hOk} von ${hN} Etappen mit Hotel` : rOk < rN ? `${rOk} von ${rN} Strecken ermittelt` : (!datesOk || !nightsOk) ? 'Zeitraum prüfen' : aOk < aN ? `${aOk} von ${aN} Etappen mit Aktivitäten` : 'Alles Wichtige ist eingetragen';
+      return { rows, hN, hOk, rN, rOk, aN, aOk, datesOk, days, sum, nightsOk, open, short, flights: ((trip && trip.flights) || []).length, cars: ((trip && trip.rentalCars) || []).length };
+    };
+    function RtPlanStatus({ trip, goTab }) {
+      const S = rtPlanStats(trip), meta = trip.meta || {}, n = S.rows.length;
+      const jump = (id, step) => window.dispatchEvent(new CustomEvent('rt-stage-open', { detail: { stageId: id, step } }));
+      const frame = () => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }));
+      if (!n) return (
+        <section data-plan-status data-wizard-card className="v18-edit-only no-print rounded-2xl border border-[#BCCDE6] bg-[#F5F8FC] p-4 space-y-3">
+          <h2 className="text-base font-bold text-slate-900">Neue Reise planen</h2>
+          <p className="text-sm text-slate-700">Die Reise hat noch keine Etappen. Lass dir eine Route vorschlagen oder trage Zeitraum und Etappen selbst ein.</p>
+          <div className="flex flex-wrap gap-2"><a href="assistent.html" data-open-assistant-plan className="v18-btn pri no-underline">Route vorschlagen lassen</a><button type="button" data-wizard-card-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard'))} className="v18-btn">Reise selbst einrichten</button></div>
+        </section>
+      );
+      const chip = (ok, need, label, val, onClick, key) => {
+        const cls = !need ? 'border-slate-200 bg-slate-50 text-slate-600' : ok ? 'border-emerald-300 bg-emerald-50 text-emerald-950' : 'border-amber-500 bg-amber-50 text-amber-950 font-semibold';
+        return <button key={key} type="button" data-readonly-allow data-status-chip={key} data-state={!need ? 'na' : ok ? 'ok' : 'todo'} onClick={onClick} className={`min-h-[36px] px-3 rounded-full border text-xs text-left ${cls}`}><span className="font-semibold">{label}:</span> {val}</button>;
+      };
+      const gen = [
+        { k: 'dates', ok: S.datesOk, t: S.datesOk ? `Zeitraum ${wzDM(meta.startDate)} – ${wzDM(meta.endDate)}${meta.endDate.slice(0, 4)} (${S.days} Tage)` : 'Reisezeitraum fehlt', fix: frame, opt: false },
+        { k: 'nights', ok: S.nightsOk, t: !S.datesOk ? 'Nächte: erst den Zeitraum eintragen' : S.nightsOk ? `${S.sum} Nächte passen zum Zeitraum` : `Etappen haben ${S.sum} Nächte, der Zeitraum hat ${S.days - 1}`, fix: frame, opt: false },
+        { k: 'flight', ok: S.flights > 0, t: S.flights > 0 ? `${S.flights} ${S.flights === 1 ? 'Flug' : 'Flüge'} eingetragen` : 'Kein Flug eingetragen', fix: () => goTab('basics'), opt: true },
+        { k: 'car', ok: S.cars > 0, t: S.cars > 0 ? 'Mietwagen eingetragen' : 'Kein Mietwagen eingetragen', fix: () => goTab('basics'), opt: true },
+      ];
+      const pct = Math.round(100 * (S.hOk + S.rOk) / Math.max(1, S.hN + S.rN));
+      return (
+        <section data-plan-status className="no-print rounded-2xl border border-[#BCCDE6] bg-[#F5F8FC] p-4 space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-[220px] flex-1">
+              <h2 className="text-base font-bold text-slate-900">Planungsstand</h2>
+              <p className="text-sm text-slate-800" data-status-summary><b>{S.hOk} von {S.hN}</b> Etappen mit Hotel · <b>{S.rOk} von {S.rN}</b> Strecken · <b>{S.aOk} von {S.aN}</b> mit Aktivitäten</p>
+              <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Hotels und Strecken eingetragen"><div className="h-full bg-[#1F4E8C]" style={{ width: `${pct}%` }} /></div>
+            </div>
+            <button type="button" data-status-frame onClick={frame} className="v18-btn v18-edit-only">Reise &amp; Zeitraum ändern</button>
+          </div>
+          <ul className="flex flex-wrap gap-2" data-status-general>
+            {gen.map((g) => <li key={g.k}><button type="button" data-readonly-allow data-status-gen={g.k} data-state={g.ok ? 'ok' : g.opt ? 'hint' : 'todo'} onClick={g.fix} className={`min-h-[36px] px-3 rounded-full border text-xs ${g.ok ? 'border-emerald-300 bg-emerald-50 text-emerald-950' : g.opt ? 'border-slate-300 bg-white text-slate-700' : 'border-amber-500 bg-amber-50 text-amber-950 font-semibold'}`}>{g.ok ? 'Erledigt: ' : g.opt ? 'Offen (falls nötig): ' : 'Fehlt: '}{g.t}</button></li>)}
+          </ul>
+          <details data-status-list open={S.rows.some((r) => r.open > 0)}>
+            <summary className="cursor-pointer text-sm font-semibold text-slate-900 min-h-[36px] flex items-center">{S.rows.some((r) => r.open > 0) ? `Etappen im Einzelnen: bei ${S.rows.filter((r) => r.open > 0).length} fehlt noch etwas` : 'Etappen im Einzelnen: Hotels und Strecken sind vollständig'}</summary>
+            <ol className="mt-2 space-y-1.5">
+              {S.rows.map((r) => (
+                <li key={r.id} data-status-row={r.id} className="rounded-xl border border-slate-200 bg-white px-3 py-2 flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-slate-900 flex-1 min-w-[200px]"><b>{r.i + 1}. {r.from} → {r.to}</b><span className="text-slate-600"> · {r.ret ? 'Rückreise, keine Übernachtung' : `${r.n} ${r.n === 1 ? 'Nacht' : 'Nächte'}`}</span></span>
+                  {chip(r.route, r.routeNeed, 'Strecke', !r.routeNeed ? 'nicht nötig' : r.route ? r.km : 'fehlt', () => jump(r.id, 'way'), 'way')}
+                  {chip(r.hotel, r.hotelNeed, 'Hotel', !r.hotelNeed ? 'nicht nötig' : r.hotel ? r.hotelName : 'fehlt', () => jump(r.id, 'hotel'), 'hotel')}
+                  {chip(r.acts > 0, false, 'Vor Ort', r.acts > 0 ? `${r.acts} ${r.acts === 1 ? 'Aktion' : 'Aktionen'}` : (r.actsNeed ? 'noch nichts geplant' : 'nicht nötig'), () => jump(r.id, 'do'), 'do')}
+                </li>
+              ))}
+            </ol>
+          </details>
+        </section>
+      );
+    }
+    function RtSideStatus({ trip }) {
+      const n = (trip.stages || []).length;
+      if (!n) return <button type="button" data-wizard-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard'))} className="v18-btn pri v18-edit-only w-full justify-center">Reise einrichten</button>;
+      const S = rtPlanStats(trip);
+      return <button type="button" data-status-open data-readonly-allow onClick={() => window.dispatchEvent(new CustomEvent('rt-status'))} className="v18-btn pri w-full justify-center" style={{ height: 'auto', minHeight: 44, paddingTop: 6, paddingBottom: 6 }}><span className="text-center leading-tight"><span className="block">Planungsstand</span><span className="block text-[11px] font-normal opacity-90" data-status-short>{S.short}</span></span></button>;
     }
 
     function App() {
@@ -22062,9 +22134,9 @@ var qrcode = function() {
       });
       const [wizardStep, setWizardStep] = useState(0);
       const [wizOpen, setWizOpen] = useState(false); const [wizStart, setWizStart] = useState(null);
-      useEffect(() => { const f = (e) => { const d = e.detail || {}; if (d.stageId) { setOpenStageId(d.stageId); setStageTab(d.step || 'way'); } }; const g = () => setOpenStageId(null); window.addEventListener('rt-assist', f); window.addEventListener('rt-stage-list', g); return () => { window.removeEventListener('rt-assist', f); window.removeEventListener('rt-stage-list', g); }; }, []);
+      useEffect(() => { const f = (e) => { const d = e.detail || {}; if (d.stageId) { setOpenStageId(d.stageId); setStageTab(d.step || 'way'); } }; const g = () => setOpenStageId(null); const fo = (e) => { setActiveTab('stages'); f(e); setTimeout(() => { try { window.scrollTo(0, 0); } catch (x) {} }, 60); }; window.addEventListener('rt-assist', f); window.addEventListener('rt-stage-open', fo); window.addEventListener('rt-stage-list', g); return () => { window.removeEventListener('rt-assist', f); window.removeEventListener('rt-stage-open', fo); window.removeEventListener('rt-stage-list', g); }; }, []);
       useEffect(() => { if (openStageId && !(tripData.stages || []).some((s) => s.id === openStageId)) setOpenStageId(null); }, [tripData]);
-      useEffect(() => { const f = (e) => { setWizStart((e.detail && e.detail.step) || null); setWizOpen(true); }; window.addEventListener('rt-wizard', f); return () => window.removeEventListener('rt-wizard', f); }, []);
+      useEffect(() => { const f = (e) => { setWizStart((e.detail && e.detail.step) || null); setWizOpen(true); }; const gS = () => { setActiveTab('stages'); window.dispatchEvent(new CustomEvent('rt-stage-list')); setTimeout(() => { const el = document.querySelector('[data-plan-status]'); if (el) { el.scrollIntoView({ block: 'start' }); const dt = el.querySelector('[data-status-list]'); if (dt && el.querySelector('[data-state="todo"]')) dt.open = true; } }, 350); }; window.addEventListener('rt-wizard', f); window.addEventListener('rt-status', gS); return () => { window.removeEventListener('rt-wizard', f); window.removeEventListener('rt-status', gS); }; }, []);
       const [gateSkipped, setGateSkipped] = useState(false);
       const [linkClosed, setLinkClosed] = useState(false);
       const [wizardData, setWizardData] = useState({ title: '', startDate: '', endDate: '', days: '', startLocation: '', destination: '', people: '1', names: [], vehicle: '', budget: '', currency: 'EUR' });
@@ -23025,10 +23097,7 @@ Quelle: ${lt.url}` : '') }] } });
                   </div>
                 </div>
 
-                <section data-wizard-card className="v18-edit-only no-print rounded-2xl border border-[#BCCDE6] bg-[#F5F8FC] p-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-[220px] flex-1"><h2 className="text-base font-bold text-slate-900"><Ic n="compass" />Schritt-Assistent</h2><p className="text-sm text-slate-700">{!(tripData.stages || []).length && <><a href="assistent.html" data-open-assistant-plan className="font-semibold underline">Route vorschlagen lassen</a> oder selbst eintragen. </>}{(tripData.stages || []).length ? 'Schritt für Schritt prüfen und ergänzen: Grundrahmen, Route, Hotels, Fahrzeiten.' : 'Plane Schritt für Schritt: erst den Grundrahmen, dann die einzelnen Etappen.'}</p></div>
-                  <button type="button" data-wizard-card-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard'))} className="v18-btn pri">{(tripData.stages || []).length ? 'Schritt-Assistent öffnen' : 'Planung starten'}</button>
-                </section>
+                <RtPlanStatus trip={tripData} goTab={setActiveTab} />
                 <CardExpiryAlerts trip={tripData} goCards={() => setActiveTab('cards')} />
                 <RtMigrate trip={tripData} onSave={saveTripData} />
                 <RtGeoFill trip={tripData} onSave={saveTripData} />
@@ -26586,9 +26655,9 @@ Quelle: ${lt.url}` : '') }] } });
             </div>
           )}
 
-          {wizOpen && !IS_READ_ONLY_COPY && <TripWizard trip={tripData} onSave={saveTripData} onClose={() => setWizOpen(false)} goTab={setActiveTab} startStep={wizStart} />}
+          {(wizOpen || isNewTripWizardOpen) && !IS_READ_ONLY_COPY && <TripWizard trip={tripData} onSave={saveTripData} onClose={() => { setWizOpen(false); setIsNewTripWizardOpen(false); }} goTab={setActiveTab} startStep={isNewTripWizardOpen && !wizOpen ? 'frame' : wizStart} />}
 
-          {isNewTripWizardOpen && (
+          {false && isNewTripWizardOpen && (
             <div className="fixed inset-0 z-[60] bg-slate-950/75 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="new-trip-title">
               <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden">
                 <div className="bg-gradient-to-r from-slate-900 to-blue-950 text-white px-5 py-4">

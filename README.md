@@ -441,3 +441,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v98
 - Gemeinsames Fenster „Ort waehlen“ (Tippen, Karte, Umkreis) fuer alle Ortsfelder in Planer und Routen-Vorschlag sowie den Etappen-Finder. Neue Datei ortwahl.js.
+
+## v99
+- Planungsstand unter Planen ersetzt Schritt 4 und 5 des Assistenten. Assistent heisst Reise einrichten (3 Schritte). Schalter Reisedauer festhalten beim Bearbeiten der Route.

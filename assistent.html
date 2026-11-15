@@ -54,6 +54,7 @@ tr[data-stage-row]{cursor:pointer}
 .act{white-space:nowrap}.act button{min-height:36px;padding:2px 9px}
 .leaflet-container.adding{cursor:crosshair}
 [hidden]{display:none!important}
+.lenbad{color:var(--errInk)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .chips label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-weight:600;font-size:.88rem;min-height:40px;cursor:pointer}
 .chips input{width:auto;min-height:0;margin:0}
@@ -636,7 +637,7 @@ label small{display:block;font-weight:400}
     if (P.log && P.log.length && !P.edited) h += '<details data-howlog style="margin:8px 0"><summary class="mute" style="cursor:pointer">So ist der Vorschlag entstanden (' + P.log.length + ' Schritte)</summary><ol class="livelog mute" style="max-height:none">' + P.log.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol></details>';
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
     h += aiInfoHtml();
-    h += '<p class="mute" data-start-info>' + (S.editTrip ? 'Reise vom ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '. Das Reiseende folgt den Nächten: eine neue Etappe mit Übernachtung verlängert die Reise, eine gelöschte verkürzt sie. Ändere die Nächte in der Tabelle, wenn die Reisedauer gleich bleiben soll.' : startInfo()) + '</p>';
+    h += '<p class="mute" data-start-info>' + (S.editTrip ? editInfo() : startInfo()) + '</p>';
     h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th><th>Bearbeiten</th></tr></thead><tbody>';
     P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenübernachtung)</span>' : '') + viaChips(s, i) + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
     h += '</tbody></table></div><p class="mute">Zwischenübernachtungen sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Stopps auf dem Weg sind Halte ohne Übernachtung, sie werden im Planer als Punkte auf dem Weg der Etappe angelegt. Tippe auf einen Punkt der Karte, um ihn umzuwandeln oder zu löschen. Freie Tage gehen bevorzugt an Orte mit vielen Sehenswürdigkeiten (Dichte an Wikipedia-Artikeln im Umkreis von 10 km, höchstens 3 zusätzliche Tage je Ort). Du kannst Zwischenorte auf der Karte verschieben (ziehen), mit „Ort hinzufügen“ ergänzen, mit den Pfeilen umsortieren, entfernen und die Nächte je Ort einstellen. Von dir gesetzte Nächte (blauer Rahmen) bleiben fest, freie Tage verteilt der Assistent auf die übrigen Orte. Im Planer kannst du danach alles weiter bearbeiten.</p>';
@@ -877,7 +878,7 @@ label small{display:block;font-weight:400}
   async function relegs(i0, i1) { var R = S.proposal.raw; for (var k = Math.max(0, i0); k <= Math.min(i1, R.pts.length - 2); k++) { prog(30 + Math.round(60 * (k - i0 + 1) / (i1 - i0 + 2)), 'Berechne Strecke'); var v = (R.legs[k] && R.legs[k].vias) || []; R.legs[k] = await legVia(R.pts[k].gps, v, R.pts[k + 1].gps); } }
   function recompute() {
     var P = S.proposal; P.edited = true; P.geom = null; S.climate = null; S.trip = null; if (S.status === 'ready') S.status = 'proposal';
-    if (S.editTrip) editEndDate();
+    if (S.editTrip) { if (S.editTrip.keepLen && S.editTrip.end0) { S.input.endDate = S.editTrip.end0; var fe = $('[data-f=endDate]'); if (fe) fe.value = S.input.endDate; } else editEndDate(); }
     var r = plan(S.input, P.raw.pts, P.raw.legs); P.stages = r.stages; P.warns = r.warns; save(); $('[data-prog]').hidden = true; renderResult();
   }
   async function guarded(fn) { if (BUSY) return; BUSY = true; EDITMSG = ''; try { await fn(); } catch (e) { EDITMSG = 'Das hat nicht geklappt: ' + esc(String(e && e.message || e).slice(0, 120)); $('[data-prog]').hidden = true; renderResult(); } finally { BUSY = false; } }
@@ -956,7 +957,7 @@ label small{display:block;font-weight:400}
     EDITMSG = ''; recompute();
   }
   function resetNights(m) { S.proposal.raw.pts[m].nights = ''; EDITMSG = ''; recompute(); }
-  document.addEventListener('change', function (e) { var t = e.target; if (t && t.hasAttribute && t.hasAttribute('data-n-in')) setNights(+t.getAttribute('data-n-in'), t.value); if (t && t.hasAttribute && t.hasAttribute('data-add-kind')) ADDKIND = t.value === 'via' ? 'via' : 'stay'; });
+  document.addEventListener('change', function (e) { var t = e.target; if (t && t.hasAttribute && t.hasAttribute('data-n-in')) setNights(+t.getAttribute('data-n-in'), t.value); if (t && t.hasAttribute && t.hasAttribute('data-add-kind')) ADDKIND = t.value === 'via' ? 'via' : 'stay'; if (t && t.hasAttribute && t.hasAttribute('data-keep-len') && S.editTrip) { S.editTrip.keepLen = !!t.checked; recompute(); } });
   document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-add-name]')) { e.preventDefault(); addByName(); } });
   document.addEventListener('click', function (e) {
     var t = e.target.closest('button'); if (!t || !S.proposal) return; var g = function (k) { return t.hasAttribute(k) ? +t.getAttribute(k) : null; }, v;
@@ -1072,6 +1073,7 @@ label small{display:block;font-weight:400}
   function handover() {
     if (!S.proposal) return;
     if (S.editTrip) {
+      if (!lenOk()) { window.alert('Die Reisedauer ist festgehalten, aber die Nächte gehen noch nicht auf. Bitte die Nächte in der Tabelle anpassen oder „Reisedauer festhalten“ ausschalten.'); return; }
       var M; try { M = mergedTrip(); } catch (e) { EDITMSG = 'Die Reise konnte nicht zusammengeführt werden: ' + esc(String(e && e.message || e).slice(0, 160)); renderResult(); return; }
       if (M.removed.length && !window.confirm('Diese Etappen gibt es in der geänderten Route nicht mehr. Sie werden mit Hotel und Aktivitäten aus der Reise entfernt:\n\n' + M.removed.map(function (x) { return '• ' + x; }).join('\n') + '\n\nFortfahren?')) return;
       S.trip = M.trip; S.status = 'ready'; S.replaceTripId = S.editTrip.tripId; save(); location.href = 'index.html#adopt'; return;
@@ -1090,6 +1092,19 @@ label small{display:block;font-weight:400}
     for (var q = 1; q < n; q++) t += (R.pts[q].nights !== '' && R.pts[q].nights != null) ? nN(R.pts[q].nights) : 1;
     I.endDate = addDays(I.startDate, t); var f = $('[data-f=endDate]'); if (f) f.value = I.endDate;
   }
+  function editNights() { var I = S.input, R = S.proposal.raw, n = R.pts.length - 1, t = nN(I.mode === 'car' ? 0 : I.startNights) + nN(I.mode === 'car' ? 0 : I.endNights); for (var q = 1; q < n; q++) t += (R.pts[q].nights !== '' && R.pts[q].nights != null) ? nN(R.pts[q].nights) : 1; return t; }
+  function editInfo() {
+    var E = S.editTrip, I = S.input, fix = !!(E.keepLen && E.end0), tot = fix ? diffDays(I.startDate, E.end0) : diffDays(I.startDate, I.endDate), used = S.proposal.stages.reduce(function (a, x) { return a + x.nights; }, 0) + nN(I.mode === 'car' ? 0 : I.startNights), want = editNights(), d = want - tot;
+    var h = '<label style="display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)"><input type="checkbox" data-keep-len style="width:auto;min-height:0;margin:0"' + (fix ? ' checked' : '') + '> Reisedauer festhalten' + (E.end0 ? ' (' + diffDays(I.startDate, E.end0) + ' Nächte, Ende am ' + deY(E.end0) + ')' : '') + '</label>';
+    if (!fix) return h + 'Reise vom ' + deY(I.startDate) + ' bis ' + deY(I.endDate) + '. Das Reiseende folgt den Nächten: Eine neue Etappe mit Übernachtung verlängert die Reise, eine gelöschte verkürzt sie.';
+    h += 'Reise vom ' + deY(I.startDate) + ' bis ' + deY(E.end0) + ', die Dauer bleibt bei ' + tot + ' Nächten. ';
+    var okL = used === tot && want <= tot && !(S.proposal.warns || []).length;
+    if (okL) h += '<span data-len-diff="0">Die Nächte gehen genau auf.</span>';
+    else if (d > 0) h += '<b class="lenbad" data-len-diff="' + d + '">Es ' + (d === 1 ? 'ist 1 Nacht' : 'sind ' + d + ' Nächte') + ' zu viel verplant. Verkürze eine Etappe mit „−“ oder lösche eine.</b>';
+    else { var fr = Math.max(1, tot - want); h += '<b class="lenbad" data-len-diff="-' + fr + '">Es ' + (fr === 1 ? 'ist 1 Nacht' : 'sind ' + fr + ' Nächte') + ' noch frei. Verlängere eine Etappe mit „+“ oder füge eine hinzu.</b>'; }
+    return h;
+  }
+  function lenOk() { var E = S.editTrip; if (!E || !E.keepLen || !E.end0) return true; var I = S.input, tot = diffDays(I.startDate, E.end0), used = S.proposal.stages.reduce(function (a, x) { return a + x.nights; }, 0) + nN(I.mode === 'car' ? 0 : I.startNights); return used === tot && editNights() <= tot && !(S.proposal.warns || []).length; }
   function syncEdit() {
     var on = !!S.editTrip; document.body.classList.toggle('editing', on);
     var st = $('.steps'); if (st) st.hidden = on; var bk = $('[data-back]'); if (bk) bk.hidden = on;
@@ -1133,7 +1148,7 @@ label small{display:block;font-weight:400}
       for (var j = 0; j < pts.length - 1; j++) { prog(50 + Math.round(48 * j / (pts.length - 1)), 'Berechne Strecke ' + (j + 1) + ' von ' + (pts.length - 1)); var l = await legVia(pts[j].gps, vias[j], pts[j + 1].gps, true); liveLine(l.coords && l.coords.length > 1 ? l.coords : [pts[j].gps, pts[j + 1].gps], false); legs.push(l); await liveLog('Strecke ' + esc(first(pts[j].name)) + ' → ' + esc(first(pts[j + 1].name)) + ': ' + kmTxt(l)); }
       S.proposal = { edited: false, resolved: [], stages: [], warns: [], start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() };
       for (var m = 1; m < pts.length; m++) pts[m].sig0 = sigOf(m);
-      editEndDate(); var r = plan(S.input, pts, legs); S.proposal.stages = r.stages; S.proposal.warns = r.warns; await wait(500); liveEnd(); save(); $('[data-prog]').hidden = true; MAPVIEW = null; renderResult();
+      editEndDate(); S.editTrip.end0 = S.input.endDate; S.editTrip.keepLen = false; var r = plan(S.input, pts, legs); S.proposal.stages = r.stages; S.proposal.warns = r.warns; await wait(500); liveEnd(); save(); $('[data-prog]').hidden = true; MAPVIEW = null; renderResult();
     } catch (e) { liveEnd(); $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Die Reise konnte nicht geladen werden: ' + esc(String(e && e.message || e).slice(0, 200)) + '<div style="margin-top:8px"><button type="button" data-edit-cancel>Zurück zum Planer</button></div></div>'; }
   }
   function mergedTrip() {
