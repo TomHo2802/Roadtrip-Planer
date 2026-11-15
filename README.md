@@ -422,3 +422,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v92
 - Namen: Routen-Vorschlag und Schritt-Assistent. Startseite mit zwei Wegen. Uebergabe aus dem Vorschlag in einem Klick.
+
+## v93
+- Routen-Vorschlag: Reiseart Flug oder Auto, Fluege und Fahrt zum Flughafen, laengere An- und Rueckfahrt, Stopps auf dem Weg ohne Uebernachtung, Punkte auf der Karte loeschen und umwandeln.

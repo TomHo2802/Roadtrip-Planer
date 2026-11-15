@@ -53,6 +53,25 @@ tr[data-stage-row]{cursor:pointer}
 .nstep.user input{border-color:var(--pri);border-width:2px}
 .act{white-space:nowrap}.act button{min-height:36px;padding:2px 9px}
 .leaflet-container.adding{cursor:crosshair}
+[hidden]{display:none!important}
+.editor .row{flex-wrap:wrap}.editor .row>label{flex:1 1 220px;min-width:0}
+select{max-width:100%}
+.mk.via{background:#f59e0b;color:#111;border-color:#fff;border-radius:4px;transform:rotate(45deg);width:16px;height:16px}
+.mk.via>span{transform:rotate(-45deg);font-size:9px}
+.leaflet-popup-content{color:#0f172a;margin:10px 12px;min-width:200px}
+.leaflet-popup-content .pp-t{font-weight:700;font-size:14px}
+.leaflet-popup-content .pp-s{font-size:12px;color:#475569;margin:2px 0 8px}
+.leaflet-popup-content button{display:flex;width:100%;margin-top:6px;background:#fff;color:#0f172a;border:1px solid #94a3b8;min-height:40px;padding:6px 10px;font-size:13px}
+.leaflet-popup-content button.del{color:#b91c1c;border-color:#b91c1c}
+.via{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:99px;padding:1px 4px 1px 8px;margin:3px 4px 0 0;font-size:.82rem;white-space:nowrap}
+.via button{min-height:28px;padding:0 7px;border-radius:99px;font-size:.8rem}
+fieldset.mode{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:0 0 12px}
+fieldset.mode legend{font-weight:700;font-size:.9rem;padding:0 6px}
+fieldset.mode label{display:flex;align-items:center;gap:8px;font-weight:600;min-height:40px}
+fieldset.mode input{width:auto;min-height:0;margin:0}
+label small{display:block;font-weight:400}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--mute);margin:-4px 0 8px}
+.legend i{display:inline-block;vertical-align:middle;margin-right:5px}
 .editor{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
 .ac{position:absolute;z-index:1000;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px}
 .ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}
@@ -72,19 +91,27 @@ tr[data-stage-row]{cursor:pointer}
 
   <section class="card" data-sec="input">
     <h2>1 · Eckpunkte</h2>
+    <fieldset class="mode" data-mode-box><legend>Art der Reise</legend>
+      <label><input type="radio" name="mode" data-mode value="flight"> Anreise mit dem Flug, Rundreise vor Ort</label>
+      <label><input type="radio" name="mode" data-mode value="car"> Mit dem Auto von zu Hause</label>
+    </fieldset>
     <div class="grid">
       <label>Reisetitel (optional)<input data-f="title" placeholder="z. B. Texas nach Florida"></label>
-      <label>Nächte am Zielort<input data-f="endNights" type="number" min="0" max="30" value="1"></label>
-      <label>Startort<input data-f="start" placeholder="z. B. Dallas, Texas" autocomplete="off"></label>
-      <label>Reisebeginn am Startort (Datum)<input data-f="startDate" type="date"></label>
-      <label>Nächte am Startort vor der ersten Fahrt<input data-f="startNights" type="number" min="0" max="30" value="0"><small class="mute">0 = du fährst am ersten Tag los. 1 = zum Beispiel nach einem Flug erst übernachten.</small></label>
-      <label>Zielort<input data-f="end" placeholder="z. B. Orlando, Florida" autocomplete="off"></label>
-      <label>Abreise vom Zielort (Datum)<input data-f="endDate" type="date"></label>
+      <span data-only="car"></span>
+      <label data-only="flight">Abflughafen zu Hause<input data-f="homeAirport" placeholder="z. B. Flughafen München" autocomplete="off"></label>
+      <label data-only="flight">Heimatort (optional)<input data-f="home" placeholder="z. B. Berkheim" autocomplete="off"><small class="mute">Damit wird die Fahrt zum Flughafen berechnet.</small></label>
+      <span data-only="flight"></span>
+      <label><span data-lab="start">Startort</span><input data-f="start" placeholder="z. B. Dallas, Texas" autocomplete="off"></label>
+      <label><span data-lab="startDate">Reisebeginn (Datum)</span><input data-f="startDate" type="date"></label>
+      <label><span data-lab="end">Zielort</span><input data-f="end" placeholder="z. B. Orlando, Florida" autocomplete="off"></label>
+      <label><span data-lab="endDate">Reiseende (Datum)</span><input data-f="endDate" type="date"></label>
+      <label data-only="flight">Nächte am Ankunftsort vor der ersten Fahrt<input data-f="startNights" type="number" min="0" max="30" value="0"><small class="mute">0 = keine Übernachtung, du fährst am Ankunftstag los.</small></label>
+      <label data-only="flight">Nächte am Abflugort vor dem Rückflug<input data-f="endNights" type="number" min="0" max="30" value="0"><small class="mute">0 = keine Übernachtung, du kommst am Abflugtag an.</small></label>
     </div>
     <p class="mute" style="margin-top:8px"><label style="display:inline;font-weight:400"><input type="checkbox" data-f="roundTrip" style="width:auto;min-height:0;margin-right:6px">Rundreise: Ziel ist gleich Start</label></p>
 
     <h2 style="margin-top:16px">Fixpunkte auf der Strecke</h2>
-    <p class="mute">Orte, an denen du sein willst. Mit Datum: „an diesem Tag bin ich dort“. Ohne Datum plant der Assistent die Tage selbst. Die Reihenfolge ist die Fahrtreihenfolge.</p>
+    <p class="mute">Orte, an denen du sein willst. Als Etappenziel wird dort übernachtet, mit Datum: „an diesem Tag bin ich dort“. Ein Stopp auf dem Weg ist nur ein Halt zum Anschauen ohne Übernachtung. Die Reihenfolge ist die Fahrtreihenfolge.</p>
     <div data-fplist></div>
     <button type="button" data-fp-add>+ Fixpunkt hinzufügen</button>
 
@@ -92,6 +119,7 @@ tr[data-stage-row]{cursor:pointer}
     <div class="grid">
       <label>Mindestens (km)<input data-f="minKm" type="number" min="0" step="10" value="0"></label>
       <label>Höchstens (km)<input data-f="maxKm" type="number" min="50" step="10" value="500"></label>
+      <label style="grid-column:1/-1"><span data-lab="edgeKm">Erste und letzte Etappe höchstens (km)</span><input data-f="edgeKm" type="number" min="0" step="10" style="max-width:240px;display:block"><small class="mute" data-lab="edgeHint"></small></label>
     </div>
     <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
       <button type="button" class="pri" data-calc>Vorschlag berechnen</button>
@@ -117,9 +145,9 @@ tr[data-stage-row]{cursor:pointer}
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var uid = function () { return 'x' + Math.random().toString(36).slice(2, 10); };
 
-  var S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', startNights: 0, endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 };
+  var S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', mode: 'flight', home: '', homeAirport: '', startNights: 0, endNights: 0, roundTrip: false, minKm: 0, maxKm: 500, edgeKm: 200, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 };
 
-  function load() { try { var j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.v === 1 && j.input) { S = Object.assign(S, j); S.input = Object.assign({ fixpoints: [] }, S.input); } } catch (e) {} }
+  function load() { try { var j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.v === 1 && j.input) { S = Object.assign(S, j); S.input = Object.assign({ fixpoints: [] }, S.input); if (!S.input.mode) { S.input.mode = 'flight'; S.input.edgeKm = ''; S.input.home = ''; S.input.homeAirport = ''; } } } catch (e) {} }
   function save() { S.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
   // ---------- Datum ----------
@@ -136,31 +164,49 @@ tr[data-stage-row]{cursor:pointer}
     S.input.fixpoints.forEach(function (f, i) {
       var d = document.createElement('div'); d.className = 'fp'; d.setAttribute('data-fp', i);
       d.innerHTML = '<div class="grid"><label>Ort<input data-fpf="name" value="' + esc(f.name) + '" placeholder="z. B. New Orleans" autocomplete="off"></label>' +
-        '<label>Datum (optional)<input data-fpf="date" type="date" value="' + esc(f.date) + '"></label>' +
-        '<label>Nächte (optional)<input data-fpf="nights" type="number" min="0" max="30" value="' + esc(f.nights) + '"></label></div>' +
-        '<div style="display:flex;gap:6px;margin-top:8px"><button type="button" data-fp-up="' + i + '" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Nach oben">↑</button><button type="button" data-fp-down="' + i + '" ' + (i === S.input.fixpoints.length - 1 ? 'disabled' : '') + ' aria-label="Nach unten">↓</button><button type="button" data-fp-del="' + i + '">Entfernen</button></div>';
+        '<label>Datum (optional)<input data-fpf="date" type="date" value="' + esc(f.kind === 'via' ? '' : f.date) + '"' + (f.kind === 'via' ? ' disabled' : '') + '></label>' +
+        '<label>Nächte (optional)<input data-fpf="nights" type="number" min="0" max="30" value="' + esc(f.kind === 'via' ? '' : f.nights) + '"' + (f.kind === 'via' ? ' disabled' : '') + '></label></div>' +
+        '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center"><select data-fpf="kind" aria-label="Art des Fixpunkts" style="width:auto;flex:1 1 240px;margin:0"><option value="stay"' + (f.kind === 'via' ? '' : ' selected') + '>Etappenziel mit Übernachtung</option><option value="via"' + (f.kind === 'via' ? ' selected' : '') + '>Stopp auf dem Weg, ohne Übernachtung</option></select><button type="button" data-fp-up="' + i + '" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Nach oben">↑</button><button type="button" data-fp-down="' + i + '" ' + (i === S.input.fixpoints.length - 1 ? 'disabled' : '') + ' aria-label="Nach unten">↓</button><button type="button" data-fp-del="' + i + '">Entfernen</button></div>';
       box.appendChild(d);
     });
   }
   function fillForm() {
     $$('[data-f]').forEach(function (el) { var k = el.getAttribute('data-f'); if (el.type === 'checkbox') el.checked = !!S.input[k]; else el.value = S.input[k] == null ? '' : S.input[k]; });
-    renderFps(); syncRound();
+    $$('[data-mode]').forEach(function (r) { r.checked = r.value === S.input.mode; });
+    renderFps(); syncRound(); syncMode();
   }
+  var MODE_TXT = {
+    flight: { start: 'Ankunftsort (Flughafen oder Stadt)', startDate: 'Ankunft mit dem Hinflug (Datum)', end: 'Abflugort für den Rückflug', endDate: 'Rückflug (Datum)', edgeKm: 'Am Ankunfts- und Abflugtag höchstens (km)', edgeHint: 'Gilt für die erste Fahrt, wenn du am Ankunftstag losfährst, und für die Fahrt zum Rückflug. Leer = wie an den anderen Tagen.' },
+    car: { start: 'Heimatort (Start)', startDate: 'Abfahrt zu Hause (Datum)', end: 'Zielort (Ende der Reise)', endDate: 'Ankunft am Zielort (Datum)', edgeKm: 'An- und Rückfahrt höchstens (km)', edgeHint: 'Die erste und die letzte Etappe dürfen länger sein, um die eigentliche Reiseregion zu erreichen. Leer = wie an den anderen Tagen.' }
+  };
+  function syncMode() {
+    var m = S.input.mode === 'car' ? 'car' : 'flight', T = MODE_TXT[m];
+    $$('[data-lab]').forEach(function (el) { var k = el.getAttribute('data-lab'); if (T[k] != null) el.textContent = T[k]; });
+    $$('[data-only]').forEach(function (el) { el.hidden = el.getAttribute('data-only') !== m; });
+  }
+  function setMode(m) {
+    readForm(); S.input.mode = m;
+    if (m === 'car') { S.input.startNights = 0; S.input.endNights = 0; S.input.edgeKm = 900; S.input.roundTrip = true; S.input.end = S.input.start; }
+    else { S.input.edgeKm = 200; S.input.roundTrip = false; }
+    if (S.status === 'ready' || S.status === 'adopted') S.status = 'proposal'; save(); fillForm();
+  }
+  document.addEventListener('change', function (e) { if (e.target.matches && e.target.matches('[data-mode]') && e.target.checked) setMode(e.target.value); });
   function syncRound() { var e = $('[data-f="end"]'); if (S.input.roundTrip) { e.value = S.input.start; e.disabled = true; S.input.end = S.input.start; } else e.disabled = false; }
   function readForm() {
     $$('[data-f]').forEach(function (el) { var k = el.getAttribute('data-f'); S.input[k] = el.type === 'checkbox' ? el.checked : (el.type === 'number' ? (el.value === '' ? '' : Number(el.value)) : el.value.trim()); });
     if (S.input.roundTrip) S.input.end = S.input.start;
-    $$('[data-fp]').forEach(function (d) { var i = +d.getAttribute('data-fp'), f = S.input.fixpoints[i]; if (!f) return; f.name = $('[data-fpf=name]', d).value.trim(); f.date = $('[data-fpf=date]', d).value; var n = $('[data-fpf=nights]', d).value; f.nights = n === '' ? '' : Number(n); });
+    if (S.input.mode === 'car') { S.input.startNights = 0; S.input.endNights = 0; }
+    $$('[data-fp]').forEach(function (d) { var i = +d.getAttribute('data-fp'), f = S.input.fixpoints[i]; if (!f) return; f.name = $('[data-fpf=name]', d).value.trim(); f.kind = $('[data-fpf=kind]', d).value === 'via' ? 'via' : 'stay'; f.date = f.kind === 'via' ? '' : $('[data-fpf=date]', d).value; var n = $('[data-fpf=nights]', d).value; f.nights = n === '' || f.kind === 'via' ? '' : Number(n); });
   }
   function msg(kind, html) { $('[data-msg]').innerHTML = html ? '<div class="note ' + kind + '" role="' + (kind === 'err' ? 'alert' : 'status') + '">' + html + '</div>' : ''; }
 
-  document.addEventListener('input', function (e) { if (!e.target.closest('[data-sec=input]')) return; readForm(); if (e.target.matches('[data-f=roundTrip],[data-f=start]')) syncRound(); S.status = S.status === 'ready' ? 'input' : S.status; save(); });
+  document.addEventListener('input', function (e) { if (!e.target.closest('[data-sec=input]') || e.target.matches('[data-mode]')) return; readForm(); if (e.target.matches('[data-f=roundTrip],[data-f=start]')) syncRound(); if (e.target.matches('[data-fpf=kind]')) renderFps(); S.status = S.status === 'ready' ? 'input' : S.status; save(); });
   document.addEventListener('click', function (e) {
     var t = e.target.closest('button'); if (!t) return;
-    if (t.hasAttribute('data-fp-add')) { readForm(); S.input.fixpoints.push({ id: uid(), name: '', date: '', nights: '' }); renderFps(); save(); }
+    if (t.hasAttribute('data-fp-add')) { readForm(); S.input.fixpoints.push({ id: uid(), name: '', date: '', nights: '', kind: 'stay' }); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-del')) { readForm(); S.input.fixpoints.splice(+t.getAttribute('data-fp-del'), 1); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-up') || t.hasAttribute('data-fp-down')) { readForm(); var up = t.hasAttribute('data-fp-up'), i = +t.getAttribute(up ? 'data-fp-up' : 'data-fp-down'), j = up ? i - 1 : i + 1, a = S.input.fixpoints; var x = a[i]; a[i] = a[j]; a[j] = x; renderFps(); save(); }
-    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', startNights: 0, endNights: 1, roundTrip: false, minKm: 0, maxKm: 500, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
+    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', mode: 'flight', home: '', homeAirport: '', startNights: 0, endNights: 0, roundTrip: false, minKm: 0, maxKm: 500, edgeKm: 200, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
     else if (t.hasAttribute('data-calc')) calc();
     else if (t.hasAttribute('data-handover')) handover();
     else if (t.hasAttribute('data-download')) download();
@@ -178,6 +224,30 @@ tr[data-stage-row]{cursor:pointer}
   function leg(a, b, geom) {
     return fetchJ('https://router.project-osrm.org/route/v1/driving/' + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + (geom ? '?overview=simplified&geometries=geojson' : '?overview=false'), 15000).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); var o = { km: r.distance / 1000, min: r.duration / 60, est: false }; if (geom && r.geometry && r.geometry.coordinates) o.coords = r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }); return o; })
       .catch(function () { var km = hav(a, b) * 1.3; return { km: km, min: km / 70 * 60, est: true }; });
+  }
+  function legVia(a, vias, b, geom) {
+    vias = vias || []; if (!vias.length) return leg(a, b, geom).then(function (o) { o.vias = []; return o; });
+    var seq = [a].concat(vias.map(function (v) { return v.gps; }), [b]);
+    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + seq.map(function (g) { return g[1] + ',' + g[0]; }).join(';') + (geom ? '?overview=simplified&geometries=geojson' : '?overview=false'), 15000).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); var o = { km: r.distance / 1000, min: r.duration / 60, est: false, vias: vias }; if (geom && r.geometry && r.geometry.coordinates) o.coords = r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }); return o; })
+      .catch(function () { var km = 0; for (var i = 1; i < seq.length; i++) km += hav(seq[i - 1], seq[i]) * 1.3; return { km: km, min: km / 70 * 60, est: true, vias: vias }; });
+  }
+  // Anteil eines Punkts entlang der Strecke (naechster Stuetzpunkt)
+  function fracAlong(a, b, l, g) {
+    var c = l.coords && l.coords.length > 1 ? l.coords : [a, b], cum = [0], i, bi = 0, bd = 1e18;
+    for (i = 1; i < c.length; i++) cum.push(cum[i - 1] + hav(c[i - 1], c[i]));
+    for (i = 0; i < c.length; i++) { var d = hav(c[i], g); if (d < bd) { bd = d; bi = i; } }
+    if (c.length === 2) { var da = hav(a, g), db = hav(g, b); return da / ((da + db) || 1); }
+    return cum[bi] / (cum[cum.length - 1] || 1);
+  }
+  // Tagesgrenzen: erste und letzte Etappe koennen eine eigene Grenze haben
+  function edgeRule(I) { var car = I.mode === 'car', e = Number(I.edgeKm) > 0 ? Number(I.edgeKm) : 0; return { edge: e, first: !!e && (car || !(Number(I.startNights) > 0)), last: !!e && (car || !(Number(I.endNights) > 0)) }; }
+  function legLimit(I, j, nLegs) { var R = edgeRule(I), mx = Number(I.maxKm), c = []; if (j === 0 && R.first) c.push(R.edge); if (j === nLegs - 1 && R.last) c.push(R.edge); return c.length ? Math.min.apply(null, c) : mx; }
+  // Anteile, an denen eine zu lange Strecke fuer Zwischenuebernachtungen geteilt wird
+  function splitFracs(I, km, j, nLegs) {
+    var R = edgeRule(I), mx = Number(I.maxKm), fA = j === 0 && R.first, gA = j === nLegs - 1 && R.last;
+    if (km <= legLimit(I, j, nLegs)) return [];
+    for (var nd = 2; nd < 60; nd++) { var caps = []; for (var d = 0; d < nd; d++) caps.push(d === 0 && fA ? R.edge : (d === nd - 1 && gA ? R.edge : mx)); var tot = caps.reduce(function (p, q) { return p + q; }, 0); if (tot >= km) { var out = [], cum = 0; for (var d2 = 0; d2 < nd - 1; d2++) { cum += caps[d2]; out.push(cum / tot); } return out; } }
+    return [0.5];
   }
   // Punkt bei Streckenanteil entlang der Route (oder Luftlinie, falls keine Geometrie)
   function pointAt(a, b, l, frac) {
@@ -212,11 +282,11 @@ tr[data-stage-row]{cursor:pointer}
   function validate(I) {
     var errs = [];
     if (!I.start) errs.push('Startort fehlt.'); if (!I.end) errs.push('Zielort fehlt.');
-    if (!pd(I.startDate)) errs.push('Datum für den Reisebeginn fehlt.'); if (!pd(I.endDate)) errs.push('Abreisedatum vom Zielort fehlt.');
+    if (!pd(I.startDate)) errs.push('Datum für den Reisebeginn fehlt.'); if (!pd(I.endDate)) errs.push('Datum für das Reiseende fehlt.');
     if (pd(I.startDate) && pd(I.endDate) && pd(I.endDate) < pd(I.startDate)) errs.push('Das Enddatum liegt vor dem Startdatum.');
     var mx = Number(I.maxKm), mn = Number(I.minKm) || 0; if (!(mx >= 50)) errs.push('Höchststrecke pro Tag fehlt (mindestens 50 km).'); else if (mn > mx) errs.push('Die Mindeststrecke ist größer als die Höchststrecke.');
-    I.fixpoints.forEach(function (f, i) { if (!f.name) errs.push('Fixpunkt ' + (i + 1) + ' hat keinen Ort.'); if (f.date && pd(I.startDate) && pd(I.endDate) && (pd(f.date) < pd(I.startDate) || pd(f.date) > pd(I.endDate))) errs.push('Fixpunkt „' + f.name + '“: Das Datum liegt außerhalb der Reise.'); });
-    var dated = I.fixpoints.filter(function (f) { return f.date; });
+    I.fixpoints.forEach(function (f, i) { if (!f.name) errs.push('Fixpunkt ' + (i + 1) + ' hat keinen Ort.'); if (f.kind !== 'via' && f.date && pd(I.startDate) && pd(I.endDate) && (pd(f.date) < pd(I.startDate) || pd(f.date) > pd(I.endDate))) errs.push('Fixpunkt „' + f.name + '“: Das Datum liegt außerhalb der Reise.'); });
+    var dated = I.fixpoints.filter(function (f) { return f.kind !== 'via' && f.date; });
     for (var i = 1; i < dated.length; i++) if (pd(dated[i].date) < pd(dated[i - 1].date)) errs.push('Fixpunkte mit Datum müssen in zeitlicher Reihenfolge stehen („' + dated[i].name + '“ liegt vor „' + dated[i - 1].name + '“).');
     return errs;
   }
@@ -225,10 +295,11 @@ tr[data-stage-row]{cursor:pointer}
     // pts: [{name,gps,date?,nights?}] 0 = Start, n = Ziel
     var n = pts.length - 1, mx = Number(I.maxKm), mn = Number(I.minKm) || 0, warns = [];
     var arr = new Array(n + 1), dep = new Array(n + 1), nights = new Array(n + 1), need = [], extraN = {};
-    legs.forEach(function (l, j) { need[j] = Math.max(1, Math.ceil(l.km / mx)); });
-    var endN = Math.max(0, Number(I.endNights) || 0);
+    var car = I.mode === 'car', lim = function (j) { return legLimit(I, j, n); };
+    legs.forEach(function (l, j) { need[j] = Math.max(1, Math.ceil(l.km / lim(j))); });
+    var endN = car ? 0 : Math.max(0, Number(I.endNights) || 0);
     var fixedArr = function (i) { return i === n ? addDays(I.endDate, -endN) : (pts[i].date || null); };
-    var startN = Math.max(0, Number(I.startNights) || 0); dep[0] = addDays(I.startDate, startN);
+    var startN = car ? 0 : Math.max(0, Number(I.startNights) || 0); dep[0] = addDays(I.startDate, startN);
     var isSet = function (q) { return pts[q].nights !== '' && pts[q].nights != null; }, baseN = function (q) { return isSet(q) ? Math.max(0, Number(pts[q].nights)) : 1; };
     var anchors = [0]; for (var i = 1; i <= n; i++) if (fixedArr(i)) anchors.push(i);
     if (anchors[anchors.length - 1] !== n) anchors.push(n);
@@ -256,13 +327,16 @@ tr[data-stage-row]{cursor:pointer}
     var stages = [];
     for (var m = 1; m <= n; m++) {
       var l = legs[m - 1], flags = [];
-      if (need[m - 1] > 1) flags.push('Braucht ' + need[m - 1] + ' Fahrtage (' + Math.round(l.km) + ' km, Höchstwert ' + mx + ' km/Tag). Abfahrt am ' + de(addDays(arr[m], 1 - need[m - 1])) + ', Zwischenübernachtung ergänzen.');
-      if (need[m - 1] === 1 && mn > 0 && l.km < mn && !pts[m].auto) flags.push('Kurzer Tag: unter ' + mn + ' km.');
+      if (need[m - 1] > 1) flags.push('Braucht ' + need[m - 1] + ' Fahrtage (' + Math.round(l.km) + ' km, Höchstwert ' + lim(m - 1) + ' km/Tag). Abfahrt am ' + de(addDays(arr[m], 1 - need[m - 1])) + ', Zwischenübernachtung ergänzen.');
+      if (need[m - 1] === 1 && mn > 0 && l.km < mn && !pts[m].auto && lim(m - 1) >= mx) flags.push('Kurzer Tag: unter ' + mn + ' km.');
+      if (lim(m - 1) > mx && l.km > mx && need[m - 1] === 1) flags.push((m === 1 ? 'Anfahrt' : 'Rückfahrt') + ': längere Etappe erlaubt (bis ' + lim(m - 1) + ' km).');
+      if (lim(m - 1) < mx && need[m - 1] === 1) flags.push((m === 1 ? 'Ankunftstag' : 'Abflugtag') + ': kurze Etappe (bis ' + lim(m - 1) + ' km).');
+      if ((l.vias || []).length) flags.push('Stopp auf dem Weg: ' + l.vias.map(function (v) { return String(v.name).split(',')[0]; }).join(', ') + '.');
       if (extraN[m]) flags.unshift('+' + extraN[m] + ' Tag' + (extraN[m] > 1 ? 'e' : '') + ' eingeplant: ' + (pts[m].score ? 'viele Sehenswürdigkeiten (' + (pts[m].score >= 500 ? '500+' : pts[m].score) + ' Wikipedia-Artikel im Umkreis von 10 km).' : 'freie Tage verteilt.'));
       if (l.est) flags.push('Strecke geschätzt (Luftlinie × 1,3), Routing nicht erreichbar.');
-      if (pts[m].auto) flags.unshift(pts[m].unnamed ? 'Zwischenübernachtung, Ort bitte selbst wählen (Name nicht ermittelt).' : 'Zwischenübernachtung, vom Assistenten vorgeschlagen. Bitte prüfen.');
-      if (l.km > mx * 1.1 && need[m - 1] === 1) flags.push('Etwas über dem Höchstwert (' + Math.round(l.km) + ' km).');
-      stages.push({ id: 'stage-' + m, auto: !!pts[m].auto, extra: extraN[m] || 0, score: pts[m].score || 0, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est });
+      if (pts[m].auto) flags.unshift(pts[m].unnamed ? 'Zwischenübernachtung, Ort bitte selbst wählen (Name nicht ermittelt).' : 'Zwischenübernachtung, automatisch vorgeschlagen. Bitte prüfen.');
+      if (l.km > lim(m - 1) * 1.1 && need[m - 1] === 1) flags.push('Etwas über dem Höchstwert (' + Math.round(l.km) + ' km).');
+      stages.push({ id: 'stage-' + m, auto: !!pts[m].auto, extra: extraN[m] || 0, score: pts[m].score || 0, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est, vias: (l.vias || []).map(function (v) { return { name: v.name, gps: v.gps }; }) });
     }
     return { stages: stages, warns: warns, startNights: startN, startDepart: dep[0] };
   }
@@ -275,52 +349,74 @@ tr[data-stage-row]{cursor:pointer}
     msg(); var sec = $('[data-sec=result]'); sec.hidden = false; $('[data-result]').innerHTML = ''; var btn = $('[data-calc]'); btn.disabled = true;
     try {
       var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
-      var pts = [], failed = [], resolved = [];
+      var pts = [], failed = [], resolved = [], legV = [], curV = [];
       for (var i = 0; i < names.length; i++) {
         prog(5 + Math.round(35 * i / names.length), 'Suche Ort: ' + names[i]);
         var g = null; try { g = await geocode(names[i]); } catch (e) { g = null; }
         if (!g) failed.push(names[i]);
         var fp = i > 0 && i < names.length - 1 ? I.fixpoints[i - 1] : null;
-        pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '' }); resolved.push({ input: names[i], label: (S.lab && S.lab[names[i].toLowerCase()]) || '', cc: (S.cc && S.cc[names[i].toLowerCase()]) || '', picked: !!(S.pick && S.pick[names[i].toLowerCase()]) });
+        resolved.push({ input: names[i], label: (S.lab && S.lab[names[i].toLowerCase()]) || '', cc: (S.cc && S.cc[names[i].toLowerCase()]) || '', picked: !!(S.pick && S.pick[names[i].toLowerCase()]) });
+        if (fp && fp.kind === 'via') { curV.push({ name: names[i], gps: g }); continue; }
+        if (pts.length) legV.push(curV); curV = [];
+        pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '' });
       }
       if (failed.length) { prog(0, ''); $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Diese Orte wurden nicht gefunden: <b>' + failed.map(esc).join(', ') + '</b>. Bitte eindeutiger schreiben (mit Bundesstaat oder Land) und noch einmal berechnen. Ohne Internet ist die Suche nicht möglich.</div>'; return; }
-      var legs = [], mxk = Number(I.maxKm), withStops = [pts[0]];
-      for (var j = 0; j < pts.length - 1; j++) {
-        prog(40 + Math.round(50 * j / (pts.length - 1)), 'Berechne Strecke ' + (j + 1) + ' von ' + (pts.length - 1));
-        var l0 = await leg(pts[j].gps, pts[j + 1].gps, true), nd = Math.max(1, Math.ceil(l0.km / mxk));
-        if (nd > 1) {
-          var prev = pts[j];
-          for (var s = 1; s < nd; s++) {
-            prog(40 + Math.round(50 * j / (pts.length - 1)), 'Suche Übernachtungsort ' + s + ' von ' + (nd - 1) + ' zwischen ' + pts[j].name.split(',')[0] + ' und ' + pts[j + 1].name.split(',')[0]);
-            var tp = await pickTown(pointAt(pts[j].gps, pts[j + 1].gps, l0, s / nd));
+      var airport = null;
+      if (I.mode !== 'car' && I.home && I.homeAirport) { prog(38, 'Fahrt zum Flughafen'); try { var gh = await geocode(I.home), ga = await geocode(I.homeAirport); if (gh && ga) { var la = await leg(gh, ga); airport = { from: I.home, to: I.homeAirport, km: Math.round(la.km), min: Math.round(la.min), est: !!la.est }; } } catch (e) { airport = null; } }
+      var legs = [], withStops = [pts[0]], nL = pts.length - 1;
+      for (var j = 0; j < nL; j++) {
+        prog(40 + Math.round(50 * j / nL), 'Berechne Strecke ' + (j + 1) + ' von ' + nL);
+        var l0 = await legVia(pts[j].gps, legV[j], pts[j + 1].gps, true), fr = splitFracs(I, l0.km, j, nL);
+        if (fr.length) {
+          var prev = pts[j], vf = legV[j].map(function (v) { return { v: v, f: fracAlong(pts[j].gps, pts[j + 1].gps, l0, v.gps) }; }), lastF = 0;
+          for (var s = 0; s < fr.length; s++) {
+            prog(40 + Math.round(50 * j / nL), 'Suche Übernachtungsort ' + (s + 1) + ' von ' + fr.length + ' zwischen ' + pts[j].name.split(',')[0] + ' und ' + pts[j + 1].name.split(',')[0]);
+            var tp = await pickTown(pointAt(pts[j].gps, pts[j + 1].gps, l0, fr[s]));
             var stop = { name: tp.name, gps: tp.gps, date: '', nights: '', auto: true, unnamed: !tp.found };
-            legs.push(await leg(prev.gps, stop.gps)); withStops.push(stop); prev = stop;
+            var sub = vf.filter(function (x) { return (s === 0 || x.f > lastF) && x.f <= fr[s]; }).map(function (x) { return x.v; });
+            legs.push(await legVia(prev.gps, sub, stop.gps)); withStops.push(stop); prev = stop; lastF = fr[s];
           }
-          legs.push(await leg(prev.gps, pts[j + 1].gps)); withStops.push(pts[j + 1]);
+          legs.push(await legVia(prev.gps, vf.filter(function (x) { return x.f > lastF; }).map(function (x) { return x.v; }), pts[j + 1].gps)); withStops.push(pts[j + 1]);
         } else { legs.push(l0); withStops.push(pts[j + 1]); }
       }
       pts = withStops;
       for (var si = 1; si < pts.length - 1; si++) { var pp = pts[si]; if (!pp.date && (pp.nights === '' || pp.nights == null)) { prog(92 + Math.round(7 * si / pts.length), 'Prüfe Sehenswürdigkeiten: ' + pp.name.split(',')[0]); var sc = await wikiScore(pp.gps); if (sc != null) pp.score = sc; } }
       prog(100, 'Fertig');
-      var r = plan(I, pts, legs); S.proposal = { edited: false, resolved: resolved, stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
+      var r = plan(I, pts, legs); S.proposal = { edited: false, airport: airport, resolved: resolved, stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
       $('[data-prog]').hidden = true; renderResult();
     } catch (e) { $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Berechnung fehlgeschlagen: ' + esc(String(e && e.message || e).slice(0, 200)) + '</div>'; }
     finally { btn.disabled = false; }
   }
 
+  function first(x) { return String(x || '').split(',')[0]; }
+  function startInfo() {
+    var I = S.input, P = S.proposal, car = I.mode === 'car', sN = car ? 0 : Math.max(0, Number(I.startNights) || 0), eN = car ? 0 : Math.max(0, Number(I.endNights) || 0), h;
+    if (car) h = 'Abfahrt zu Hause in ' + esc(first(I.start)) + ' am ' + deY(I.startDate) + ', Ankunft in ' + esc(first(I.end)) + ' am ' + deY(I.endDate) + '. Am Start und am Ende ist keine Übernachtung eingeplant.';
+    else {
+      h = 'Hinflug' + (I.homeAirport ? ' ab ' + esc(first(I.homeAirport)) : '') + ' nach ' + esc(first(I.start)) + ' am ' + deY(I.startDate) + ', Rückflug ab ' + esc(first(I.end)) + ' am ' + deY(I.endDate) + '. Beide Flüge werden im Planer angelegt. ';
+      h += sN > 0 ? sN + (sN > 1 ? ' Nächte' : ' Nacht') + ' in ' + esc(first(I.start)) + ' vor der ersten Fahrt, im Planer eine eigene Etappe. ' : 'Am Ankunftsort ist keine Übernachtung eingeplant, die erste Fahrt ist am Ankunftstag. ';
+      if (eN === 0) h += 'Am Abflugort ist keine Übernachtung eingeplant. ';
+      if (P && P.airport) h += '<span data-airport>Fahrt zum Flughafen: ' + esc(first(P.airport.from)) + ' → ' + esc(first(P.airport.to)) + ', ' + P.airport.km + ' km, etwa ' + hrs(P.airport.min) + (P.airport.est ? ' (geschätzt)' : '') + '.</span>';
+    }
+    return h + ' Ein Fahrtag endet am selben Tag am Etappenziel, die Nächte zählen ab der Ankunft.';
+  }
+  function viaChips(s, i) {
+    var v = s.vias || []; if (!v.length) return '';
+    return '<br><span class="mute">über </span>' + v.map(function (x, k) { return '<span class="via" data-via-chip>◆ ' + esc(first(x.name)) + '<button type="button" data-via-stay="' + i + ':' + k + '" title="Als Etappenziel mit Übernachtung" aria-label="' + esc(first(x.name)) + ' als Etappenziel mit Übernachtung">🛏</button><button type="button" data-via-del="' + i + ':' + k + '" aria-label="Stopp ' + esc(first(x.name)) + ' entfernen">✕</button></span>'; }).join('');
+  }
   function hrs(min) { var h = Math.floor(min / 60), m = min % 60; return h ? h + ' h ' + String(m).padStart(2, '0') + ' min' : m + ' min'; }
   function renderResult() {
     var P = S.proposal; if (!P) return; $('[data-sec=result]').hidden = false;
     var na = P.stages.filter(function (s) { return s.auto; }).length;
     var tk = P.stages.reduce(function (a, s) { return a + s.km; }, 0), tm = P.stages.reduce(function (a, s) { return a + s.min; }, 0);
-    var h = editorHtml() + '<div data-routemap class="map" role="img" aria-label="Karte der Route"></div><div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenstopps)' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
+    var nv = P.stages.reduce(function (a, s) { return a + (s.vias || []).length; }, 0);
+    var h = editorHtml() + '<div data-routemap class="map" role="img" aria-label="Karte der Route"></div><div class="legend" data-legend><span><i class="mk" style="width:16px;height:16px"></i>Etappenziel mit Übernachtung</span><span><i class="mk auto" style="width:14px;height:14px"></i>Zwischenübernachtung (automatisch)</span><span><i class="mk via" style="width:11px;height:11px;margin-right:8px"></i>Stopp auf dem Weg, ohne Übernachtung</span><span>Punkt antippen: umwandeln oder löschen</span></div><div class="note ok" data-summary><b>' + P.stages.length + ' Etappen</b>' + (na ? ' (davon ' + na + ' Zwischenübernachtungen)' : '') + (nv ? ' · ' + nv + ' Stopp' + (nv > 1 ? 's' : '') + ' auf dem Weg' : '') + ' · ' + tk + ' km · ' + hrs(tm) + ' reine Fahrzeit · ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '</div>';
     h += resolvedHtml(P);
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
-    var sN0 = Math.max(0, Number(S.input.startNights) || 0);
-    h += '<p class="mute" data-start-info>' + (sN0 > 0 ? 'Start: ' + sN0 + ' Nacht' + (sN0 > 1 ? 'e' : '') + ' in ' + esc(String(S.input.start).split(',')[0]) + ' (' + de(S.input.startDate) + ' – ' + deY(addDays(S.input.startDate, sN0)) + '), erste Fahrt am ' + deY(addDays(S.input.startDate, sN0)) + '. Im Planer wird daraus eine eigene Etappe.' : 'Erste Fahrt am ' + deY(S.input.startDate) + '. Ein Fahrtag endet am selben Tag am Etappenziel, die Nächte zählen ab der Ankunft.') + '</p>';
+    h += '<p class="mute" data-start-info>' + startInfo() + '</p>';
     h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th><th>Bearbeiten</th></tr></thead><tbody>';
-    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenstopp)</span>' : '') + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
-    h += '</tbody></table></div><p class="mute">Zwischenstopps sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Freie Tage gehen bevorzugt an Orte mit vielen Sehenswürdigkeiten (Dichte an Wikipedia-Artikeln im Umkreis von 10 km, höchstens 3 zusätzliche Tage je Ort). Du kannst Zwischenorte auf der Karte verschieben (ziehen), mit „Ort hinzufügen“ ergänzen, mit den Pfeilen umsortieren, entfernen und die Nächte je Ort einstellen. Von dir gesetzte Nächte (blauer Rahmen) bleiben fest, freie Tage verteilt der Assistent auf die übrigen Orte. Im Planer kannst du danach alles weiter bearbeiten.</p>';
+    P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenübernachtung)</span>' : '') + viaChips(s, i) + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
+    h += '</tbody></table></div><p class="mute">Zwischenübernachtungen sind Vorschläge entlang der Route (größte Stadt im Umkreis von 30 km). Stopps auf dem Weg sind Halte ohne Übernachtung, sie werden im Planer als Punkte auf dem Weg der Etappe angelegt. Tippe auf einen Punkt der Karte, um ihn umzuwandeln oder zu löschen. Freie Tage gehen bevorzugt an Orte mit vielen Sehenswürdigkeiten (Dichte an Wikipedia-Artikeln im Umkreis von 10 km, höchstens 3 zusätzliche Tage je Ort). Du kannst Zwischenorte auf der Karte verschieben (ziehen), mit „Ort hinzufügen“ ergänzen, mit den Pfeilen umsortieren, entfernen und die Nächte je Ort einstellen. Von dir gesetzte Nächte (blauer Rahmen) bleiben fest, freie Tage verteilt der Assistent auf die übrigen Orte. Im Planer kannst du danach alles weiter bearbeiten.</p>';
     h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="pri" data-handover>Im Planer anlegen und öffnen</button><button type="button" data-climate>Klima, Feiertage und Richtung prüfen</button><button type="button" data-download>Als Datei speichern</button></div><div data-climate-box></div>';
     if (S.status === 'ready') h += '<div class="note ok" data-ready>Der Vorschlag liegt im Planer bereit. <a href="index.html#adopt"><b>Jetzt im Planer anlegen</b></a></div>';
     if (S.status === 'adopted') h += '<div class="note ok" data-adopted>Dieser Vorschlag wurde im Planer als Reise angelegt. <a href="index.html"><b>Zum Planer</b></a>. Du kannst ihn hier ändern und erneut anlegen, dann entsteht eine weitere Reise.</div>';
@@ -449,50 +545,67 @@ tr[data-stage-row]{cursor:pointer}
     var el = $('[data-routemap]'), P = S.proposal; if (!el || !P || !P.raw) return;
     if (MAP) { try { MAPVIEW = { c: MAP.getCenter(), z: MAP.getZoom() }; MAP.remove(); } catch (e) {} MAP = null; }
     if (!window.L) { el.innerHTML = '<div style="padding:16px" class="mute">Die Karte konnte nicht geladen werden.</div>'; return; }
-    var L = window.L, pts = P.raw.pts, map = L.map(el, { scrollWheelZoom: true }); MAP = map;
+    var L = window.L, R = P.raw, pts = R.pts, map = L.map(el, { scrollWheelZoom: true }); MAP = map;
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap-Mitwirkende' }).addTo(map);
-    var markers = [], ll = pts.map(function (p) { return p.gps; });
+    var markers = [], seq = [];
+    var pop = function (m, title, sub, btns) {
+      var h = '<div data-pp-box><div class="pp-t">' + esc(title) + '</div><div class="pp-s">' + sub + '</div>' + btns.map(function (b, k) { return '<button type="button" data-pp="' + b.id + '"' + (b.del ? ' class="del"' : '') + '>' + esc(b.label) + '</button>'; }).join('') + '</div>';
+      m.bindPopup(h, { autoPan: true, maxWidth: 260 });
+      m.on('popupopen', function (ev) { var root = ev.popup.getElement(); if (!root) return; btns.forEach(function (b) { var x = root.querySelector('[data-pp="' + b.id + '"]'); if (x) x.onclick = function () { map.closePopup(); b.fn(); }; }); });
+    };
     pts.forEach(function (p, i) {
+      seq.push(p.gps);
       var s = i > 0 ? P.stages[i - 1] : null, isEnd = i === pts.length - 1, label = i === 0 ? 'S' : (isEnd ? 'Z' : String(i));
       var cls = 'mk' + (p.auto ? ' auto' : '') + (isEnd ? ' end' : '') + (s && s.extra ? ' hl' : '');
       var size = p.auto ? 20 : 26;
       var m = L.marker(p.gps, { icon: L.divIcon({ className: '', html: '<div class="' + cls + '">' + label + '</div>', iconSize: [size, size], iconAnchor: [size / 2, size / 2] }), title: p.name, draggable: i > 0 && !isEnd }).addTo(map);
-      m.bindTooltip('<b>' + esc(p.name.split(',')[0]) + '</b>' + (s ? '<br>Ankunft ' + deY(s.arrive) + (s.nights ? ' · ' + s.nights + ' Nacht' + (s.nights > 1 ? 'e' : '') : '') + (s.extra ? '<br>mehrere Tage: sehenswert' : '') + (p.auto ? '<br>Zwischenstopp' : '') : '<br>Start ' + deY(S.input.startDate)));
-      m.on('click', function () { var rows = $$('[data-stage-row]'), r = rows[i - 1] || rows[0]; if (!r) return; r.scrollIntoView({ block: 'center', behavior: 'smooth' }); r.classList.add('flash'); setTimeout(function () { r.classList.remove('flash'); }, 1600); });
+      m.bindTooltip('<b>' + esc(p.name.split(',')[0]) + '</b>' + (s ? '<br>Ankunft ' + deY(s.arrive) + (s.nights ? ' · ' + s.nights + ' Nacht' + (s.nights > 1 ? 'e' : '') : '') + (s.extra ? '<br>mehrere Tage: sehenswert' : '') + (p.auto ? '<br>Zwischenübernachtung' : '') : '<br>Start ' + deY(S.input.startDate)));
+      m.on('click', function () { var rows = $$('[data-stage-row]'), r = rows[i - 1] || rows[0]; if (!r) return; r.classList.add('flash'); setTimeout(function () { r.classList.remove('flash'); }, 1600); });
+      var sub = i === 0 ? 'Start · ' + deY(S.input.startDate) : (isEnd ? 'Ziel · Ankunft ' + deY(s.arrive) : (p.auto ? 'Zwischenübernachtung' : 'Etappenziel mit Übernachtung') + ' · Ankunft ' + deY(s.arrive) + ' · ' + s.nights + (s.nights === 1 ? ' Nacht' : ' Nächte'));
+      if (i > 0 && !isEnd) pop(m, p.name.split(',')[0], sub, [{ id: 'via', label: 'Nur Stopp auf dem Weg, ohne Übernachtung', fn: function () { toVia(i); } }, { id: 'del', label: 'Punkt löschen', del: true, fn: function () { delWaypoint(i); } }]);
+      else pop(m, p.name.split(',')[0], sub + '<br>Start und Ziel änderst du oben in den Eckpunkten.', []);
       if (i > 0 && !isEnd) m.on('dragend', function () { dragWaypoint(i, m.getLatLng()); });
       markers.push(m);
+      if (!isEnd) ((R.legs[i] || {}).vias || []).forEach(function (v, k) {
+        seq.push(v.gps);
+        var vm = L.marker(v.gps, { icon: L.divIcon({ className: '', html: '<div class="mk via" data-via-mk><span></span></div>', iconSize: [16, 16], iconAnchor: [8, 8] }), title: v.name, draggable: true }).addTo(map);
+        vm.bindTooltip('<b>' + esc(String(v.name).split(',')[0]) + '</b><br>Stopp auf dem Weg, ohne Übernachtung');
+        pop(vm, String(v.name).split(',')[0], 'Stopp auf dem Weg, ohne Übernachtung · auf Etappe ' + (i + 1), [{ id: 'stay', label: 'Als Etappenziel mit Übernachtung', fn: function () { toStay(i, k); } }, { id: 'del', label: 'Punkt löschen', del: true, fn: function () { delVia(i, k); } }]);
+        vm.on('dragend', function () { dragVia(i, k, vm.getLatLng()); });
+      });
     });
-    if (MAPVIEW) map.setView(MAPVIEW.c, MAPVIEW.z); else map.fitBounds(L.latLngBounds(ll), { padding: [30, 30] });
+    if (MAPVIEW) map.setView(MAPVIEW.c, MAPVIEW.z); else map.fitBounds(L.latLngBounds(seq), { padding: [30, 30] });
     if (ADDMODE) el.classList.add('adding');
-    map.on('click', function (e) { if (!ADDMODE) return; ADDMODE = false; el.classList.remove('adding'); var b = $('[data-add-map]'); if (b) b.setAttribute('aria-pressed', 'false'); addAt([e.latlng.lat, e.latlng.lng], null); });
-    var dashed = L.polyline(ll, { color: '#1F4E8C', weight: 3, opacity: 0.6, dashArray: '6 8' }).addTo(map), mine = map;
+    map.on('click', function (e) { if (!ADDMODE) return; ADDMODE = false; el.classList.remove('adding'); var b = $('[data-add-map]'); if (b) b.setAttribute('aria-pressed', 'false'); addAt([e.latlng.lat, e.latlng.lng], null, ADDKIND); });
+    var dashed = L.polyline(seq, { color: '#1F4E8C', weight: 3, opacity: 0.6, dashArray: '6 8' }).addTo(map), mine = map;
     var draw = function (coords) { if (MAP !== mine) return; map.removeLayer(dashed); L.polyline(coords, { color: '#1F4E8C', weight: 5, opacity: 0.85 }).addTo(map); };
     if (P.geom) draw(P.geom);
-    else if (ll.length <= 90) {
-      var url = 'https://router.project-osrm.org/route/v1/driving/' + ll.map(function (g) { return g[1] + ',' + g[0]; }).join(';') + '?overview=simplified&geometries=geojson';
+    else if (seq.length <= 90) {
+      var url = 'https://router.project-osrm.org/route/v1/driving/' + seq.map(function (g) { return g[1] + ',' + g[0]; }).join(';') + '?overview=simplified&geometries=geojson';
       fetchJ(url, 20000).then(function (j) { var c = j.routes && j.routes[0] && j.routes[0].geometry.coordinates; if (c) { P.geom = c.map(function (x) { return [x[1], x[0]]; }); save(); draw(P.geom); } }).catch(function () {});
     }
-    $$('[data-stage-row]').forEach(function (r, i) { r.addEventListener('click', function () { if (markers[i + 1]) { map.flyTo(pts[i + 1].gps, Math.max(map.getZoom(), 7)); markers[i + 1].openTooltip(); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }); });
+    $$('[data-stage-row]').forEach(function (r, i) { r.addEventListener('click', function (ev) { if (ev.target.closest('button,input')) return; if (markers[i + 1]) { map.flyTo(pts[i + 1].gps, Math.max(map.getZoom(), 7)); markers[i + 1].openTooltip(); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }); });
     setTimeout(function () { if (MAP === map) { try { map.invalidateSize(); } catch (e) {} } }, 200);
+    window.__assistantMap = map;
   }
 
 
   // ---------- Bearbeiten ----------
-  var ADDMODE = false, MAPVIEW = null, BUSY = false, EDITMSG = '';
+  var ADDMODE = false, MAPVIEW = null, BUSY = false, EDITMSG = '', ADDKIND = 'stay';
   function nightsCell(s, i, n) {
     var m = i + 1, user = m === n ? true : (S.proposal.raw.pts[m].nights !== '' && S.proposal.raw.pts[m].nights != null);
     return '<span class="nstep' + (user ? ' user' : '') + '"><button type="button" data-n-dec="' + m + '" aria-label="Eine Nacht weniger">−</button><input type="number" min="0" max="30" value="' + s.nights + '" data-n-in="' + m + '" aria-label="Nächte in ' + esc(s.toCity) + '"><button type="button" data-n-inc="' + m + '" aria-label="Eine Nacht mehr">+</button></span>' + (user && m < n ? ' <button type="button" data-n-reset="' + m + '" title="Wieder automatisch verteilen" aria-label="Nächte wieder automatisch">↺</button>' : '');
   }
   function actCell(i, n) {
     var m = i + 1; if (m === n) return '<span class="mute">Ziel</span>';
-    return '<button type="button" data-wp-up="' + m + '" ' + (m === 1 ? 'disabled' : '') + ' aria-label="Nach oben">↑</button> <button type="button" data-wp-down="' + m + '" ' + (m === n - 1 ? 'disabled' : '') + ' aria-label="Nach unten">↓</button> <button type="button" data-wp-del="' + m + '" aria-label="Entfernen">✕</button>';
+    return '<button type="button" data-wp-up="' + m + '" ' + (m === 1 ? 'disabled' : '') + ' aria-label="Nach oben">↑</button> <button type="button" data-wp-down="' + m + '" ' + (m === n - 1 ? 'disabled' : '') + ' aria-label="Nach unten">↓</button> <button type="button" data-wp-via="' + m + '" title="Nur Stopp auf dem Weg, ohne Übernachtung" aria-label="In Stopp auf dem Weg umwandeln, ohne Übernachtung">◆</button> <button type="button" data-wp-del="' + m + '" aria-label="Entfernen">✕</button>';
   }
   function editorHtml() {
-    return '<div class="editor" data-editor><div class="row"><label>Ort hinzufügen<input data-add-name placeholder="z. B. Pensacola, Florida" autocomplete="off"></label><button type="button" class="fix" data-add-name-btn>Hinzufügen</button></div>' +
-      '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" data-add-map aria-pressed="' + (ADDMODE ? 'true' : 'false') + '">' + (ADDMODE ? 'Tippe jetzt auf die Karte …' : 'Ort auf der Karte setzen') + '</button><span class="mute">Zwischenorte lassen sich auf der Karte ziehen.</span></div>' +
+    return '<div class="editor" data-editor><div class="row"><label>Ort hinzufügen<input data-add-name placeholder="z. B. Pensacola, Florida" autocomplete="off"></label><label>als<select data-add-kind><option value="stay"' + (ADDKIND === 'via' ? '' : ' selected') + '>Etappenziel mit Übernachtung</option><option value="via"' + (ADDKIND === 'via' ? ' selected' : '') + '>Stopp auf dem Weg, ohne Übernachtung</option></select></label><button type="button" class="fix" data-add-name-btn>Hinzufügen</button></div>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" data-add-map aria-pressed="' + (ADDMODE ? 'true' : 'false') + '">' + (ADDMODE ? 'Tippe jetzt auf die Karte …' : 'Ort auf der Karte setzen') + '</button><span class="mute">Punkte lassen sich auf der Karte ziehen. Antippen: umwandeln oder löschen.</span></div>' +
       (EDITMSG ? '<div class="note warn" data-editmsg role="status">' + EDITMSG + '</div>' : '') + '</div>';
   }
-  async function relegs(i0, i1) { var R = S.proposal.raw; for (var k = Math.max(0, i0); k <= Math.min(i1, R.pts.length - 2); k++) { prog(30 + Math.round(60 * (k - i0 + 1) / (i1 - i0 + 2)), 'Berechne Strecke'); R.legs[k] = await leg(R.pts[k].gps, R.pts[k + 1].gps); } }
+  async function relegs(i0, i1) { var R = S.proposal.raw; for (var k = Math.max(0, i0); k <= Math.min(i1, R.pts.length - 2); k++) { prog(30 + Math.round(60 * (k - i0 + 1) / (i1 - i0 + 2)), 'Berechne Strecke'); var v = (R.legs[k] && R.legs[k].vias) || []; R.legs[k] = await legVia(R.pts[k].gps, v, R.pts[k + 1].gps); } }
   function recompute() {
     var P = S.proposal; P.edited = true; P.geom = null; S.climate = null; S.trip = null; if (S.status === 'ready') S.status = 'proposal';
     var r = plan(S.input, P.raw.pts, P.raw.legs); P.stages = r.stages; P.warns = r.warns; save(); $('[data-prog]').hidden = true; renderResult();
@@ -501,15 +614,52 @@ tr[data-stage-row]{cursor:pointer}
   function nameAt(g) {
     return fetchJ('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=de&lat=' + g[0] + '&lon=' + g[1], 12000).then(function (j) { var ad = (j && j.address) || {}; return ad.city || ad.town || ad.village || ad.municipality || ad.county || ''; }).catch(function () { return ''; });
   }
-  function addAt(g, name) {
+  function addAt(g, name, kind) {
     return guarded(async function () {
-      var R = S.proposal.raw, best = 1, bv = 1e18;
-      for (var i = 0; i < R.pts.length - 1; i++) { var d = hav(R.pts[i].gps, g) + hav(g, R.pts[i + 1].gps) - hav(R.pts[i].gps, R.pts[i + 1].gps); if (d < bv) { bv = d; best = i + 1; } }
-      prog(10, 'Suche Ortsnamen'); var nm = name || await nameAt(g);
+      var R = S.proposal.raw, bj = 0, bs = 0, bv = 1e18;
+      for (var j = 0; j < R.pts.length - 1; j++) {
+        var q = [R.pts[j].gps].concat(((R.legs[j] || {}).vias || []).map(function (v) { return v.gps; }), [R.pts[j + 1].gps]);
+        for (var t = 0; t < q.length - 1; t++) { var d = hav(q[t], g) + hav(g, q[t + 1]) - hav(q[t], q[t + 1]); if (d < bv) { bv = d; bj = j; bs = t; } }
+      }
+      prog(10, 'Suche Ortsnamen'); var nm = name || await nameAt(g), vs = ((R.legs[bj] || {}).vias || []).slice();
+      if (kind === 'via') {
+        vs.splice(bs, 0, { name: nm || 'Stopp', gps: g }); R.legs[bj] = { vias: vs }; await relegs(bj, bj);
+        EDITMSG = 'Hinzugefügt: <b>' + esc(nm || 'Stopp') + '</b> als Stopp auf dem Weg (ohne Übernachtung) auf Etappe ' + (bj + 1) + '.'; recompute(); return;
+      }
       var pt = { name: nm || 'Wegpunkt', gps: g, date: '', nights: '', auto: false, unnamed: !nm };
-      R.pts.splice(best, 0, pt); R.legs.splice(best - 1, 1, null, null); await relegs(best - 1, best);
+      R.pts.splice(bj + 1, 0, pt); R.legs.splice(bj, 1, { vias: vs.slice(0, bs) }, { vias: vs.slice(bs) }); await relegs(bj, bj + 1);
       prog(95, 'Prüfe Sehenswürdigkeiten'); var sc = await wikiScore(g); if (sc != null) pt.score = sc;
-      EDITMSG = 'Hinzugefügt: <b>' + esc(pt.name) + '</b> als Etappe ' + best + (pt.unnamed ? ' (Ortsname nicht ermittelt, bitte im Planer benennen)' : '') + '.'; recompute();
+      EDITMSG = 'Hinzugefügt: <b>' + esc(pt.name) + '</b> als Etappe ' + (bj + 1) + ' mit Übernachtung' + (pt.unnamed ? ' (Ortsname nicht ermittelt, bitte im Planer benennen)' : '') + '.'; recompute();
+    });
+  }
+  function toVia(m) {
+    return guarded(async function () {
+      var R = S.proposal.raw, p = R.pts[m]; if (m < 1 || m > R.pts.length - 2) return;
+      var vs = ((R.legs[m - 1] || {}).vias || []).concat([{ name: p.name, gps: p.gps }], (R.legs[m] || {}).vias || []);
+      R.pts.splice(m, 1); R.legs.splice(m - 1, 2, { vias: vs }); await relegs(m - 1, m - 1);
+      EDITMSG = '<b>' + esc(first(p.name)) + '</b> ist jetzt ein Stopp auf dem Weg, ohne Übernachtung.'; recompute();
+    });
+  }
+  function toStay(j, k) {
+    return guarded(async function () {
+      var R = S.proposal.raw, vs = ((R.legs[j] || {}).vias || []), v = vs[k]; if (!v) return;
+      var pt = { name: v.name, gps: v.gps, date: '', nights: '', auto: false };
+      R.pts.splice(j + 1, 0, pt); R.legs.splice(j, 1, { vias: vs.slice(0, k) }, { vias: vs.slice(k + 1) }); await relegs(j, j + 1);
+      var sc = await wikiScore(v.gps); if (sc != null) pt.score = sc;
+      EDITMSG = '<b>' + esc(first(v.name)) + '</b> ist jetzt ein Etappenziel mit Übernachtung.'; recompute();
+    });
+  }
+  function delVia(j, k) {
+    return guarded(async function () {
+      var R = S.proposal.raw, vs = ((R.legs[j] || {}).vias || []).slice(), v = vs[k]; if (!v) return;
+      vs.splice(k, 1); R.legs[j] = { vias: vs }; await relegs(j, j); EDITMSG = 'Entfernt: <b>' + esc(first(v.name)) + '</b>.'; recompute();
+    });
+  }
+  function dragVia(j, k, ll) {
+    return guarded(async function () {
+      var R = S.proposal.raw, vs = ((R.legs[j] || {}).vias || []).slice(); if (!vs[k]) return;
+      prog(10, 'Suche Ortsnamen'); var g = [ll.lat, ll.lng], nm = await nameAt(g);
+      vs[k] = { name: nm || 'Stopp', gps: g }; R.legs[j] = { vias: vs }; await relegs(j, j); EDITMSG = 'Verschoben: <b>' + esc(vs[k].name) + '</b> (Stopp auf dem Weg).'; recompute();
     });
   }
   function addByName() {
@@ -517,7 +667,7 @@ tr[data-stage-row]{cursor:pointer}
     return guarded(async function () {
       prog(10, 'Suche Ort: ' + q); var g = null; try { g = await geocode(q); } catch (e) {}
       if (!g) { $('[data-prog]').hidden = true; EDITMSG = 'Ort „' + esc(q) + '“ wurde nicht gefunden. Bitte mit Bundesstaat oder Land schreiben.'; renderResult(); return; }
-      BUSY = false; await addAt(g, q);
+      BUSY = false; await addAt(g, q, ADDKIND);
     });
   }
   function dragWaypoint(m, ll) {
@@ -528,7 +678,7 @@ tr[data-stage-row]{cursor:pointer}
       EDITMSG = 'Verschoben: <b>' + esc(p.name) + '</b>.'; recompute();
     });
   }
-  function delWaypoint(m) { return guarded(async function () { var R = S.proposal.raw, nm = R.pts[m].name; R.pts.splice(m, 1); R.legs.splice(m - 1, 2, null); await relegs(m - 1, m - 1); EDITMSG = 'Entfernt: <b>' + esc(nm) + '</b>.'; recompute(); }); }
+  function delWaypoint(m) { return guarded(async function () { var R = S.proposal.raw, nm = R.pts[m].name; if (m < 1 || m > R.pts.length - 2) return; var vs = ((R.legs[m - 1] || {}).vias || []).concat((R.legs[m] || {}).vias || []); R.pts.splice(m, 1); R.legs.splice(m - 1, 2, { vias: vs }); await relegs(m - 1, m - 1); EDITMSG = 'Entfernt: <b>' + esc(nm) + '</b>.'; recompute(); }); }
   function moveWaypoint(m, dir) { return guarded(async function () { var R = S.proposal.raw, j = m + dir; if (j < 1 || j > R.pts.length - 2) return; var t = R.pts[m]; R.pts[m] = R.pts[j]; R.pts[j] = t; var lo = Math.min(m, j); await relegs(lo - 1, lo + 1); recompute(); }); }
   function setNights(m, v) {
     v = Math.max(0, Math.min(30, Math.round(Number(v)))); if (isNaN(v)) return;
@@ -536,7 +686,7 @@ tr[data-stage-row]{cursor:pointer}
     EDITMSG = ''; recompute();
   }
   function resetNights(m) { S.proposal.raw.pts[m].nights = ''; EDITMSG = ''; recompute(); }
-  document.addEventListener('change', function (e) { var t = e.target; if (t && t.hasAttribute && t.hasAttribute('data-n-in')) setNights(+t.getAttribute('data-n-in'), t.value); });
+  document.addEventListener('change', function (e) { var t = e.target; if (t && t.hasAttribute && t.hasAttribute('data-n-in')) setNights(+t.getAttribute('data-n-in'), t.value); if (t && t.hasAttribute && t.hasAttribute('data-add-kind')) ADDKIND = t.value === 'via' ? 'via' : 'stay'; });
   document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-add-name]')) { e.preventDefault(); addByName(); } });
   document.addEventListener('click', function (e) {
     var t = e.target.closest('button'); if (!t || !S.proposal) return; var g = function (k) { return t.hasAttribute(k) ? +t.getAttribute(k) : null; }, v;
@@ -546,6 +696,9 @@ tr[data-stage-row]{cursor:pointer}
     else if ((v = g('data-wp-up')) != null) moveWaypoint(v, -1);
     else if ((v = g('data-wp-down')) != null) moveWaypoint(v, 1);
     else if ((v = g('data-wp-del')) != null) delWaypoint(v);
+    else if ((v = g('data-wp-via')) != null) toVia(v);
+    else if (t.hasAttribute('data-via-del')) { var a1 = t.getAttribute('data-via-del').split(':'); delVia(+a1[0], +a1[1]); }
+    else if (t.hasAttribute('data-via-stay')) { var a2 = t.getAttribute('data-via-stay').split(':'); toStay(+a2[0], +a2[1]); }
     else if (t.hasAttribute('data-add-name-btn')) addByName();
     else if (t.hasAttribute('data-add-map')) { ADDMODE = !ADDMODE; t.setAttribute('aria-pressed', ADDMODE ? 'true' : 'false'); t.textContent = ADDMODE ? 'Tippe jetzt auf die Karte …' : 'Ort auf der Karte setzen'; var el = $('[data-routemap]'); if (el) el.classList.toggle('adding', ADDMODE); }
   });
@@ -562,7 +715,7 @@ tr[data-stage-row]{cursor:pointer}
     return h;
   }
   var AC = { ul: null, input: null, items: [], idx: -1, seq: 0, timer: null, cache: {}, skip: false };
-  var AC_SEL = '[data-f=start],[data-f=end],[data-fpf=name],[data-add-name]';
+  var AC_SEL = '[data-f=start],[data-f=end],[data-f=home],[data-f=homeAirport],[data-fpf=name],[data-add-name]';
   function acOk(el) { return !!(el && el.matches && el.matches(AC_SEL) && !el.disabled); }
   function photonItem(f) {
     var p = f.properties || {}, c = f.geometry && f.geometry.coordinates; if (!c || !p.name || p.type === 'house' || p.type === 'street') return null;
@@ -599,7 +752,7 @@ tr[data-stage-row]{cursor:pointer}
   document.addEventListener('input', function (e) {
     var el = e.target; if (AC.skip || !acOk(el)) return; AC.input = el; clearTimeout(AC.timer);
     var q = el.value.trim(); if (q.length < 3) { acHide(); AC.items = []; return; }
-    var my = ++AC.seq, isStart = el.matches('[data-f=start]'), st = String(S.input.start || '').trim();
+    var my = ++AC.seq, isStart = el.matches('[data-f=start],[data-f=home],[data-f=homeAirport]'), st = String(S.input.start || '').trim();
     AC.timer = setTimeout(function () {
       var bp = isStart || !st ? Promise.resolve(null) : (S.geo[st.toLowerCase()] ? Promise.resolve(S.geo[st.toLowerCase()]) : geocode(st).catch(function () { return null; }));
       bp.then(function (bias) { return acFetch(q, bias); }).then(function (items) { if (my !== AC.seq || document.activeElement !== el) return; AC.items = items; AC.idx = -1; acRender(); });
@@ -620,19 +773,25 @@ tr[data-stage-row]{cursor:pointer}
     var I = S.input, P = S.proposal;
     var hotel = function (gps) { return { name: '', rating: '', address: '', gps: gps ? gps[0].toFixed(5) + ', ' + gps[1].toFixed(5) : '', checkIn: '', checkOut: '', breakfast: '', parking: '', cancelUntil: '', priceOldEur: '', priceNewEur: '', priceUsd: '', prepaid: '', creditCard: '', paidBy: '', splitAmong: [], parkingGarageName: '', parkingGarageAddress: '', parkingGarageGps: '', remarks: '', chargeAnnounced: '', cardCharged: '', bookingCode: '' }; };
     var stages = P.stages.map(function (s, i) {
-      var range = s.nights > 0 ? de(s.arrive) + ' – ' + deY(addDays(s.arrive, s.nights)) : deY(s.arrive);
+      var range = de(s.arrive) + ' – ' + deY(addDays(s.arrive, s.nights));
       var note = s.flags.filter(function (f) { return !/geschätzt/.test(f); }).join(' ');
       var h = hotel(s.gps);
       return { id: 'stage-' + (i + 1), fromCity: s.fromCity, toCity: s.toCity, dateRange: range, nights: s.nights,
-        routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Routen-Vorschlag: ' + note : '', stopsOnWay: [] },
+        routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Routen-Vorschlag: ' + note : '', stopsOnWay: (s.vias || []).map(function (v, k) { return { id: 's' + (i + 1) + '-v' + (k + 1), name: v.name, time: '', duration: '', address: '', gps: v.gps[0].toFixed(5) + ',' + v.gps[1].toFixed(5), costEur: 0, notes: 'Stopp auf dem Weg aus dem Routen-Vorschlag.' }; }) },
         hotel: h, localAttractions: [] };
     });
-    var sN = Math.max(0, Number(I.startNights) || 0);
+    var sN = I.mode === 'car' ? 0 : Math.max(0, Number(I.startNights) || 0);
     if (sN > 0) { stages.unshift({ id: 'stage-0', fromCity: I.start, toCity: I.start, dateRange: de(I.startDate) + ' – ' + deY(addDays(I.startDate, sN)), nights: sN, routeToHotel: { distanceKm: '', duration: '', routeDescription: 'Ankunft am Startort, Übernachtung vor der ersten Fahrt.', stopsOnWay: [] }, hotel: hotel(P.start && P.start.gps), localAttractions: [] }); stages.forEach(function (st, k) { st.id = 'stage-' + (k + 1); }); }
+    var flights = [];
+    if (I.mode !== 'car') {
+      var ap = P.airport, fl = function (fid, dir, from, to, date, note) { return { id: fid, direction: dir, airline: '', flightNumber: '', from: from, to: to, departureDate: deY(date), departureTime: '', arrivalTime: '', bookingCode: '', seats: '', luggage: '', priceOldEur: 0, priceNewEur: 0, priceUsd: 0, prepaid: '', creditCard: '', chargeAnnounced: '', cardCharged: '', notes: note }; };
+      flights.push(fl('fl-1', 'Hinflug', I.homeAirport || '', I.start, I.startDate, 'Aus dem Routen-Vorschlag: Ankunft am ' + deY(I.startDate) + '. Flugdaten und Zeiten bitte eintragen.' + (ap ? ' Fahrt zum Flughafen: ' + ap.from + ' → ' + ap.to + ', ' + ap.km + ' km, etwa ' + hrs(ap.min) + (ap.est ? ' (geschätzt)' : '') + '.' : '')));
+      flights.push(fl('fl-2', 'Rückflug', I.end, I.homeAirport || '', I.endDate, 'Aus dem Routen-Vorschlag: Abflug am ' + deY(I.endDate) + '. Flugdaten und Zeiten bitte eintragen.' + (ap ? ' Heimfahrt vom Flughafen: ' + ap.to + ' → ' + ap.from + ', ' + ap.km + ' km, etwa ' + hrs(ap.min) + '.' : '')));
+    }
     var id = ''; for (var i2 = 0; i2 < 18; i2++) id += ('0' + Math.floor(Math.random() * 256).toString(16)).slice(-2);
     var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
     return { meta: { title: I.title || ((I.roundTrip ? 'Rundreise ab ' : '') + I.start + (I.roundTrip ? '' : ' – ' + I.end)), subtitle: names.map(function (n) { return n.split(',')[0]; }).join(' • '), startDate: I.startDate, endDate: I.endDate, startLocation: I.start, endLocation: I.end, returnStageAsked: true, maxDriveHours: ([2, 3, 4, 5, 6, 7, 8, 10].filter(function (h) { return h >= Number(I.maxKm) / 85; })[0] || 10), schemaVersion: 2, version: 1, lastUpdated: new Date().toISOString(), tripId: id, draftSource: 'assistent-v1' },
-      participants: [], customExpenses: [], creditCards: [], emergencyContacts: [], flights: [], rentalCars: [], stages: stages, checklist: [] };
+      participants: [], customExpenses: [], creditCards: [], emergencyContacts: [], flights: flights, rentalCars: [], stages: stages, checklist: [] };
   }
   function handover() {
     if (!S.proposal) return; S.trip = buildTrip(); S.status = 'ready'; save(); location.href = 'index.html#adopt';
@@ -643,7 +802,7 @@ tr[data-stage-row]{cursor:pointer}
 
   load(); fillForm(); if (S.proposal && S.status !== 'input') renderResult();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
-  window.__assistant = { plan: plan, S: function () { return S; } };
+  window.__assistant = { plan: plan, S: function () { return S; }, splitFracs: splitFracs, legLimit: legLimit };
 })();
 </script>
 </body>
