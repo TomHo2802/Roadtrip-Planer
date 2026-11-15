@@ -431,3 +431,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v95
 - Routen-Vorschlag: Richtungsvergleich mit klaren Namen, Begruendung je Ort und Vergleichstabelle.
+
+## v96
+- Route einer bestehenden Reise auf der Karte bearbeiten und in dieselbe Reise uebernehmen.
+- Koordinaten der Etappenorte in der Reisedatei. Reiseende wandert beim Loeschen einer Etappe mit (Rueckfrage).

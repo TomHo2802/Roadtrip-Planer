@@ -19252,7 +19252,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 95</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 96</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19262,7 +19262,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 95'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 96'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -19321,6 +19321,7 @@ var qrcode = function() {
         /* ===== v20: Etappen-Finder (Entfernung / Fahrzeit) ===== */
     const sfFmtH = (min) => { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`; };
     async function sfGeocode(q) {
+      const tg = (window.__rtTripGeo || {})[rtNormName(q)]; if (tg) return tg;
       const pk = rtPickGet(q); if (pk) return pk;
       const j = await fetchJsonT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`, 12000);
       return j && j[0] ? [Number(j[0].lat), Number(j[0].lon)] : null;
@@ -21743,6 +21744,7 @@ var qrcode = function() {
     const RT_DRAFT_KEY = 'rt_draft_v1';
     function rtReadDraft() { try { const d = JSON.parse(localStorage.getItem(RT_DRAFT_KEY) || 'null'); return d && d.v === 1 && d.status === 'ready' && d.trip && d.trip.meta && Array.isArray(d.trip.stages) ? d : null; } catch (e) { return null; } }
     function rtSetDraftStatus(st) { try { const d = JSON.parse(localStorage.getItem(RT_DRAFT_KEY) || 'null'); if (d) { d.status = st; localStorage.setItem(RT_DRAFT_KEY, JSON.stringify(d)); } } catch (e) {} }
+    const rtDraftRestore = () => { try { const p = localStorage.getItem('rt_draft_prev_v1'); if (p) { localStorage.setItem(RT_DRAFT_KEY, p); localStorage.removeItem('rt_draft_prev_v1'); } else localStorage.removeItem(RT_DRAFT_KEY); localStorage.removeItem('rt_edit_trip_v1'); } catch (e) {} };
     function RtDraftBar({ hasTrip, gate }) {
       const [, f] = useState(0); const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
       useEffect(() => { const h = () => f((x) => x + 1); window.addEventListener('storage', h); window.addEventListener('focus', h); document.addEventListener('visibilitychange', h); return () => { window.removeEventListener('storage', h); window.removeEventListener('focus', h); document.removeEventListener('visibilitychange', h); }; }, []);
@@ -21751,29 +21753,38 @@ var qrcode = function() {
         if (IS_READ_ONLY_COPY) return;
         if (location.hash === '#adopt' && !window.__rtAdopting) {
           const d0 = rtReadDraft(); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+          if (d0 && d0.replaceTripId) {
+            if (gate || typeof window.__rtSaveTrip !== 'function' || window.__rtActiveTripId !== d0.replaceTripId) { setErr('Die geänderte Route gehört zu einer anderen Reise. Bitte zuerst zu dieser Reise wechseln und dann „Route übernehmen“ wählen.'); return; }
+            window.__rtAdopting = true;
+            (async () => { try { await window.__rtSaveTrip(normalizeTrip(JSON.parse(JSON.stringify(d0.trip))), 'Route übernommen'); rtDraftRestore(); setNote('updated'); } catch (e) { setErr(String(e && e.message || e).slice(0, 200)); } window.__rtAdopting = false; })();
+            return;
+          }
           if (d0 && typeof window.__rtAdoptDraft === 'function') {
             window.__rtAdopting = true; setBusy(true);
             (async () => { try { const trip = normalizeTrip(JSON.parse(JSON.stringify(d0.trip))); await window.__rtAdoptDraft(trip); rtSetDraftStatus('adopted'); try { sessionStorage.setItem('rt_after_adopt', hasTrip ? 'kept' : 'new'); } catch (e) {} location.reload(); } catch (e) { window.__rtAdopting = false; setBusy(false); setErr(String(e && e.message || e).slice(0, 200)); } })();
           }
           return;
         }
-        if (note && !gate) { try { sessionStorage.removeItem('rt_after_adopt'); } catch (e) {} let n = 0; const iv = setInterval(() => { if (++n > 6) { clearInterval(iv); return; } window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'details' } })); setTimeout(() => { if (document.querySelector('[data-wz]')) clearInterval(iv); }, 200); }, 900); return () => clearInterval(iv); }
+        if (note && note !== 'updated' && !gate) { try { sessionStorage.removeItem('rt_after_adopt'); } catch (e) {} let n = 0; const iv = setInterval(() => { if (++n > 6) { clearInterval(iv); return; } window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'details' } })); setTimeout(() => { if (document.querySelector('[data-wz]')) clearInterval(iv); }, 200); }, 900); return () => clearInterval(iv); }
       }, []);
       if (IS_READ_ONLY_COPY) return null;
+      if (note === 'updated' && !gate) return <div role="status" data-draft-updated className="rt-bkbar"><span><b>Die geänderte Route ist übernommen.</b> Bitte Hotels und Buchungen der geänderten Etappen prüfen und die Strecken kontrollieren.</span><span className="inline-flex gap-2"><button type="button" data-draft-done-ok data-readonly-allow onClick={() => setNote('')}>OK</button></span></div>;
       if (note && !gate) return <div role="status" data-draft-done className="rt-bkbar"><span><b>Routen-Vorschlag als neue Reise angelegt.</b> {note === 'kept' ? 'Deine bisherige Reise liegt unter „Reise wechseln“. ' : ''}Weiter geht es im Schritt-Assistenten mit Hotels und Aktivitäten.</span><span className="inline-flex gap-2"><button type="button" data-draft-done-ok data-readonly-allow onClick={() => setNote('')}>OK</button></span></div>;
       if (!gate && !hasTrip) return null;
       const d = rtReadDraft(); if (!d) return null;
       const t = d.trip, n = (t.stages || []).length;
+      const isRep = !!d.replaceTripId;
       const adopt = async () => {
+        if (isRep) { if (gate || typeof window.__rtSaveTrip !== 'function' || window.__rtActiveTripId !== d.replaceTripId) { setErr('Bitte zuerst zu der Reise wechseln, zu der die Route gehört'); return; } try { await window.__rtSaveTrip(normalizeTrip(JSON.parse(JSON.stringify(t))), 'Route übernommen'); rtDraftRestore(); setNote('updated'); } catch (e) { setErr(String(e && e.message || e).slice(0, 200)); } return; }
         if (hasTrip && !window.confirm('Der Entwurf wird als neue Reise geöffnet. Deine aktuelle Reise bleibt erhalten und liegt danach unter „Gespeicherte Reisen“. Fortfahren?')) return;
         setBusy(true); setErr('');
         try { const trip = normalizeTrip(JSON.parse(JSON.stringify(t))); await window.__rtAdoptDraft(trip); rtSetDraftStatus('adopted'); location.reload(); }
         catch (e) { setBusy(false); setErr(String(e && e.message || e).slice(0, 200)); }
       };
-      const drop = () => { if (window.confirm('Entwurf verwerfen? Im Routen-Vorschlag bleiben deine Eingaben erhalten.')) { rtSetDraftStatus('dismissed'); f((x) => x + 1); } };
+      const drop = () => { if (isRep) { if (window.confirm('Geänderte Route verwerfen? Die Reise bleibt, wie sie ist.')) { rtDraftRestore(); f((x) => x + 1); } return; } if (window.confirm('Entwurf verwerfen? Im Routen-Vorschlag bleiben deine Eingaben erhalten.')) { rtSetDraftStatus('dismissed'); f((x) => x + 1); } };
       const body = <>
-        <span data-draft-text><b>Routen-Vorschlag liegt bereit:</b> {t.meta.title || 'Ohne Titel'} · {n} Etappen · {t.meta.startDate} bis {t.meta.endDate}{err ? ` · Fehler: ${err}` : ''}</span>
-        <span className="inline-flex gap-2"><button type="button" data-draft-adopt data-readonly-allow disabled={busy} onClick={adopt}>{busy ? 'Übernehme …' : 'Als neue Reise übernehmen'}</button><button type="button" data-draft-drop data-readonly-allow disabled={busy} onClick={drop}>Verwerfen</button></span>
+        <span data-draft-text><b>{isRep ? 'Geänderte Route liegt bereit:' : 'Routen-Vorschlag liegt bereit:'}</b> {t.meta.title || 'Ohne Titel'} · {n} Etappen · {t.meta.startDate} bis {t.meta.endDate}{err ? ` · Fehler: ${err}` : ''}</span>
+        <span className="inline-flex gap-2"><button type="button" data-draft-adopt data-readonly-allow disabled={busy} onClick={adopt}>{busy ? 'Übernehme …' : (isRep ? 'Route übernehmen' : 'Als neue Reise übernehmen')}</button><button type="button" data-draft-drop data-readonly-allow disabled={busy} onClick={drop}>Verwerfen</button></span>
       </>;
       return gate
         ? <section data-draft-bar className="rounded-2xl border-2 border-blue-600 bg-white p-4 space-y-2 text-sm text-slate-900">{body}</section>
@@ -21901,6 +21912,45 @@ var qrcode = function() {
         return o;
       });
     };
+    /* ===== v96: Koordinaten der Etappenorte in der Reise (toGps) + Rueckweg in den Routen-Vorschlag ===== */
+    const rtNormName = (x) => String(x || '').trim().toLowerCase();
+    const rtStageGps = (s) => { if (!s) return null; const g = parseGps(s.toGps || ''); if (g && rtNormName(s.toGpsFor) === rtNormName(s.toCity)) return g; return null; };
+    const rtGeoFail = {};
+    function RtGeoFill({ trip, onSave }) {
+      const sig = (trip.stages || []).map((s) => `${s.id}|${s.toCity}|${s.toGps || ''}|${s.toGpsFor || ''}`).join(';');
+      useEffect(() => {
+        const stages = trip.stages || [], mem = {};
+        stages.forEach((s) => { const g = rtStageGps(s); if (g) mem[rtNormName(s.toCity)] = g; });
+        window.__rtTripGeo = mem;
+        if (IS_READ_ONLY_COPY) return;
+        const idx = stages.findIndex((s) => String(s.toCity || '').trim() && !rtStageGps(s) && !rtGeoFail[rtNormName(s.toCity)]);
+        if (idx < 0) return;
+        let dead = false; const s = stages[idx], name = String(s.toCity).trim();
+        const put = (g) => { if (dead || !g) return; const cur = trip.stages || []; if (!cur[idx] || cur[idx].id !== s.id) return; onSave({ ...trip, stages: cur.map((x, i) => i === idx ? { ...x, toGps: `${g[0].toFixed(5)},${g[1].toFixed(5)}`, toGpsFor: x.toCity } : x) }, ''); };
+        const known = rtPickGet(name) || mem[rtNormName(name)];
+        const t = setTimeout(async () => {
+          if (known) { put(known); return; }
+          if (!navigator.onLine) return;
+          try { const g = await sfGeocode(name); if (g) put(g); else rtGeoFail[rtNormName(name)] = 1; } catch (e) { rtGeoFail[rtNormName(name)] = 1; }
+        }, known ? 400 : 1300);
+        return () => { dead = true; clearTimeout(t); };
+      }, [sig]);
+      return null;
+    }
+    function RtRouteEdit({ trip }) {
+      const n = (trip.stages || []).length; if (IS_READ_ONLY_COPY || n < 1) return null;
+      const go = () => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test((trip.meta || {}).startDate || '')) { window.alert('Die Reise braucht ein Startdatum. Bitte zuerst unter „Reise & Zeitraum ändern“ eintragen.'); return; }
+        try { localStorage.setItem('rt_edit_trip_v1', JSON.stringify(trip)); } catch (e) { window.alert('Die Reise konnte nicht übergeben werden (Speicher voll).'); return; }
+        location.href = 'assistent.html#edit';
+      };
+      return (
+        <div data-route-edit-box className="v18-edit-only no-print rounded-2xl border border-slate-200 bg-white p-3 flex flex-wrap items-center gap-3 text-sm">
+          <button type="button" data-route-edit onClick={go} className="v18-btn">Route auf der Karte bearbeiten</button>
+          <span className="text-slate-700">Etappen verschieben, Stopps setzen und die Richtung prüfen. Hotels und Buchungen unveränderter Etappen bleiben erhalten.</span>
+        </div>
+      );
+    }
 
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
@@ -22679,6 +22729,7 @@ var qrcode = function() {
         setDeleteConfirmModal({type:'hotel',id:stage.id,title:`Hotel/Unterkunft für „${stage.toCity || stage.fromCity}“`,detail:'Etappe, Übernachtungen und sonstige Etappendaten bleiben erhalten.'}); setDeletePhrase(''); setDeleteBackup(true);
       };
 
+      window.__rtSaveTrip = saveTripData; window.__rtActiveTripId = (tripData.meta || {}).tripId;
       const cancelStageEditor = () => { const m = editingStageModal; setEditingStageModal(null); if (m && window.__rtNewStageId === m.id) { window.__rtNewStageId = null; saveTripData({ ...tripData, stages: (tripData.stages || []).filter((s) => s.id !== m.id) }, 'Neue Etappe verworfen'); } };
       const handleAddStage = () => {
         const stages = tripData.stages || [];
@@ -22779,7 +22830,7 @@ Quelle: ${lt.url}` : '') }] } });
         if (!deleteConfirmModal) return;
         const { type, id } = deleteConfirmModal;
         if (type === 'stage') {
-          { const old = tripData.stages || []; const di = old.findIndex((s) => s.id === id); const isLast = di === old.length - 1; saveTripData({ ...tripData, stages: rtRechain(old.filter((s) => s.id !== id), tripData.meta, (old[0] || {}).fromCity, isLast ? [] : [di]) }, 'Etappe gelöscht' + (isLast ? '' : '. Daten der folgenden Etappen angepasst.')); }
+          { const old = tripData.stages || []; const di = old.findIndex((s) => s.id === id); const isLast = di === old.length - 1; const rest = old.filter((s) => s.id !== id); let meta = tripData.meta; const m0 = tripData.meta || {}; const sumN = (a) => a.reduce((x, s) => x + Math.max(0, parseInt(s.nights, 10) || 0), 0); if (/^\d{4}-\d{2}-\d{2}$/.test(m0.startDate || '') && /^\d{4}-\d{2}-\d{2}$/.test(m0.endDate || '') && rest.length) { const oe = isoAdd(m0.startDate, sumN(old)), ne = isoAdd(m0.startDate, sumN(rest)); const dm = (x) => `${x.slice(8, 10)}.${x.slice(5, 7)}.${x.slice(0, 4)}`; if (m0.endDate === oe && ne < oe && window.confirm(`Die Etappen enden jetzt am ${dm(ne)} statt am ${dm(oe)}.\n\nSoll das Reiseende auf den ${dm(ne)} vorgezogen werden?\n\nAbbrechen lässt das Reiseende beim ${dm(oe)}.`)) meta = { ...m0, endDate: ne }; } saveTripData({ ...tripData, meta, stages: rtRechain(rest, tripData.meta, (old[0] || {}).fromCity, isLast ? [] : [di]) }, 'Etappe gelöscht' + (isLast ? '' : '. Daten der folgenden Etappen angepasst.')); }
         } else if (type === 'flight') {
           saveTripData({ ...tripData, flights: (tripData.flights || []).filter((f) => f.id !== id) }, 'Flug gelöscht');
         } else if (type === 'car') {
@@ -22940,7 +22991,9 @@ Quelle: ${lt.url}` : '') }] } });
                 </section>
                 <CardExpiryAlerts trip={tripData} goCards={() => setActiveTab('cards')} />
                 <RtMigrate trip={tripData} onSave={saveTripData} />
+                <RtGeoFill trip={tripData} onSave={saveTripData} />
                 <RouteCalcAll trip={tripData} onSave={saveTripData} />
+                <RtRouteEdit trip={tripData} />
                 <StageFinder trip={tripData} onPick={handleAddSuggestedStage} />
 
                 {openStageId && <StagePageBar stages={tripData.stages || []} openId={openStageId} tab={stageTab} setTab={setStageTab} onBack={() => setOpenStageId(null)} onOpen={(id) => openStagePage(id, stageTab)} />}
