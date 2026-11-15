@@ -428,3 +428,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v94
 - Routen-Vorschlag: Aufbau wird waehrend der Berechnung Schritt fuer Schritt auf der Karte und als Liste gezeigt.
+
+## v95
+- Routen-Vorschlag: Richtungsvergleich mit klaren Namen, Begruendung je Ort und Vergleichstabelle.

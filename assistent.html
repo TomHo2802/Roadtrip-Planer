@@ -513,6 +513,54 @@ label small{display:block;font-weight:400}
     var peak = stages.some(function (s) { var r = stageRange(s); return s.gps && s.gps[0] < 42 && s.gps[1] < -55 && s.gps[1] > -100 && ((r[0].slice(5) >= '08-15' && r[0].slice(5) <= '10-15') || (r[1].slice(5) >= '08-15' && r[1].slice(5) <= '10-15')); });
     return 'Die Reise liegt in der Atlantischen Hurrikansaison (1. Juni bis 30. November)' + (peak ? ', teils in der Hauptzeit (Mitte August bis Mitte Oktober)' : ', aber nach der Hauptzeit') + '. Wetterlage kurz vor der Abreise prüfen, Buchungen möglichst stornierbar halten.';
   }
+  // ---- Richtungsvergleich: Beschriftung, Ortsvergleich, Begründung ----
+  function dirLabels() {
+    var I = S.input, P = S.proposal, pts = (P.raw && P.raw.pts) || [], mid = pts.slice(1, -1), named = mid.filter(function (p) { return !p.auto; }); if (!named.length) named = mid;
+    var st = first(I.start), en = first(I.end), round = !!I.roundTrip || (pts.length > 1 && key(pts[0].gps) === key(pts[pts.length - 1].gps));
+    var chain = function (list) { var n = list.map(function (p) { return first(p.name); }); if (n.length > 3) n = [n[0], n[1], '…', n[n.length - 1]]; return n; };
+    var A = [st].concat(chain(named), [en]).join(' → '), B = [en].concat(chain(named.slice().reverse()), [st]).join(' → '), turnA = '', turnB = '';
+    if (round && mid.length >= 2) { var ar = 0, q = pts.map(function (p) { return p.gps; }); for (var i = 0; i < q.length - 1; i++) ar += q[i][1] * q[i + 1][0] - q[i + 1][1] * q[i][0]; if (Math.abs(ar) > 1e-6) { turnA = ar < 0 ? 'im Uhrzeigersinn' : 'gegen den Uhrzeigersinn'; turnB = ar < 0 ? 'gegen den Uhrzeigersinn' : 'im Uhrzeigersinn'; } }
+    var fa = named.length ? first(named[0].name) : '', fb = named.length ? first(named[named.length - 1].name) : '';
+    return { round: round, A: A, B: B, shortA: round ? 'Richtung A' + (turnA ? ' (' + turnA + ', zuerst ' + fa + ')' : (fa ? ' (zuerst ' + fa + ')' : '')) : st + ' → ' + en, shortB: round ? 'Richtung B' + (turnB ? ' (' + turnB + ', zuerst ' + fb + ')' : (fb ? ' (zuerst ' + fb + ')' : '')) : en + ' → ' + st, same: round && named.length < 2 };
+  }
+  function placeRows(C) {
+    var P = S.proposal, rows = [], rev = {};
+    (C.rev.stages || []).forEach(function (s) { if (s.gps) rev[key(s.gps)] = s; });
+    var mean = function (a) { return a.reduce(function (p, q) { return p + q; }, 0) / a.length; };
+    P.stages.forEach(function (s) {
+      var o = rev[key(s.gps)]; if (!o) return; var ra = stageRange(s), rb = stageRange(o), wa = winStats(s.gps, ra[0], ra[1]), wb = winStats(o.gps, rb[0], rb[1]); if (!wa || !wb) return;
+      rows.push({ sameDays: ra[0] === rb[0] && ra[1] === rb[1], name: first(s.toCity), auto: s.auto, nights: Math.max(s.nights, o.nights), a: { r: ra, w: wa, c: mean(wa.days) }, b: { r: rb, w: wb, c: mean(wb.days) }, d: mean(wa.days) - mean(wb.days) });
+    });
+    return rows;
+  }
+  function wTxt(x) { return (x.r[0] === x.r[1] ? de(x.r[0]) : de(x.r[0]) + '–' + de(x.r[1])) + ' · ' + Math.round(x.w.tmax) + ' °C' + (x.w.rainDays ? ', ' + x.w.rainDays + ' Regentag' + (x.w.rainDays > 1 ? 'e' : '') : ', trocken'); }
+  function whyTxt(r, betterA) {
+    var g = betterA ? r.a : r.b, o = betterA ? r.b : r.a, parts = [], dt = Math.round(g.w.tmax) - Math.round(o.w.tmax), dr = o.w.rainDays - g.w.rainDays;
+    if (dr > 0) parts.push(dr + ' Regentag' + (dr > 1 ? 'e' : '') + ' weniger');
+    if (Math.abs(dt) >= 1) { var cold = o.w.tmax < 20, hot = o.w.tmax > 28; parts.push(dt > 0 ? dt + ' °C wärmer' + (cold ? '' : (hot ? ' (dort aber schon heiß)' : '')) : (-dt) + ' °C kühler' + (hot ? ', also angenehmer' : '')); }
+    return parts.length ? parts.join(' und ') : 'etwas angenehmer';
+  }
+  function dirCompare(C) {
+    var Lb = dirLabels(), A = C.cur, B = C.rev.eval, diff = A.score - B.score, same = Math.abs(diff) < 3, bestA = diff >= 0, h = '';
+    var line = function (tag, route, e, best) { return '<div data-dir-line style="margin:4px 0"><b>' + esc(tag) + '</b>' + (best && !same ? ' <span style="font-weight:700">· besser</span>' : '') + '<br><span class="mute">' + esc(route) + '</span><br>Wetterwert <b>' + e.score + '</b> von 100 · Ø ' + Math.round(e.tmax) + ' °C tags · ' + e.rainDays + ' Regentag' + (e.rainDays === 1 ? '' : 'e') + ' · letztes Reisedrittel ' + e.end + ' von 100</div>'; };
+    h += line(Lb.shortA + ' · wie berechnet', Lb.A, A, bestA) + line(Lb.shortB + ' · umgekehrt', Lb.B, B, !bestA);
+    if (Lb.same) { h += '<div data-dir-why>Mit nur einem Zwischenziel ist die Reihenfolge der Orte in beiden Richtungen gleich. Der Unterschied entsteht nur durch die anders verteilten Tage.</div>'; }
+    var rows = placeRows(C);
+    if (rows.length) {
+      var big = rows.filter(function (r) { return Math.abs(r.d) >= 0.05 && r.nights > 0; }).sort(function (x, y) { return Math.abs(y.d) * (1 + y.nights) - Math.abs(x.d) * (1 + x.nights); });
+      var pro = big.filter(function (r) { return (r.d > 0) === bestA; }).slice(0, 3), con = big.filter(function (r) { return (r.d > 0) !== bestA; }).slice(0, 2), bt = bestA ? Lb.shortA : Lb.shortB;
+      h += '<div data-dir-why style="margin-top:8px"><b>' + (same ? 'Warum kaum ein Unterschied' : 'Warum ' + esc(bt.replace(/ \(.*$/, '')) + ' besser ist') + '</b><br>';
+      h += 'In der Gegenrichtung bist du an denselben Orten, aber an anderen Tagen. ';
+      if (same) h += big.length ? 'Die Unterschiede an einzelnen Orten gleichen sich aus.' : 'Das Wetter ändert sich in diesem Zeitraum an keinem Ort spürbar.';
+      else if (pro.length) h += 'Den Ausschlag geben: ' + pro.map(function (r) { return '<b>' + esc(r.name) + '</b> (' + whyTxt(r, bestA) + ')'; }).join(', ') + '.' + (con.length ? ' Dagegen spricht: ' + con.map(function (r) { return '<b>' + esc(r.name) + '</b> (in der Gegenrichtung ' + whyTxt(r, !bestA) + ')'; }).join(', ') + '.' : '');
+      else h += 'Kein einzelner Ort sticht heraus, der Vorteil verteilt sich über die Reise' + (Math.abs(A.end - B.end) >= 5 ? ' und liegt vor allem im letzten Reisedrittel (' + (bestA ? A.end : B.end) + ' gegen ' + (bestA ? B.end : A.end) + ')' : '') + '.';
+      h += '</div><div class="tablewrap" style="margin-top:8px"><table data-dir-table><thead><tr><th>Ort</th><th>' + esc(Lb.round ? 'Richtung A' : Lb.shortA) + '</th><th>' + esc(Lb.round ? 'Richtung B' : Lb.shortB) + '</th><th>Besser</th></tr></thead><tbody>' + rows.map(function (r) { var t = r.sameDays ? 'gleiche Tage' : (Math.abs(r.d) < 0.05 ? 'gleich' : (r.d > 0 ? 'A' : 'B')); if (/gleich/.test(t)) return '<tr><td>' + esc(r.name) + (r.auto ? ' <span class="mute">(Zwischenübernachtung)</span>' : '') + '</td><td>' + wTxt(r.a) + '</td><td>' + wTxt(r.b) + '</td><td>' + t + '</td></tr>'; if (!Lb.round && t !== 'gleich') t = t === 'A' ? 'wie berechnet' : 'umgekehrt'; return '<tr><td>' + esc(r.name) + (r.auto ? ' <span class="mute">(Zwischenübernachtung)</span>' : '') + '</td><td>' + wTxt(r.a) + '</td><td>' + wTxt(r.b) + '</td><td>' + t + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    }
+    if (C.tz) h += '<div style="margin-top:6px">Zeitzonen: ' + (C.tz > 0 ? 'Fährst du nach Osten, verlierst du ' + C.tz + ' Std.' : 'Fährst du nach Westen, gewinnst du ' + (-C.tz) + ' Std.') + ' (wie berechnet = ' + (C.tz > 0 ? 'nach Osten' : 'nach Westen') + ').</div>';
+    h += '<div data-dir-rec style="margin-top:8px">' + (same ? '<b>Beide Richtungen sind beim Wetter praktisch gleichwertig</b> (' + A.score + ' und ' + B.score + '). Entscheide nach Highlights, Terminen und Unterkünften.' : '<b>Empfehlung: ' + esc(bestA ? Lb.shortA : Lb.shortB) + '</b>, Wetterwert ' + Math.max(A.score, B.score) + ' gegen ' + Math.min(A.score, B.score) + '.' + (bestA ? ' Das ist die Richtung, die du schon berechnet hast.' : '')) + '</div>';
+    if (!same && !bestA) h += '<div style="margin-top:8px"><button type="button" class="pri" data-flip>Auf Richtung ' + (Lb.round ? 'B' : 'umgekehrt') + ' umstellen und neu berechnen</button></div>';
+    return h;
+  }
   function dirText(label, e) { return '<b>' + label + '</b>: Wetterwert ' + e.score + ' von 100, Ø ' + Math.round(e.tmax) + ' °C tags, ' + e.rainDays + ' Regentage, gegen Ende ' + Math.round(e.endT) + ' °C.'; }
 
   async function checkClimate() {
@@ -558,18 +606,14 @@ label small{display:block;font-weight:400}
       h += '<div class="note ok" data-dir><b>Richtung</b><br>';
       if (C.dated) h += 'Die Richtung ist durch Fixpunkte mit Datum festgelegt. Ein Vergleich ist nur ohne feste Termine möglich.';
       else if (C.rev && C.rev.eval) {
-        var A = C.cur, B = C.rev.eval, diff = A.score - B.score, same = Math.abs(diff) < 3, bestA = diff >= 0;
-        h += dirText(esc(S.input.start.split(',')[0]) + ' → ' + esc(S.input.end.split(',')[0]), A) + '<br>' + dirText(esc(S.input.end.split(',')[0]) + ' → ' + esc(S.input.start.split(',')[0]), B) + '<br>';
-        if (C.tz) h += 'Zeitzonen: ' + (C.tz > 0 ? 'Fährst du nach Osten, verlierst du ' + C.tz + ' Std.' : 'Fährst du nach Westen, gewinnst du ' + (-C.tz) + ' Std.') + ' (Richtung ' + esc(S.input.start.split(',')[0]) + ' → ' + esc(S.input.end.split(',')[0]) + (C.tz > 0 ? ' = nach Osten' : ' = nach Westen') + ').<br>';
-        h += same ? '<b>Beide Richtungen sind beim Wetter praktisch gleichwertig.</b> Entscheide nach Flughäfen, Mietwagen und Highlights.' : '<b>Empfehlung: ' + (bestA ? esc(S.input.start.split(',')[0]) + ' → ' + esc(S.input.end.split(',')[0]) : esc(S.input.end.split(',')[0]) + ' → ' + esc(S.input.start.split(',')[0])) + '</b> (Wetterwert ' + Math.max(A.score, B.score) + ' gegen ' + Math.min(A.score, B.score) + ').';
-        if (!same && !bestA) h += '<div style="margin-top:8px"><button type="button" class="pri" data-flip>Richtung umkehren und neu berechnen</button></div>';
+        h += dirCompare(C);
       } else h += 'Für den Vergleich fehlen Klimadaten.';
-      h += '<div class="mute" style="margin-top:6px">Grundlage: tatsächliches Wetter derselben Tage in den beiden Vorjahren (Open-Meteo), kein Wetterbericht. Wohlfühlwert: Tageshöchstwerte 20 bis 28 °C und wenig Regen zählen am besten, die letzten Reisetage zählen etwas mehr. Veranstaltungen und Preise fließen nicht ein.</div></div>';
+      h += '<div class="mute" style="margin-top:6px">Grundlage: tatsächliches Wetter derselben Tage in den beiden Vorjahren (Open-Meteo), kein Wetterbericht. Wetterwert: Für jeden Reisetag am jeweiligen Ort zählen Tageshöchstwerte von 20 bis 28 °C und wenig Regen am besten, das letzte Reisedrittel zählt etwas mehr. Ein Regentag hat mindestens 1 mm Niederschlag. Veranstaltungen und Preise fließen nicht ein.</div></div>';
     }
     box.innerHTML = h;
   }
   function flip() {
-    MAPVIEW = null; ADDMODE = false; readForm(); var I = S.input, t = I.start; I.start = I.end; I.end = t; I.fixpoints.reverse(); I.roundTrip = false;
+    MAPVIEW = null; ADDMODE = false; readForm(); var I = S.input, t = I.start; I.start = I.end; I.end = t; I.fixpoints.reverse(); I.roundTrip = !!I.roundTrip && I.start === I.end;
     S.proposal = null; S.climate = null; S.trip = null; S.status = 'input'; save(); fillForm(); window.scrollTo({ top: 0, behavior: 'smooth' }); calc().then(function () { return checkClimate(); });
   }
 
