@@ -435,3 +435,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v96
 - Route einer bestehenden Reise auf der Karte bearbeiten und in dieselbe Reise uebernehmen.
 - Koordinaten der Etappenorte in der Reisedatei. Reiseende wandert beim Loeschen einer Etappe mit (Rueckfrage).
+
+## v97
+- Routen-Vorschlag: Wuensche-Dialog, KI-Anfrage zum Kopieren, Pruefung und Uebernahme der KI-Antwort.

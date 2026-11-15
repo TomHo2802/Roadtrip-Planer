@@ -54,6 +54,16 @@ tr[data-stage-row]{cursor:pointer}
 .act{white-space:nowrap}.act button{min-height:36px;padding:2px 9px}
 .leaflet-container.adding{cursor:crosshair}
 [hidden]{display:none!important}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-weight:600;font-size:.88rem;min-height:40px;cursor:pointer}
+.chips input{width:auto;min-height:0;margin:0}
+.chips label:has(input:checked){background:var(--pri);color:var(--priInk);border-color:var(--pri)}
+textarea{width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;min-height:88px;resize:vertical}
+textarea.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;min-height:200px}
+.aisteps{counter-reset:a;list-style:none;padding:0;margin:8px 0}
+.aisteps>li{counter-increment:a;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+.aisteps>li>b:first-child::before{content:counter(a) ". "}
+.rep li{margin:3px 0}.rep .bad{color:var(--errInk);font-weight:600}.rep .wrn{color:var(--warnInk);font-weight:600}
 body.editing [data-edit-hide]{display:none!important}
 body:not(.editing) [data-edit-only]{display:none!important}
 .livelog{margin:6px 0 0;padding-left:22px;font-size:.88rem;max-height:220px;overflow:auto}
@@ -95,7 +105,7 @@ label small{display:block;font-weight:400}
     <div><h1>Routen-Vorschlag</h1><p class="mute">Eckpunkte eingeben, Vorschlag prüfen, an den Planer übergeben.</p></div>
     <a class="btn" href="index.html" data-back>Zum Planer</a>
   </div>
-  <div class="steps"><span><b>1</b> Eckpunkte</span> › <span>2 Wünsche (folgt)</span> › <span><b>3</b> Vorschlag</span> › <span>4 Übergabe</span></div>
+  <div class="steps"><span><b>1</b> Eckpunkte</span> › <span><b>2</b> Wünsche und KI</span> › <span><b>3</b> Vorschlag</span> › <span>4 Übergabe</span></div>
 
   <section class="card" data-sec="input">
     <h2 data-edit-hide>1 · Eckpunkte</h2><h2 data-edit-only>Route der Reise bearbeiten</h2>
@@ -137,6 +147,30 @@ label small{display:block;font-weight:400}
       <button type="button" data-reset>Eingaben löschen</button>
     </div>
     <div data-msg></div>
+  </section>
+
+  <section class="card" data-sec="wishes" data-edit-hide>
+    <h2>2 · Wünsche und KI-Anfrage (optional)</h2>
+    <p class="mute">Beschreibe, was euch wichtig ist. Daraus entsteht eine fertige Anfrage für eine KI deiner Wahl (zum Beispiel Claude, ChatGPT oder Gemini). Die Antwort fügst du hier ein, der Planer prüft sie und rechnet die Route nach. Es werden keine Daten automatisch verschickt.</p>
+    <div class="grid">
+      <label>Erwachsene<input data-w="adults" type="number" min="1" max="20" value="2"></label>
+      <label>Kinder (Alter, optional)<input data-w="kids" placeholder="z. B. 8 und 12 Jahre"></label>
+    </div>
+    <label style="margin-top:12px">Was interessiert euch?</label>
+    <div class="chips" data-w-interests></div>
+    <div class="grid" style="margin-top:12px">
+      <label>Reisetempo<select data-w="pace"><option value="ruhig">Entspannt, lieber länger an einem Ort</option><option value="mittel">Ausgewogen</option><option value="viel">Viel sehen, häufiger wechseln</option></select></label>
+      <label>Autofahren<select data-w="drive"><option value="wenig">So wenig wie möglich</option><option value="normal">Normal</option><option value="gern">Fahren gehört dazu, auch schöne Umwege</option></select></label>
+      <label>Unterkunft<select data-w="stay"><option value="einfach">Einfach und günstig</option><option value="mittel">Mittelklasse</option><option value="gehoben">Gehoben</option><option value="camping">Camping oder Wohnmobil</option></select></label>
+      <label>Besondere Anlässe (optional)<input data-w="occasion" placeholder="z. B. Halloween in New Orleans, Geburtstag am 3.11."></label>
+    </div>
+    <label style="margin-top:12px">Das wollen wir unbedingt sehen oder machen (optional)<textarea data-w="must" placeholder="z. B. Kennedy Space Center, eine Sumpftour, ein NBA-Spiel"></textarea></label>
+    <label style="margin-top:12px">Das wollen wir nicht (optional)<textarea data-w="nogo" placeholder="z. B. keine Großstädte über 2 Nächte, keine Freizeitparks"></textarea></label>
+    <ol class="aisteps">
+      <li><b>Anfrage erstellen und kopieren</b><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pri" data-ai-make>KI-Anfrage erstellen</button><button type="button" data-ai-copy hidden>In die Zwischenablage kopieren</button></div><div data-ai-msg></div><textarea class="code" data-ai-prompt readonly hidden aria-label="KI-Anfrage"></textarea></li>
+      <li><b>In der KI einfügen</b><div class="mute">Öffne die KI deiner Wahl, füge die Anfrage ein und beantworte ihre Rückfragen. Am Ende gibt sie einen Vorschlag mit einem Codeblock aus.</div></li>
+      <li><b>Antwort hier einfügen und prüfen</b><textarea class="code" data-ai-answer placeholder="Antwort der KI hier einfügen (ganzer Text oder nur der Codeblock)" aria-label="Antwort der KI"></textarea><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pri" data-ai-check>Antwort prüfen</button></div><div data-ai-report></div></li>
+    </ol>
   </section>
 
   <section class="card" data-sec="result" hidden>
@@ -218,7 +252,7 @@ label small{display:block;font-weight:400}
     if (t.hasAttribute('data-fp-add')) { readForm(); S.input.fixpoints.push({ id: uid(), name: '', date: '', nights: '', kind: 'stay' }); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-del')) { readForm(); S.input.fixpoints.splice(+t.getAttribute('data-fp-del'), 1); renderFps(); save(); }
     else if (t.hasAttribute('data-fp-up') || t.hasAttribute('data-fp-down')) { readForm(); var up = t.hasAttribute('data-fp-up'), i = +t.getAttribute(up ? 'data-fp-up' : 'data-fp-down'), j = up ? i - 1 : i + 1, a = S.input.fixpoints; var x = a[i]; a[i] = a[j]; a[j] = x; renderFps(); save(); }
-    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', mode: 'flight', home: '', homeAirport: '', startNights: 0, endNights: 0, roundTrip: false, minKm: 0, maxKm: 500, edgeKm: 200, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); $('[data-sec=result]').hidden = true; msg(); } }
+    else if (t.hasAttribute('data-reset')) { if (confirm('Alle Eingaben löschen?')) { S = { v: 1, cc: {}, score: {}, climate: null, status: 'input', input: { title: '', start: '', startDate: '', end: '', endDate: '', mode: 'flight', home: '', homeAirport: '', startNights: 0, endNights: 0, roundTrip: false, minKm: 0, maxKm: 500, edgeKm: 200, fixpoints: [] }, geo: {}, proposal: null, trip: null, updated: 0 }; save(); fillForm(); fillWishes(); var rp0 = $('[data-ai-report]'); if (rp0) rp0.innerHTML = ''; $('[data-sec=result]').hidden = true; msg(); } }
     else if (t.hasAttribute('data-calc')) calc();
     else if (t.hasAttribute('data-handover')) handover();
     else if (t.hasAttribute('data-edit-cancel')) editCancel();
@@ -290,6 +324,150 @@ label small{display:block;font-weight:400}
     return fetchJ('https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=' + g[0].toFixed(4) + '%7C' + g[1].toFixed(4) + '&gsradius=10000&gslimit=500&format=json&origin=*', 9000).then(function (j) { var n = j && j.query && j.query.geosearch ? j.query.geosearch.length : null; if (n != null) S.score[k] = n; return n; }).catch(function () { wikiDown = true; return null; });
   }
   function prog(p, l) { $('[data-prog]').hidden = false; $('[data-progbar]').style.width = p + '%'; $('[data-proglabel]').textContent = l; }
+
+  // ---------- Wünsche und KI-Anfrage ----------
+  var INTERESTS = ['Natur und Nationalparks', 'Strände und Baden', 'Städte und Architektur', 'Geschichte und Museen', 'Essen und Trinken', 'Freizeitparks', 'Shopping und Outlets', 'Musik und Nachtleben', 'Wandern und Aktivsein', 'Tiere beobachten', 'Panoramastraßen', 'Fotomotive', 'Sport-Events', 'Raumfahrt und Technik'];
+  var W_DEF = { adults: 2, kids: '', interests: [], pace: 'mittel', drive: 'normal', stay: 'mittel', occasion: '', must: '', nogo: '' };
+  var W_TXT = { pace: { ruhig: 'entspannt, lieber länger an einem Ort', mittel: 'ausgewogen', viel: 'viel sehen, häufiger wechseln' }, drive: { wenig: 'so wenig Autofahren wie möglich', normal: 'normal', gern: 'fahren gern, auch schöne Umwege' }, stay: { einfach: 'einfach und günstig', mittel: 'Mittelklasse', gehoben: 'gehoben', camping: 'Camping oder Wohnmobil' } };
+  function wishes() { S.wishes = Object.assign({}, W_DEF, S.wishes || {}); if (!Array.isArray(S.wishes.interests)) S.wishes.interests = []; return S.wishes; }
+  function fillWishes() {
+    var W = wishes(), box = $('[data-w-interests]'); if (!box) return;
+    box.innerHTML = INTERESTS.map(function (t, i) { return '<label><input type="checkbox" data-w-int="' + i + '"' + (W.interests.indexOf(t) >= 0 ? ' checked' : '') + '>' + esc(t) + '</label>'; }).join('');
+    $$('[data-w]').forEach(function (el) { el.value = W[el.getAttribute('data-w')] == null ? '' : W[el.getAttribute('data-w')]; });
+    var a = $('[data-ai-answer]'); if (a && S.ai && S.ai.text) a.value = S.ai.text;
+  }
+  function readWishes() {
+    var W = wishes(); $$('[data-w]').forEach(function (el) { var k = el.getAttribute('data-w'); W[k] = el.type === 'number' ? (Number(el.value) || 0) : el.value.trim(); });
+    W.interests = $$('[data-w-int]').filter(function (c) { return c.checked; }).map(function (c) { return INTERESTS[+c.getAttribute('data-w-int')]; });
+  }
+  document.addEventListener('input', function (e) { if (!e.target.closest || !e.target.closest('[data-sec=wishes]')) return; if (e.target.matches('[data-ai-answer]')) { S.ai = S.ai || {}; S.ai.text = e.target.value; } else if (!e.target.matches('[data-ai-prompt]')) readWishes(); save(); });
+  var AI_FORMAT = '{\n  "version": 1,\n  "direction": "wie angegeben",\n  "stops": [\n    { "name": "Ort, Region, Land", "kind": "stay", "nights": 2, "date": "", "reason": "kurzer Grund", "highlights": ["Highlight 1", "Highlight 2"] },\n    { "name": "Ort, Region, Land", "kind": "via", "reason": "kurzer Grund", "highlights": [] }\n  ],\n  "events": [ { "name": "Veranstaltung", "place": "Ort", "date": "JJJJ-MM-TT", "sure": true, "note": "kurzer Hinweis" } ],\n  "notes": ["allgemeiner Hinweis"]\n}';
+  function aiPrompt() {
+    readForm(); readWishes(); var I = S.input, W = wishes(), P = S.proposal, car = I.mode === 'car', L = [];
+    var sN = car ? 0 : nN0(I.startNights), eN = car ? 0 : nN0(I.endNights), total = pd(I.startDate) && pd(I.endDate) ? diffDays(I.startDate, I.endDate) : null, mid = total != null ? total - sN - eN : null;
+    L.push('Du bist ein erfahrener Reiseplaner für Roadtrips. Plane mit mir die Route. Antworte auf Deutsch.', '');
+    L.push('REISEDATEN');
+    L.push('- Art: ' + (car ? 'Roadtrip mit dem eigenen Auto von zu Hause' : 'Anreise mit dem Flug, Rundreise mit Mietwagen' + (I.homeAirport ? ' (Abflughafen zu Hause: ' + I.homeAirport + ')' : '')));
+    L.push('- Start: ' + I.start + ' am ' + deY(I.startDate) + (sN ? ', ' + sN + ' Nacht/Nächte dort vor der ersten Fahrt' : ', Abfahrt am selben Tag'));
+    L.push('- Ziel: ' + I.end + ' am ' + deY(I.endDate) + (eN ? ', davor ' + eN + ' Nacht/Nächte dort' : ', Ankunft am selben Tag ohne Übernachtung') + (nrm0(I.start) === nrm0(I.end) ? ' (Rundreise, Ziel ist gleich Start)' : ''));
+    if (total != null) L.push('- Reisedauer: ' + total + ' Nächte. Für die Etappenziele zwischen Start und Ziel stehen genau ' + mid + ' Nächte zur Verfügung.');
+    L.push('- Tagesstrecke: höchstens ' + Number(I.maxKm) + ' km' + (Number(I.minKm) > 0 ? ', möglichst mindestens ' + Number(I.minKm) + ' km' : '') + (Number(I.edgeKm) > 0 ? (car ? '. Die erste und die letzte Etappe dürfen bis ' + Number(I.edgeKm) + ' km lang sein' : '. Am Ankunfts- und Abflugtag höchstens ' + Number(I.edgeKm) + ' km') : '') + '.');
+    var fps = I.fixpoints.filter(function (f) { return f.name && !f.ai; });
+    if (fps.length) { L.push('- Pflichtpunkte in dieser Reihenfolge (unverändert übernehmen, Datum und Nächte nicht ändern):'); fps.forEach(function (f) { L.push('  • ' + f.name + (f.kind === 'via' ? ' (nur Stopp auf dem Weg, ohne Übernachtung)' : ' (Übernachtung' + (f.date ? ', Ankunft am ' + deY(f.date) : '') + (f.nights !== '' && f.nights != null ? ', ' + f.nights + ' Nächte' : '') + ')')); }); }
+    L.push('', 'REISENDE UND WÜNSCHE');
+    L.push('- Reisende: ' + (W.adults || 2) + ' Erwachsene' + (W.kids ? ', Kinder: ' + W.kids : ', keine Kinder'));
+    L.push('- Interessen: ' + (W.interests.length ? W.interests.join(', ') : 'keine Angabe'));
+    L.push('- Tempo: ' + W_TXT.pace[W.pace] + '. Autofahren: ' + W_TXT.drive[W.drive] + '. Unterkunft: ' + W_TXT.stay[W.stay] + '.');
+    if (W.occasion) L.push('- Besondere Anlässe: ' + W.occasion);
+    if (W.must) L.push('- Unbedingt: ' + W.must.replace(/\s*\n\s*/g, '; '));
+    if (W.nogo) L.push('- Nicht gewünscht: ' + W.nogo.replace(/\s*\n\s*/g, '; '));
+    if (P && P.stages && P.stages.length && !S.editTrip) { L.push('', 'BISHERIGER RECHENVORSCHLAG (nur zur Orientierung, du darfst ihn verbessern)'); P.stages.forEach(function (x, i) { L.push('  ' + (i + 1) + '. ' + x.fromCity + ' → ' + x.toCity + ', ' + x.km + ' km, Ankunft ' + deY(x.arrive) + ', ' + x.nights + ' Nächte' + (x.auto ? ' (automatische Zwischenübernachtung)' : '') + ((x.vias || []).length ? ', über ' + x.vias.map(function (v) { return v.name; }).join(', ') : '')); }); }
+    if (S.climate && S.climate.done && S.climate.cur) L.push('', 'KLIMA AUS DEN BEIDEN VORJAHREN: Wetterwert der Route ' + S.climate.cur.score + ' von 100' + (S.climate.rev && S.climate.rev.eval ? ', in Gegenrichtung ' + S.climate.rev.eval.score + ' von 100' : '') + '.');
+    L.push('', 'AUFGABE');
+    L.push('1. Stelle mir zuerst höchstens 5 kurze Rückfragen, wenn dir wichtige Angaben fehlen, und warte auf meine Antwort. Wenn nichts fehlt oder ich „weiter“ schreibe, mach direkt den Vorschlag.');
+    L.push('2. Schlage Etappenziele mit Übernachtung und Stopps auf dem Weg (ohne Übernachtung) vor, passend zu Wünschen, Jahreszeit und Tagesstrecke. Nenne je Ort kurz den Grund und 2 bis 4 Highlights.');
+    L.push('3. Prüfe, ob die Reise in der angegebenen oder in der umgekehrten Richtung besser ist (Klima, Veranstaltungen, Zeitzonen), und begründe es kurz.');
+    L.push('4. Nenne Veranstaltungen, Feiertage und Saisonbesonderheiten im Reisezeitraum. Führe nur Termine auf, die du für richtig hältst, und setze "sure" auf false, wenn du das Datum nicht sicher weißt.');
+    if (mid != null) L.push('5. Die Summe der Nächte aller Etappenziele im JSON muss genau ' + mid + ' sein. Liegen zwei Orte weiter auseinander als die Tagesstrecke, plane ein Etappenziel dazwischen ein.');
+    L.push((mid != null ? '6' : '5') + '. Schreibe zuerst deine Erklärung als normalen Text. Gib danach GENAU EINEN Codeblock mit JSON in diesem Format aus, ohne Kommentare:');
+    L.push('', '```json', AI_FORMAT, '```', '');
+    L.push('Regeln für das JSON: Orte eindeutig mit Region und Land schreiben. Start und Ziel nicht aufführen. Die Reihenfolge ist die Fahrtreihenfolge. "kind" ist "stay" (Übernachtung) oder "via" (Stopp ohne Übernachtung). "nights" nur bei "stay". "date" nur ausfüllen, wenn der Ankunftstag fest ist, sonst leer lassen. "direction" ist "wie angegeben" oder "umgekehrt"; bei "umgekehrt" stehen die Orte in der Reihenfolge der umgekehrten Fahrt.');
+    return L.join('\n');
+  }
+  function nN0(x) { return Math.max(0, parseInt(x, 10) || 0); }
+  function nrm0(x) { return String(x || '').trim().toLowerCase(); }
+  function aiMsg(kind, html) { var b = $('[data-ai-msg]'); if (b) b.innerHTML = html ? '<div class="note ' + kind + '" role="status">' + html + '</div>' : ''; }
+  function aiMake() {
+    readForm(); var I = S.input, errs = []; if (!I.start) errs.push('Startort'); if (!I.end) errs.push('Zielort'); if (!pd(I.startDate)) errs.push('Datum für den Reisebeginn'); if (!pd(I.endDate)) errs.push('Datum für das Reiseende');
+    if (errs.length) { aiMsg('err', 'Bitte zuerst oben eintragen: ' + errs.join(', ') + '.'); return; }
+    var ta = $('[data-ai-prompt]'); ta.value = aiPrompt(); ta.hidden = false; $('[data-ai-copy]').hidden = false; save();
+    aiMsg('ok', 'Die Anfrage ist fertig (' + ta.value.length + ' Zeichen). Kopiere sie und füge sie in der KI ein.');
+  }
+  function aiCopy() {
+    var ta = $('[data-ai-prompt]'), done = function (ok) { aiMsg(ok ? 'ok' : 'warn', ok ? 'Kopiert. Jetzt in der KI einfügen.' : 'Kopieren hat nicht geklappt. Markiere den Text und kopiere ihn von Hand.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(function () { done(true); }, function () { ta.select(); done(false); });
+    else { ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} done(ok); }
+  }
+  // JSON aus der Antwort holen: letzter Codeblock, sonst das groesste {...} mit "stops"
+  function aiExtract(txt) {
+    var cands = [], re = /```(?:json)?\s*([\s\S]*?)```/gi, m; while ((m = re.exec(txt))) cands.push(m[1]);
+    for (var i = 0; i < txt.length; i++) { if (txt[i] !== '{') continue; var d = 0, str = false, escp = false; for (var j = i; j < txt.length; j++) { var c = txt[j]; if (str) { if (escp) escp = false; else if (c === '\\') escp = true; else if (c === '"') str = false; } else if (c === '"') str = true; else if (c === '{') d++; else if (c === '}') { d--; if (d === 0) { cands.push(txt.slice(i, j + 1)); i = j; break; } } } }
+    for (var k = cands.length - 1; k >= 0; k--) { try { var o = JSON.parse(cands[k].trim().replace(/[“”]/g, '"')); if (o && Array.isArray(o.stops)) return o; } catch (e) {} }
+    return null;
+  }
+  async function aiCheck() {
+    readForm(); var I = S.input, box = $('[data-ai-report]'), txt = $('[data-ai-answer]').value || ''; S.ai = { text: txt }; save();
+    var fail = function (h) { box.innerHTML = '<div class="note err" role="alert">' + h + '</div>'; };
+    if (!txt.trim()) return fail('Bitte zuerst die Antwort der KI einfügen.');
+    var verr = []; if (!I.start) verr.push('Startort'); if (!I.end) verr.push('Zielort'); if (!pd(I.startDate) || !pd(I.endDate)) verr.push('Reisedaten'); if (verr.length) return fail('Bitte zuerst oben eintragen: ' + verr.join(', ') + '.');
+    var o = aiExtract(txt); if (!o) return fail('In der Antwort wurde kein gültiger Codeblock mit „stops“ gefunden. Bitte die KI um den JSON-Codeblock im vorgegebenen Format bitten und die ganze Antwort einfügen.');
+    var btn = $('[data-ai-check]'); btn.disabled = true; box.innerHTML = '<p class="mute">Prüfe die Orte …</p>';
+    try {
+      var rev = /umgekehrt/i.test(String(o.direction || '')), round = nrm0(I.start) === nrm0(I.end), A = rev && !round ? I.end : I.start, B = rev && !round ? I.start : I.end;
+      var gA = null, gB = null; try { gA = await geocode(A); gB = await geocode(B); } catch (e) {}
+      var stops = [], rep = [], seenN = {};
+      for (var i = 0; i < o.stops.length && i < 40; i++) {
+        var x = o.stops[i] || {}, name = String(x.name || '').trim(); if (!name) { rep.push({ c: 'wrn', t: 'Eintrag ' + (i + 1) + ' hat keinen Ortsnamen und wurde übersprungen.' }); continue; }
+        if (nrm0(first(name)) === nrm0(first(I.start)) || nrm0(first(name)) === nrm0(first(I.end))) { rep.push({ c: '', t: esc(first(name)) + ' ist Start oder Ziel und wurde nicht doppelt übernommen.' }); continue; }
+        if (seenN[nrm0(name)]) { rep.push({ c: 'wrn', t: esc(first(name)) + ' kommt doppelt vor, der zweite Eintrag wurde übersprungen.' }); continue; } seenN[nrm0(name)] = 1;
+        var g = null; try { g = await geocode(name); } catch (e) { g = null; }
+        if (!g) { rep.push({ c: 'bad', t: '„' + esc(name) + '“ wurde nicht gefunden und wird nicht übernommen.' }); continue; }
+        var kind = /via/i.test(String(x.kind || '')) ? 'via' : 'stay', n = kind === 'stay' ? Math.max(0, Math.min(30, Math.round(Number(x.nights)))) : '', date = /^\d{4}-\d{2}-\d{2}$/.test(String(x.date || '')) && pd(x.date) ? x.date : '';
+        if (kind === 'stay' && !(Number(x.nights) >= 0)) n = 1;
+        if (date && (pd(date) < pd(I.startDate) || pd(date) > pd(I.endDate))) { rep.push({ c: 'wrn', t: esc(first(name)) + ': Das Datum ' + deY(date) + ' liegt außerhalb der Reise und wurde entfernt.' }); date = ''; }
+        stops.push({ name: name, gps: g, kind: kind, nights: n, date: date, note: String(x.reason || '').slice(0, 240), hl: (Array.isArray(x.highlights) ? x.highlights : []).map(function (h) { return String(h).slice(0, 120); }).filter(Boolean).slice(0, 6), cc: (S.cc || {})[name.toLowerCase()] || '' });
+      }
+      // Pflichtpunkte des Nutzers erhalten
+      var mine = I.fixpoints.filter(function (f) { return f.name && !f.ai; });
+      for (var q = 0; q < mine.length; q++) {
+        var f = mine[q], hit = stops.filter(function (st) { return nrm0(first(st.name)) === nrm0(first(f.name)); })[0];
+        if (hit) { hit.kind = f.kind === 'via' ? 'via' : 'stay'; hit.date = f.kind === 'via' ? '' : (f.date || ''); if (f.kind === 'via') hit.nights = ''; else if (f.nights !== '' && f.nights != null) hit.nights = f.nights; hit.mine = true; hit.name = f.name; continue; }
+        var gm = null; try { gm = await geocode(f.name); } catch (e) {}
+        if (!gm) continue; var seq = [gA].concat(stops.map(function (st) { return st.gps; }), [gB]).filter(Boolean), bi = stops.length, bv = 1e18;
+        for (var t = 0; t < seq.length - 1; t++) { var dd = hav(seq[t], gm) + hav(gm, seq[t + 1]) - hav(seq[t], seq[t + 1]); if (dd < bv) { bv = dd; bi = t; } }
+        stops.splice(bi, 0, { name: f.name, gps: gm, kind: f.kind === 'via' ? 'via' : 'stay', nights: f.kind === 'via' ? '' : f.nights, date: f.kind === 'via' ? '' : (f.date || ''), note: '', hl: [], mine: true });
+        rep.push({ c: 'wrn', t: 'Dein Pflichtpunkt ' + esc(first(f.name)) + ' fehlte in der Antwort und wurde wieder eingefügt.' });
+      }
+      // Umwege und Laender
+      if (gA && gB) { var sq = [gA].concat(stops.map(function (st) { return st.gps; }), [gB]), direct = 0; for (var u = 1; u < sq.length; u++) direct += hav(sq[u - 1], sq[u]); stops.forEach(function (st, k) { var det = hav(sq[k], st.gps) + hav(st.gps, sq[k + 2]) - hav(sq[k], sq[k + 2]); if (det > Math.max(250, direct * 0.35)) rep.push({ c: 'wrn', t: esc(first(st.name)) + ' liegt weit abseits (etwa ' + Math.round(det * 1.3) + ' km Umweg). Bitte prüfen, ob der richtige Ort gemeint ist.' }); }); }
+      var ccs = {}; [A, B].forEach(function (nm) { var c = (S.cc || {})[nm.toLowerCase()]; if (c) ccs[c] = 1; }); stops.forEach(function (st) { if (st.cc && Object.keys(ccs).length && !ccs[st.cc]) rep.push({ c: 'wrn', t: esc(first(st.name)) + ' liegt in einem anderen Land (' + esc(st.cc) + ') als Start und Ziel.' }); });
+      var sN = I.mode === 'car' ? 0 : nN0(I.startNights), eN = I.mode === 'car' ? 0 : nN0(I.endNights), avail = diffDays(I.startDate, I.endDate) - sN - eN, sum = stops.reduce(function (a, st) { return a + (st.kind === 'stay' ? Number(st.nights) || 0 : 0); }, 0), nStay = stops.filter(function (st) { return st.kind === 'stay'; }).length;
+      rep.unshift({ c: sum === avail ? '' : 'wrn', t: 'Nächte: Die KI plant ' + sum + ', verfügbar sind ' + avail + '.' + (sum === avail ? ' Das passt.' : ' Der Planer rechnet nach und verteilt die Nächte neu, wenn es nicht aufgeht.') });
+      rep.unshift({ c: '', t: stops.length + ' von ' + o.stops.length + ' Orten erkannt: ' + nStay + ' Etappenziele mit Übernachtung, ' + (stops.length - nStay) + ' Stopps auf dem Weg.' });
+      if (rev) rep.push({ c: '', t: round ? 'Die KI empfiehlt die umgekehrte Richtung. Bei einer Rundreise gilt die Reihenfolge ihrer Orte.' : 'Die KI empfiehlt die umgekehrte Richtung: Start und Ziel werden getauscht (' + esc(first(A)) + ' → ' + esc(first(B)) + ').' });
+      var events = (Array.isArray(o.events) ? o.events : []).slice(0, 20).map(function (ev) { ev = ev || {}; return { name: String(ev.name || '').slice(0, 120), place: String(ev.place || '').slice(0, 80), date: /^\d{4}-\d{2}-\d{2}$/.test(String(ev.date || '')) ? ev.date : '', sure: ev.sure !== false, note: String(ev.note || '').slice(0, 200) }; }).filter(function (ev) { return ev.name; });
+      events.forEach(function (ev) { if (ev.date && (pd(ev.date) < pd(I.startDate) || pd(ev.date) > pd(I.endDate))) ev.out = true; });
+      var notes = (Array.isArray(o.notes) ? o.notes : []).map(function (z) { return String(z).slice(0, 300); }).filter(Boolean).slice(0, 10);
+      S.ai = { text: txt, stops: stops, rev: rev && !round, events: events, notes: notes, sum: sum, avail: avail }; save();
+      if (!stops.length) return fail('Kein Ort aus der Antwort konnte übernommen werden.' + (rep.length ? '<ul class="rep">' + rep.map(function (r) { return '<li class="' + r.c + '">' + r.t + '</li>'; }).join('') + '</ul>' : ''));
+      var h = '<div class="note ok" data-ai-rep><b>Prüfung der Antwort</b><ul class="rep">' + rep.map(function (r) { return '<li class="' + r.c + '">' + r.t + '</li>'; }).join('') + '</ul>';
+      h += '<div class="tablewrap"><table data-ai-table><thead><tr><th>Ort</th><th>Art</th><th>Nächte</th><th>Grund der KI</th></tr></thead><tbody>' + stops.map(function (st) { return '<tr><td>' + esc(st.name) + (st.mine ? ' <span class="mute">(dein Pflichtpunkt)</span>' : '') + '</td><td>' + (st.kind === 'via' ? 'Stopp auf dem Weg' : 'Übernachtung' + (st.date ? ', fest am ' + deY(st.date) : '')) + '</td><td>' + (st.kind === 'via' ? '–' : (st.nights === '' ? 'automatisch' : st.nights)) + '</td><td>' + esc(st.note) + (st.hl.length ? '<br><span class="mute">' + st.hl.map(esc).join(' · ') + '</span>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      h += '<p class="mute">Die Angaben der KI sind ungeprüft. Strecken, Fahrzeiten und Daten rechnet der Planer selbst nach, zu lange Etappen bekommen eine Zwischenübernachtung.</p><button type="button" class="pri" data-ai-apply>Als Fixpunkte übernehmen und Route berechnen</button></div>';
+      box.innerHTML = h;
+    } catch (e) { fail('Die Prüfung ist fehlgeschlagen: ' + esc(String(e && e.message || e).slice(0, 160))); }
+    finally { btn.disabled = false; }
+  }
+  async function aiApply() {
+    var A = S.ai; if (!A || !A.stops || !A.stops.length) return; var I = S.input;
+    if (I.fixpoints.some(function (f) { return f.name && !f.ai; }) || (S.proposal && S.proposal.edited)) { if (!window.confirm('Deine Fixpunkte werden durch die geprüfte Liste ersetzt (deine Pflichtpunkte sind darin enthalten). Fortfahren?')) return; }
+    if (S.proposal) S.proposal.edited = false;
+    if (A.rev) { var t = I.start; I.start = I.end; I.end = t; I.roundTrip = false; }
+    var mk = function (free) { return A.stops.map(function (st) { return { id: uid(), name: st.name, kind: st.kind, date: st.date || '', nights: st.kind === 'via' ? '' : (free && !st.mine && !st.date ? '' : st.nights), ai: !st.mine, note: st.note, hl: st.hl, aiW: st.kind === 'stay' ? Number(st.nights) || 0 : 0 }; }); };
+    I.fixpoints = mk(false); S.aiInfo = { events: A.events || [], notes: A.notes || [], released: false }; S.status = 'input'; save(); fillForm();
+    await calc();
+    var bad = S.proposal && (S.proposal.warns || []).some(function (w) { return /Zu wenig Zeit|freie Tage|Termine passen nicht/.test(w); }) || (S.proposal && S.proposal.stages.some(function (x) { return x.auto && x.extra > 0; }));
+    if (bad) { I.fixpoints = mk(true); S.aiInfo.released = true; save(); fillForm(); await calc(); }
+    var r = $('[data-sec=result]'); if (r) r.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  function aiInfoHtml() {
+    var A = S.aiInfo; if (!A || S.editTrip) return ''; var h = '';
+    if (A.released) h += '<div class="note warn" data-ai-released>Die Nächte aus der KI-Antwort passten nicht zur Reisedauer und zu den nötigen Zwischenübernachtungen. Der Planer hat sie neu verteilt und Orte bevorzugt, für die die KI mehr Nächte vorgesehen hatte. Feste Termine und deine Pflichtpunkte sind unverändert.</div>';
+    if ((A.events || []).length || (A.notes || []).length) {
+      h += '<div class="note warn" data-ai-events><b>Hinweise der KI, ungeprüft</b><ul class="rep">' + (A.events || []).map(function (ev) { return '<li>' + (ev.date ? deY(ev.date) + ': ' : '') + '<b>' + esc(ev.name) + '</b>' + (ev.place ? ', ' + esc(ev.place) : '') + (ev.note ? ' – ' + esc(ev.note) : '') + (ev.sure ? '' : ' <span class="wrn">(Datum laut KI unsicher)</span>') + (ev.out ? ' <span class="wrn">(liegt außerhalb der Reise)</span>' : '') + '</li>'; }).join('') + (A.notes || []).map(function (z) { return '<li>' + esc(z) + '</li>'; }).join('') + '</ul><span class="mute">Termine bitte auf der Seite des Veranstalters prüfen. Im Planer landen sie als Punkte in der Checkliste.</span></div>';
+    }
+    return h;
+  }
+  document.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('button'); if (!t) return; if (t.hasAttribute('data-ai-make')) aiMake(); else if (t.hasAttribute('data-ai-copy')) aiCopy(); else if (t.hasAttribute('data-ai-check')) aiCheck(); else if (t.hasAttribute('data-ai-apply')) aiApply(); });
 
   // ---------- Aufbau des Vorschlags sichtbar machen ----------
   var LIVE = null;
@@ -365,17 +543,18 @@ label small{display:block;font-weight:400}
       if (lim(m - 1) > mx && l.km > mx && need[m - 1] === 1) flags.push((m === 1 ? 'Anfahrt' : 'Rückfahrt') + ': längere Etappe erlaubt (bis ' + lim(m - 1) + ' km).');
       if (lim(m - 1) < mx && need[m - 1] === 1) flags.push((m === 1 ? 'Ankunftstag' : 'Abflugtag') + ': kurze Etappe (bis ' + lim(m - 1) + ' km).');
       if ((l.vias || []).length) flags.push('Stopp auf dem Weg: ' + l.vias.map(function (v) { return String(v.name).split(',')[0]; }).join(', ') + '.');
-      if (extraN[m]) flags.unshift('+' + extraN[m] + ' Tag' + (extraN[m] > 1 ? 'e' : '') + ' eingeplant: ' + (pts[m].score ? 'viele Sehenswürdigkeiten (' + (pts[m].score >= 500 ? '500+' : pts[m].score) + ' Wikipedia-Artikel im Umkreis von 10 km).' : 'freie Tage verteilt.'));
+      if (pts[m].note) flags.push('KI: ' + pts[m].note);
+      if (extraN[m]) flags.unshift('+' + extraN[m] + ' Tag' + (extraN[m] > 1 ? 'e' : '') + ' eingeplant: ' + (pts[m].aiW ? 'von der KI als lohnend genannt.' : pts[m].score ? 'viele Sehenswürdigkeiten (' + (pts[m].score >= 500 ? '500+' : pts[m].score) + ' Wikipedia-Artikel im Umkreis von 10 km).' : 'freie Tage verteilt.'));
       if (l.est) flags.push('Strecke geschätzt (Luftlinie × 1,3), Routing nicht erreichbar.');
       if (pts[m].auto) flags.unshift(pts[m].unnamed ? 'Zwischenübernachtung, Ort bitte selbst wählen (Name nicht ermittelt).' : 'Zwischenübernachtung, automatisch vorgeschlagen. Bitte prüfen.');
       if (l.km > lim(m - 1) * 1.1 && need[m - 1] === 1) flags.push((I.keepDays ? 'Über dem Höchstwert von ' + lim(m - 1) + ' km (' : 'Etwas über dem Höchstwert (') + Math.round(l.km) + ' km).');
-      stages.push({ id: 'stage-' + m, auto: !!pts[m].auto, extra: extraN[m] || 0, score: pts[m].score || 0, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est, vias: (l.vias || []).map(function (v) { return { name: v.name, gps: v.gps, ref: v.ref }; }) });
+      stages.push({ id: 'stage-' + m, auto: !!pts[m].auto, extra: extraN[m] || 0, score: pts[m].score || 0, fromCity: pts[m - 1].name, toCity: pts[m].name, arrive: arr[m], depart: dep[m], nights: nights[m], km: Math.round(l.km), min: Math.round(l.min), gps: pts[m].gps, needDays: need[m - 1], flags: flags, est: !!l.est, hl: pts[m].hl || [], vias: (l.vias || []).map(function (v) { return { name: v.name, gps: v.gps, ref: v.ref, note: v.note || '', hl: v.hl || [] }; }) });
     }
     return { stages: stages, warns: warns, startNights: startN, startDepart: dep[0] };
   }
 
   async function calc() {
-    readForm(); save(); var I = S.input, errs = validate(I);
+    readForm(); save(); var I = S.input, errs = validate(I); if (S.aiInfo && !I.fixpoints.some(function (f) { return f.ai; })) S.aiInfo = null;
     if (S.proposal && S.proposal.edited && !window.confirm('Dein bearbeiteter Vorschlag wird durch eine neue Berechnung ersetzt. Fortfahren?')) return;
     MAPVIEW = null; ADDMODE = false;
     if (errs.length) { msg('err', '<b>Bitte prüfen:</b><br>' + errs.map(esc).join('<br>')); return; }
@@ -390,9 +569,9 @@ label small{display:block;font-weight:400}
         var fp = i > 0 && i < names.length - 1 ? I.fixpoints[i - 1] : null;
         resolved.push({ input: names[i], label: (S.lab && S.lab[names[i].toLowerCase()]) || '', cc: (S.cc && S.cc[names[i].toLowerCase()]) || '', picked: !!(S.pick && S.pick[names[i].toLowerCase()]) });
         if (g) { var isVia = fp && fp.kind === 'via', lab0 = S.lab && S.lab[names[i].toLowerCase()]; livePoint(g, i === 0 ? 'S' : (i === names.length - 1 ? 'Z' : String(pts.length)), isVia ? 'via' : (i === names.length - 1 ? 'end' : ''), names[i]); await liveLog((i === 0 ? 'Start' : (i === names.length - 1 ? 'Ziel' : (isVia ? 'Stopp auf dem Weg' : 'Etappenziel'))) + ' gefunden: <b>' + esc(first(names[i])) + '</b>' + (lab0 && lab0 !== names[i] ? ' <span class="mute">(' + esc(lab0) + ')</span>' : '') + (fp && fp.date && !isVia ? ', fester Termin ' + deY(fp.date) : '')); }
-        if (fp && fp.kind === 'via') { curV.push({ name: names[i], gps: g }); continue; }
+        if (fp && fp.kind === 'via') { curV.push({ name: names[i], gps: g, note: fp.note || '', hl: fp.hl || [] }); continue; }
         if (pts.length) legV.push(curV); curV = [];
-        pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '' });
+        pts.push({ name: names[i], gps: g, date: fp ? fp.date : '', nights: fp ? fp.nights : '', note: fp ? fp.note || '' : '', hl: fp ? fp.hl || [] : [], aiW: fp ? fp.aiW || 0 : 0 });
       }
       if (failed.length) { liveEnd(); prog(0, ''); $('[data-prog]').hidden = true; $('[data-result]').innerHTML = '<div class="note err" role="alert">Diese Orte wurden nicht gefunden: <b>' + failed.map(esc).join(', ') + '</b>. Bitte eindeutiger schreiben (mit Bundesstaat oder Land) und noch einmal berechnen. Ohne Internet ist die Suche nicht möglich.</div>'; return; }
       var airport = null;
@@ -418,7 +597,7 @@ label small{display:block;font-weight:400}
         } else { legs.push(l0); withStops.push(pts[j + 1]); }
       }
       pts = withStops;
-      for (var si = 1; si < pts.length - 1; si++) { var pp = pts[si]; if (!pp.date && (pp.nights === '' || pp.nights == null)) { prog(92 + Math.round(7 * si / pts.length), 'Prüfe Sehenswürdigkeiten: ' + pp.name.split(',')[0]); var sc = await wikiScore(pp.gps); if (sc != null) { pp.score = sc; await liveLog('Sehenswürdigkeiten bei ' + esc(first(pp.name)) + ': ' + (sc >= 500 ? '500+' : sc) + ' Wikipedia-Artikel im Umkreis von 10 km'); } } }
+      for (var si = 1; si < pts.length - 1; si++) { var pp = pts[si]; if (!pp.date && (pp.nights === '' || pp.nights == null)) { prog(92 + Math.round(7 * si / pts.length), 'Prüfe Sehenswürdigkeiten: ' + pp.name.split(',')[0]); var sc = await wikiScore(pp.gps); if (pp.aiW) sc = pp.aiW * 1000; if (sc != null) { pp.score = sc; if (pp.aiW) continue; await liveLog('Sehenswürdigkeiten bei ' + esc(first(pp.name)) + ': ' + (sc >= 500 ? '500+' : sc) + ' Wikipedia-Artikel im Umkreis von 10 km'); } } }
       prog(100, 'Fertig');
       var r = plan(I, pts, legs);
       { var ex0 = r.stages.filter(function (x) { return x.extra; }), tn0 = r.stages.reduce(function (a0, x) { return a0 + x.nights; }, 0); await liveLog('Tage verteilt: ' + diffDays(I.startDate, I.endDate) + ' Nächte Reisedauer, ' + r.stages.length + ' Etappen.' + (ex0.length ? ' Zusätzliche Tage für ' + ex0.map(function (x) { return '<b>' + esc(first(x.toCity)) + '</b> (+' + x.extra + ')'; }).join(', ') + '.' : '')); if (r.warns.length) await liveLog('Hinweis: ' + esc(r.warns[0])); await wait(700); }
@@ -455,6 +634,7 @@ label small{display:block;font-weight:400}
     h += resolvedHtml(P);
     if (P.log && P.log.length && !P.edited) h += '<details data-howlog style="margin:8px 0"><summary class="mute" style="cursor:pointer">So ist der Vorschlag entstanden (' + P.log.length + ' Schritte)</summary><ol class="livelog mute" style="max-height:none">' + P.log.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol></details>';
     P.warns.forEach(function (w) { h += '<div class="note warn" data-warn>' + esc(w) + '</div>'; });
+    h += aiInfoHtml();
     h += '<p class="mute" data-start-info>' + (S.editTrip ? 'Reise vom ' + deY(S.input.startDate) + ' bis ' + deY(S.input.endDate) + '. Das Reiseende folgt den Nächten: eine neue Etappe mit Übernachtung verlängert die Reise, eine gelöschte verkürzt sie. Ändere die Nächte in der Tabelle, wenn die Reisedauer gleich bleiben soll.' : startInfo()) + '</p>';
     h += '<div class="tablewrap"><table data-table><thead><tr><th>Etappe</th><th>Strecke</th><th>Ankunft</th><th>Nächte</th><th>Hinweis</th><th>Wetter und Termine</th><th>Bearbeiten</th></tr></thead><tbody>';
     P.stages.forEach(function (s, i) { h += '<tr data-stage-row><td><b>' + (i + 1) + '.</b> ' + esc(s.fromCity) + ' → ' + esc(s.toCity) + (s.auto ? ' <span class="mute">(Zwischenübernachtung)</span>' : '') + viaChips(s, i) + '</td><td>' + s.km + ' km<br><span class="mute">' + hrs(s.min) + '</span></td><td>' + deY(s.arrive) + '</td><td>' + nightsCell(s, i, P.stages.length) + '</td><td>' + (s.flags.length ? s.flags.map(function (f) { return '<span class="mute">' + esc(f) + '</span>'; }).join('<br>') : '<span class="mute">–</span>') + '</td><td data-wx>' + wxCell(s) + '</td><td class="act">' + actCell(i, P.stages.length) + '</td></tr>'; });
@@ -866,8 +1046,8 @@ label small{display:block;font-weight:400}
       var note = s.flags.filter(function (f) { return !/geschätzt/.test(f); }).join(' ');
       var h = hotel(s.gps);
       return { id: 'stage-' + (i + 1), fromCity: s.fromCity, toCity: s.toCity, toGps: s.gps ? s.gps[0].toFixed(5) + ',' + s.gps[1].toFixed(5) : '', toGpsFor: s.toCity, dateRange: range, nights: s.nights,
-        routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Routen-Vorschlag: ' + note : '', stopsOnWay: (s.vias || []).map(function (v, k) { return { id: 's' + (i + 1) + '-v' + (k + 1), name: v.name, time: '', duration: '', address: '', gps: v.gps[0].toFixed(5) + ',' + v.gps[1].toFixed(5), costEur: 0, notes: 'Stopp auf dem Weg aus dem Routen-Vorschlag.' }; }) },
-        hotel: h, localAttractions: [] };
+        routeToHotel: { distanceKm: s.km + ' km (' + Math.round(s.km * 0.621) + ' mi)', duration: (s.min / 60).toFixed(1).replace('.', ',') + ' h (reine Fahrzeit)', routeDescription: note ? 'Hinweis vom Routen-Vorschlag: ' + note : '', stopsOnWay: (s.vias || []).map(function (v, k) { return { id: 's' + (i + 1) + '-v' + (k + 1), name: v.name, time: '', duration: '', address: '', gps: v.gps[0].toFixed(5) + ',' + v.gps[1].toFixed(5), costEur: 0, notes: (v.note ? 'KI: ' + v.note + ' ' : '') + ((v.hl || []).length ? 'Highlights laut KI: ' + v.hl.join(', ') + '. ' : '') + 'Stopp auf dem Weg aus dem Routen-Vorschlag.' }; }) },
+        hotel: h, localAttractions: (s.hl || []).map(function (x, k) { return { id: 's' + (i + 1) + '-ai' + (k + 1), name: x, category: 'Vorschlag der KI', time: '', booked: '', priceEur: 0, address: '', gps: '', notes: 'Von der KI vorgeschlagen, bitte prüfen.' }; }) };
     });
     var sN = I.mode === 'car' ? 0 : Math.max(0, Number(I.startNights) || 0);
     if (sN > 0) { stages.unshift({ id: 'stage-0', fromCity: I.start, toCity: I.start, toGps: P.start && P.start.gps ? P.start.gps[0].toFixed(5) + ',' + P.start.gps[1].toFixed(5) : '', toGpsFor: I.start, dateRange: de(I.startDate) + ' – ' + deY(addDays(I.startDate, sN)), nights: sN, routeToHotel: { distanceKm: '', duration: '', routeDescription: 'Ankunft am Startort, Übernachtung vor der ersten Fahrt.', stopsOnWay: [] }, hotel: hotel(P.start && P.start.gps), localAttractions: [] }); stages.forEach(function (st, k) { st.id = 'stage-' + (k + 1); }); }
@@ -880,7 +1060,7 @@ label small{display:block;font-weight:400}
     var id = ''; for (var i2 = 0; i2 < 18; i2++) id += ('0' + Math.floor(Math.random() * 256).toString(16)).slice(-2);
     var names = [I.start].concat(I.fixpoints.map(function (f) { return f.name; })).concat([I.end]);
     return { meta: { title: I.title || ((I.roundTrip ? 'Rundreise ab ' : '') + I.start + (I.roundTrip ? '' : ' – ' + I.end)), subtitle: names.map(function (n) { return n.split(',')[0]; }).join(' • '), startDate: I.startDate, endDate: I.endDate, startLocation: I.start, endLocation: I.end, returnStageAsked: true, maxDriveHours: ([2, 3, 4, 5, 6, 7, 8, 10].filter(function (h) { return h >= Number(I.maxKm) / 85; })[0] || 10), schemaVersion: 2, version: 1, lastUpdated: new Date().toISOString(), tripId: id, draftSource: 'assistent-v1' },
-      participants: [], customExpenses: [], creditCards: [], emergencyContacts: [], flights: flights, rentalCars: [], stages: stages, checklist: [] };
+      participants: [], customExpenses: [], creditCards: [], emergencyContacts: [], flights: flights, rentalCars: [], stages: stages, checklist: (S.aiInfo && !S.editTrip ? (S.aiInfo.events || []).map(function (ev, k) { return { id: 'chk-ai-' + (k + 1), text: 'Termin prüfen (Hinweis der KI): ' + ev.name + (ev.place ? ', ' + ev.place : '') + (ev.date ? ', ' + deY(ev.date) : '') + (ev.sure ? '' : ' (Datum unsicher)'), done: false }; }) : []) };
   }
   function handover() {
     if (!S.proposal) return;
@@ -974,11 +1154,11 @@ label small{display:block;font-weight:400}
     var t = S.trip || buildTrip(); var b = new Blob([JSON.stringify(t, null, 2)], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'reise-entwurf.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
 
-  load(); fillForm(); syncEdit();
+  load(); fillForm(); fillWishes(); syncEdit();
   var editReq = null; if (location.hash === '#edit') { try { editReq = JSON.parse(localStorage.getItem(EDIT_KEY) || 'null'); history.replaceState(null, '', location.pathname); } catch (e) { editReq = null; } }
   if (editReq && editReq.stages) importTrip(editReq); else if (S.proposal && S.status !== 'input') renderResult();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
-  window.__assistant = { plan: plan, S: function () { return S; }, mergedTrip: function () { return mergedTrip(); }, splitFracs: splitFracs, legLimit: legLimit };
+  window.__assistant = { aiPrompt: function () { return aiPrompt(); }, aiExtract: aiExtract, plan: plan, S: function () { return S; }, mergedTrip: function () { return mergedTrip(); }, splitFracs: splitFracs, legLimit: legLimit };
 })();
 </script>
 </body>
