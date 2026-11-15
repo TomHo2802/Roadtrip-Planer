@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de"><head><script>try{var m=localStorage.getItem("roadtrip_theme_v1");if(m==="dark"||(m!=="light"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-dark","1")}catch(e){}</script>
+<html lang="de"><head><script>try{if(localStorage.getItem("rt_ui_v1")==="classic")document.documentElement.setAttribute("data-ui","classic")}catch(e){}</script><script>try{var m=localStorage.getItem("roadtrip_theme_v1");if(m==="dark"||(m!=="light"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-dark","1")}catch(e){}</script>
   <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -14114,7 +14114,7 @@ html[data-dark="1"] .rt-fspill{background:rgba(20,30,48,.92)!important;border-co
 html[data-dark="1"] .rt-fsbar{background:#12301f!important;border-color:#2f7d52!important;color:#d6f5e3!important}
 html[data-dark="1"] .rt-fsbar.warn{background:#3a2a10!important;border-color:#F2A044!important;color:#ffe2bd!important}
 html[data-dark="1"] .rt-fsbar button.ghost{background:#1f3150!important;color:#e5ecf7!important;border-color:#2c3e5c!important}
-</style><style id="rt-ac-css">.rt-ac{position:absolute;z-index:100000;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px;font-size:14px}.rt-ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}.rt-ac li small{display:block;opacity:.75;font-size:12px}.rt-ac .rt-ac-kind{opacity:.7}.rt-ac li[aria-selected=true],.rt-ac li:hover{background:#1d4ed8;color:#fff}html[data-dark="1"] .rt-ac{background:#1e293b;color:#f1f5f9;border-color:#475569}html[data-dark="1"] .rt-ac li[aria-selected=true],html[data-dark="1"] .rt-ac li:hover{background:#60a5fa;color:#0f172a}@media print{.rt-ac{display:none}}</style><style>.rt-ac li.rt-ac-map{border-top:1px solid #cbd5e1;border-radius:0 0 8px 8px}</style><script src="ortwahl.js"></script></head>
+</style><style id="rt-ac-css">.rt-ac{position:absolute;z-index:100000;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px;font-size:14px}.rt-ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}.rt-ac li small{display:block;opacity:.75;font-size:12px}.rt-ac .rt-ac-kind{opacity:.7}.rt-ac li[aria-selected=true],.rt-ac li:hover{background:#1d4ed8;color:#fff}html[data-dark="1"] .rt-ac{background:#1e293b;color:#f1f5f9;border-color:#475569}html[data-dark="1"] .rt-ac li[aria-selected=true],html[data-dark="1"] .rt-ac li:hover{background:#60a5fa;color:#0f172a}@media print{.rt-ac{display:none}}</style><style id="rt-ui2">@media (max-width:640px){html:not([data-ui="classic"]) .rt-bkbar{left:10px;right:10px;transform:none;max-width:none}html:not([data-ui="classic"]) [data-status-general]{flex-direction:column;align-items:stretch}html:not([data-ui="classic"]) [data-status-general] button{width:100%;text-align:left;border-radius:12px;padding-top:8px;padding-bottom:8px}html:not([data-ui="classic"]) [data-status-row] [data-status-chip]{flex:1 1 100%;border-radius:12px}}html[data-dark="1"] [data-stage-menu]{background:#1e293b;border-color:#475569}html[data-dark="1"] [data-stage-menu] button{color:#f1f5f9}html[data-dark="1"] [data-stage-menu] button:hover{background:#334155}html[data-dark="1"] [data-stage-more]{background:#1e293b;color:#f1f5f9;border-color:#475569}</style><style>.rt-ac li.rt-ac-map{border-top:1px solid #cbd5e1;border-radius:0 0 8px 8px}</style><script src="ortwahl.js"></script></head>
 <body>
   <div id="root" aria-live="polite"></div>
 
@@ -19252,7 +19252,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 99</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 100</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19262,7 +19262,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 99'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 100'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -20654,9 +20654,9 @@ var qrcode = function() {
       const rt = stage.routeToHotel || {}, h = stage.hotel || {}; const n = (stage.localAttractions || []).length; const km = spShort(rt.distanceKm), du = spShort(rt.duration);
       return (
         <div data-stage-foot className="px-4 py-3 flex flex-wrap items-center gap-2 text-xs">
-          <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-950 border border-amber-300 font-semibold">① Weg: {km || du ? [km, du].filter(Boolean).join(' · ') : 'offen'}</span>
-          {ret ? <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-900 border border-slate-300 font-semibold">Rückreise · ohne Übernachtung</span> : <><span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-950 border border-blue-300 font-semibold">② Hotel: {h.name || 'offen'}</span>
-          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-semibold">③ Vor Ort: {n ? `${n} Aktion${n === 1 ? '' : 'en'}` : 'offen'}</span></>}
+          <span data-foot-chip="way" className={rtChipCls('px-2.5 py-1 rounded-full bg-amber-100 text-amber-950 border border-amber-300 font-semibold', !(km || du) && !(String(stage.fromCity || '').trim().toLowerCase() === String(stage.toCity || '').trim().toLowerCase()))}>① Weg: {km || du ? [km, du].filter(Boolean).join(' · ') : 'offen'}</span>
+          {ret ? <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-900 border border-slate-300 font-semibold">Rückreise · ohne Übernachtung</span> : <><span data-foot-chip="hotel" className={rtChipCls('px-2.5 py-1 rounded-full bg-blue-100 text-blue-950 border border-blue-300 font-semibold', !h.name && (parseInt(stage.nights, 10) || 0) > 0)}>② Hotel: {h.name || 'offen'}</span>
+          <span data-foot-chip="do" className={rtChipCls('px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-semibold', false)}>③ Vor Ort: {n ? `${n} Aktion${n === 1 ? '' : 'en'}` : 'offen'}</span></>}
           <button type="button" data-readonly-allow data-stage-open onClick={onOpen} className="ml-auto v18-btn pri">Etappe öffnen →</button>
         </div>
       );
@@ -22064,6 +22064,64 @@ var qrcode = function() {
       return <button type="button" data-status-open data-readonly-allow onClick={() => window.dispatchEvent(new CustomEvent('rt-status'))} className="v18-btn pri w-full justify-center" style={{ height: 'auto', minHeight: 44, paddingTop: 6, paddingBottom: 6 }}><span className="text-center leading-tight"><span className="block">Planungsstand</span><span className="block text-[11px] font-normal opacity-90" data-status-short>{S.short}</span></span></button>;
     }
 
+    /* ===== v100: aufgeraeumte Ansicht "Planen" (umschaltbar: rt_ui_v1 = new | classic) ===== */
+    const rtUiClassic = () => document.documentElement.getAttribute('data-ui') === 'classic';
+    const rtChipCls = (classic, missing) => rtUiClassic() ? classic : (missing ? 'px-2.5 py-1 rounded-full bg-amber-100 text-amber-950 border border-amber-500 font-semibold' : 'px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-300 font-semibold');
+    function RtPlanTop({ trip, goTab, children }) {
+      const S = rtPlanStats(trip), n = S.rows.length;
+      const [open, setOpen] = useState(() => { try { const v = localStorage.getItem('rt_status_open_v1'); if (v === '1') return true; if (v === '0') return false; } catch (e) {} return n > 0 && S.hOk === 0 && S.rOk === 0; });
+      const [tools, setTools] = useState(false);
+      useEffect(() => { const f = () => setOpen(true); window.addEventListener('rt-status', f); return () => window.removeEventListener('rt-status', f); }, []);
+      const tog = () => { const v = !open; setOpen(v); try { localStorage.setItem('rt_status_open_v1', v ? '1' : '0'); } catch (e) {} };
+      if (!n) return <><RtPlanStatus trip={trip} goTab={goTab} /></>;
+      const pct = Math.round(100 * (S.hOk + S.rOk) / Math.max(1, S.hN + S.rN)), todo = S.rows.filter((r) => r.open > 0).length + (S.datesOk && S.nightsOk ? 0 : 1);
+      return (
+        <div data-plan-top className="no-print space-y-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-2 flex flex-wrap items-center gap-2">
+            <button type="button" data-readonly-allow data-status-toggle aria-expanded={open} aria-controls="rt-status-body" onClick={tog} className="flex-1 min-w-[220px] min-h-[44px] px-3 rounded-xl text-left hover:bg-slate-50 flex items-center gap-3">
+              <span className="font-bold text-slate-900 text-sm">Planungsstand</span>
+              <span className="text-sm text-slate-700 flex-1" data-status-line>{todo ? S.short : 'Hotels und Strecken sind vollständig'}</span>
+              <span className="hidden sm:block w-24 h-2 rounded-full bg-slate-200 overflow-hidden" aria-hidden="true"><span className="block h-full bg-[#1F4E8C]" style={{ width: `${pct}%` }} /></span>
+              <span aria-hidden="true" className="text-slate-600 text-xs">{open ? '▴' : '▾'}</span>
+            </button>
+            <button type="button" data-readonly-allow data-tools-toggle aria-expanded={tools} aria-controls="rt-tools-body" onClick={() => setTools(!tools)} className="v18-btn v18-edit-only">Werkzeuge {tools ? '▴' : '▾'}</button>
+          </div>
+          {open && <div id="rt-status-body"><RtPlanStatus trip={trip} goTab={goTab} /></div>}
+          <div id="rt-tools-body" data-plan-tools hidden={!tools} className="space-y-3">{children}</div>
+        </div>
+      );
+    }
+    function RtStageMenu({ onUp, onDown, onDelete, upOff, downOff, label }) {
+      const [open, setOpen] = useState(false); const box = useRef(null); const [pos, setPos] = useState(null);
+      const toggle = () => { if (open) { setOpen(false); return; } const b = box.current && box.current.querySelector('[data-stage-more]'); if (b) { const q = b.getBoundingClientRect(); const top = q.bottom + 4 + 150 > window.innerHeight ? Math.max(8, q.top - 4 - 150) : q.bottom + 4; setPos({ top, left: Math.max(8, Math.min(q.right - 224, window.innerWidth - 232)) }); } setOpen(true); };
+      useEffect(() => {
+        if (!open) return; const sc = (e) => { if (e && e.target && e.target.closest && e.target.closest('[data-stage-menu]')) return; setOpen(false); }; window.addEventListener('scroll', sc, true); window.addEventListener('resize', sc); const out = (e) => { if (box.current && !box.current.contains(e.target) && !(e.target.closest && e.target.closest('[data-stage-menu]'))) setOpen(false); }; const key = (e) => { if (e.key === 'Escape') { setOpen(false); const b = box.current && box.current.querySelector('[data-stage-more]'); if (b) b.focus(); } };
+        document.addEventListener('mousedown', out); document.addEventListener('keydown', key); return () => { window.removeEventListener('scroll', sc, true); window.removeEventListener('resize', sc); document.removeEventListener('mousedown', out); document.removeEventListener('keydown', key); };
+      }, [open]);
+      const it = 'w-full text-left min-h-[44px] px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent';
+      return (
+        <div ref={box} className="relative">
+          <button type="button" data-stage-more aria-haspopup="menu" aria-expanded={open} aria-label={`Weitere Aktionen für ${label}`} title="Verschieben oder löschen" onClick={toggle} className="min-w-[44px] min-h-[44px] rounded-lg border border-slate-300 bg-white text-slate-800 text-lg font-bold leading-none hover:bg-slate-50">⋯</button>
+          {open && ReactDOM.createPortal(<div role="menu" data-stage-menu style={{ position: 'fixed', top: pos ? pos.top : 0, left: pos ? pos.left : 0 }} className="z-[60] w-56 rounded-xl border border-slate-300 bg-white shadow-xl py-1">
+            <button type="button" role="menuitem" data-stage-up disabled={upOff} onClick={() => { setOpen(false); onUp(); }} className={it}>Nach oben schieben</button>
+            <button type="button" role="menuitem" data-stage-down disabled={downOff} onClick={() => { setOpen(false); onDown(); }} className={it}>Nach unten schieben</button>
+            <button type="button" role="menuitem" data-stage-del onClick={() => { setOpen(false); onDelete(); }} className={`${it} text-rose-800 border-t border-slate-200`}>Etappe löschen …</button>
+          </div>, document.body)}
+        </div>
+      );
+    }
+    function RtUiSwitch() {
+      const cur = rtUiClassic() ? 'classic' : 'new';
+      const set = (v) => { if (v === cur) return; try { localStorage.setItem('rt_ui_v1', v); } catch (e) {} location.reload(); };
+      const b = (v, t) => <button type="button" data-readonly-allow data-ui-set={v} aria-pressed={cur === v} onClick={() => set(v)} className={`min-h-[44px] px-4 text-sm font-semibold ${cur === v ? 'bg-[#1F4E8C] text-white' : 'bg-white text-slate-900'}`}>{t}</button>;
+      return (
+        <div data-ui-switch className="rounded-xl border border-slate-300 bg-white p-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-slate-900 min-w-[220px] flex-1"><b>Ansicht „Planen“</b><br /><span className="text-slate-700">Aufgeräumt: Etappenliste oben, Planungsstand und Werkzeuge einklappbar, ein Menü je Etappe. Bisherig: alles wie vorher.</span></div>
+          <div className="inline-flex rounded-lg border border-slate-300 overflow-hidden" role="group" aria-label="Ansicht Planen">{b('new', 'Aufgeräumt')}{b('classic', 'Bisherig')}</div>
+        </div>
+      );
+    }
+
     function App() {
       const [tripData, setTripData] = useState(getInitialData);
       const tripDataRef = useRef(tripData);
@@ -23024,7 +23082,8 @@ Quelle: ${lt.url}` : '') }] } });
                     </div>
                   </section>
                 )}
-                {/* VISUAL ROADTRIP TIMELINE BAR */}
+                {rtUiClassic() ? <>
+{/* VISUAL ROADTRIP TIMELINE BAR */}
                 <div data-ro-ok className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200 overflow-x-auto no-print">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -23105,6 +23164,17 @@ Quelle: ${lt.url}` : '') }] } });
                 <RtRouteEdit trip={tripData} />
                 <StageFinder trip={tripData} onPick={handleAddSuggestedStage} />
 
+                </> : <>
+                <RtPlanTop trip={tripData} goTab={setActiveTab}>
+                  <RouteCalcAll trip={tripData} onSave={saveTripData} />
+                  <RtRouteEdit trip={tripData} />
+                  <StageFinder trip={tripData} onPick={handleAddSuggestedStage} />
+                </RtPlanTop>
+                <CardExpiryAlerts trip={tripData} goCards={() => setActiveTab('cards')} />
+                <RtMigrate trip={tripData} onSave={saveTripData} />
+                <RtGeoFill trip={tripData} onSave={saveTripData} />
+</>}
+
                 {openStageId && <StagePageBar stages={tripData.stages || []} openId={openStageId} tab={stageTab} setTab={setStageTab} onBack={() => setOpenStageId(null)} onOpen={(id) => openStagePage(id, stageTab)} />}
                 {/* Stages List with Vertical Timeline Connector */}
                 <div data-stage-list className="relative space-y-8 before:hidden md:before:block before:absolute before:top-8 before:bottom-8 before:left-5 before:w-0.5 before:bg-slate-200 before:rounded-full">
@@ -23167,7 +23237,7 @@ Quelle: ${lt.url}` : '') }] } });
                             </div>
 
                             <div className="flex items-center gap-1.5 no-print">
-                              <button
+                              {rtUiClassic() ? <><button
                                 onClick={() => handleMoveStage(sIdx, -1)}
                                 disabled={sIdx === 0}
                                 className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-600 text-xs"
@@ -23201,7 +23271,10 @@ Quelle: ${lt.url}` : '') }] } });
                                 title="Löschen"
                               >
                                 🗑
-                              </button>
+                              </button></> : <>
+                              <button type="button" data-stage-basics onClick={() => openStageEditor(stage, 'basics')} className="v18-btn">Grunddaten bearbeiten</button>
+                              <RtStageMenu label={`Etappe ${sIdx + 1}`} upOff={sIdx === 0} downOff={sIdx === (tripData.stages || []).length - 1} onUp={() => handleMoveStage(sIdx, -1)} onDown={() => handleMoveStage(sIdx, 1)} onDelete={() => setDeleteConfirmModal({ type: 'stage', id: stage.id, title: `Etappe ${sIdx + 1}: ${stage.fromCity} → ${stage.toCity}` })} />
+                              </>}
                             </div>
                           </div>
 
@@ -23626,6 +23699,81 @@ Quelle: ${lt.url}` : '') }] } });
                     );
                   })}
                 </div>
+                {!rtUiClassic() && <>
+{/* Toolbar */}
+                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-xs border border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                    <button
+                      onClick={() => {
+                        const allOpen = (tripData.stages || []).every((s) => expandedStages[s.id]);
+                        const nextState = {};
+                        (tripData.stages || []).forEach((s) => {
+                          nextState[s.id] = !allOpen;
+                        });
+                        setExpandedStages(nextState);
+                      }}
+                      data-readonly-allow
+                      className="hidden"
+                    >
+                      Alle auf-/zuklappen
+                    </button>
+                    <button
+                      onClick={handleAddStage}
+                      className="v18-edit-only bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-lg shadow-xs transition"
+                    >
+                      + Neue Etappe anlegen
+                    </button>
+                  </div>
+                </div>
+
+                {/* VISUAL ROADTRIP TIMELINE BAR */}
+                <div data-ro-ok className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200 overflow-x-auto no-print">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Etappen-Übersicht
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      Gesamt: {(tripData.stages || []).length} Stationen • {financeSummary.totalNights} Übernachtungen
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 min-w-max py-1">
+                    {(tripData.stages || []).map((st, idx) => {
+                      const isExp = expandedStages[st.id] === true;
+                      return (
+                        <React.Fragment key={st.id}>
+                          <button
+                            onClick={() => {
+                              openStagePage(st.id);
+                            }}
+                            className={`group flex flex-col items-start p-2.5 rounded-xl border text-left transition min-w-[145px] ${
+                              todayStages.some(stage => stage.id === st.id)
+                                ? 'bg-emerald-50 border-emerald-500 shadow-sm ring-2 ring-emerald-200'
+                                : isExp
+                                  ? 'bg-blue-50/80 border-blue-400 shadow-2xs'
+                                  : 'bg-slate-50 border-slate-200 opacity-75 hover:opacity-100'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full gap-2">
+                              <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded ${todayStages.some(stage => stage.id === st.id) ? 'bg-emerald-700 text-white' : 'bg-blue-600 text-white'}`}>
+                                #{idx + 1} • {st.nights}N{todayStages.some(stage => stage.id === st.id) ? ' · Heute' : ''}
+                              </span>
+                              <span className="text-[11px] text-slate-500">{st.routeToHotel?.duration || ''}</span>
+                            </div>
+                            <div className="font-bold text-xs text-slate-900 mt-1 truncate w-full group-hover:text-blue-700">
+                              {st.toCity}
+                            </div>
+                            <div className="text-[10px] text-slate-500 truncate w-full">{st.dateRange}</div>
+                          </button>
+                          {idx < (tripData.stages || []).length - 1 && (
+                            <span className="text-slate-300 font-bold text-lg select-none">→</span>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                </>}
               </div>
             )}
 
@@ -24873,6 +25021,7 @@ Quelle: ${lt.url}` : '') }] } });
               <div className="space-y-6">
                 <RtGroupHead title="Reise" sub="Reisen wechseln, laden und als Vorlage speichern." />
                 <a href="assistent.html" data-open-assistant-opt data-readonly-allow className="block rounded-xl border border-slate-300 bg-white p-3 text-sm font-semibold text-[#1F4E8C] no-underline">Routen-Vorschlag: neue Reise aus Start, Ziel und Fixpunkten aufbauen</a>
+                <RtUiSwitch />
                 <TripsCard trip={tripData} />
                 <TemplateBar trip={tripData} onSave={saveTripData} />
                 <RtGroupHead title="Daten & Sicherung" sub="Deine Reise als Datei sichern oder mit Drive verbinden." />

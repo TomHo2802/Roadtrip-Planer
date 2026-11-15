@@ -444,3 +444,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v99
 - Planungsstand unter Planen ersetzt Schritt 4 und 5 des Assistenten. Assistent heisst Reise einrichten (3 Schritte). Schalter Reisedauer festhalten beim Bearbeiten der Route.
+
+## v100
+- Aufgeraeumte Ansicht Planen (Etappenliste oben, Planungsstand und Werkzeuge einklappbar, Menue je Etappe). Schalter fuer die bisherige Ansicht unter Reise wechseln.
