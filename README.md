@@ -447,3 +447,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v100
 - Aufgeraeumte Ansicht Planen (Etappenliste oben, Planungsstand und Werkzeuge einklappbar, Menue je Etappe). Schalter fuer die bisherige Ansicht unter Reise wechseln.
+
+## v101
+- Neues Design: Inter und Space Grotesk (lokal), hell Blau, dunkel Nachtblau mit Strassengelb, Kennzahlen, kompakte Etappenliste mit Strassenlinie, Karte neben der Liste am grossen Bildschirm. Bisherige Ansicht ueber den Schalter.
