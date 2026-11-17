@@ -264,20 +264,22 @@ label small{display:block;font-weight:400}
   });
 
   // ---------- Dienste ----------
-  function fetchJ(url, ms) { var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, ms || 12000); return fetch(url, { signal: ac.signal }).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; }); }
+  var FJC = {}, FJN = 0;
+  function fetchJ(url, ms, cache) { if (cache && FJC[url]) return Promise.resolve(FJC[url]); return fetchJ0(url, ms).then(function (j) { if (cache) { if (++FJN > 400) { FJC = {}; FJN = 0; } FJC[url] = j; } return j; }); }
+  function fetchJ0(url, ms) { var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, ms || 12000); return fetch(url, { signal: ac.signal }).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; }); }
   function geocode(name) {
     var k = name.toLowerCase(); if (S.geo[k]) return Promise.resolve(S.geo[k]);
     return fetchJ('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&q=' + encodeURIComponent(name), 12000).then(function (j) { if (!j || !j[0]) return null; var g = [Number(j[0].lat), Number(j[0].lon)]; S.geo[k] = g; S.cc = S.cc || {}; var ad = j[0].address || {}, c = ad.country_code; if (c) S.cc[k] = c.toUpperCase(); S.lab = S.lab || {}; S.lab[k] = [j[0].name || String(j[0].display_name || '').split(',')[0], ad.state, ad.country].filter(Boolean).join(', '); return g; });
   }
   function hav(a, b) { var R = 6371, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r, x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
   function leg(a, b, geom) {
-    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + (geom ? '?overview=simplified&geometries=geojson' : '?overview=false'), 15000).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); var o = { km: r.distance / 1000, min: r.duration / 60, est: false }; if (geom && r.geometry && r.geometry.coordinates) o.coords = r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }); return o; })
+    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + (geom ? '?overview=simplified&geometries=geojson' : '?overview=false'), 15000, true).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); var o = { km: r.distance / 1000, min: r.duration / 60, est: false }; if (geom && r.geometry && r.geometry.coordinates) o.coords = r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }); return o; })
       .catch(function () { var km = hav(a, b) * 1.3; return { km: km, min: km / 70 * 60, est: true }; });
   }
   function legVia(a, vias, b, geom) {
     vias = vias || []; if (!vias.length) return leg(a, b, geom).then(function (o) { o.vias = []; return o; });
     var seq = [a].concat(vias.map(function (v) { return v.gps; }), [b]);
-    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + seq.map(function (g) { return g[1] + ',' + g[0]; }).join(';') + (geom ? '?overview=simplified&geometries=geojson' : '?overview=false'), 15000).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); var o = { km: r.distance / 1000, min: r.duration / 60, est: false, vias: vias }; if (geom && r.geometry && r.geometry.coordinates) o.coords = r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }); return o; })
+    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + seq.map(function (g) { return g[1] + ',' + g[0]; }).join(';') + (geom ? '?overview=simplified&geometries=geojson' : '?overview=false'), 15000, true).then(function (j) { var r = j.routes && j.routes[0]; if (!r) throw new Error('no route'); var o = { km: r.distance / 1000, min: r.duration / 60, est: false, vias: vias }; if (geom && r.geometry && r.geometry.coordinates) o.coords = r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }); return o; })
       .catch(function () { var km = 0; for (var i = 1; i < seq.length; i++) km += hav(seq[i - 1], seq[i]) * 1.3; return { km: km, min: km / 70 * 60, est: true, vias: vias }; });
   }
   // Anteil eines Punkts entlang der Strecke (naechster Stuetzpunkt)
@@ -306,24 +308,63 @@ label small{display:block;font-weight:400}
     for (i = 1; i < c.length; i++) if (cum[i] >= t) { var f = (t - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return [c[i - 1][0] + (c[i][0] - c[i - 1][0]) * f, c[i - 1][1] + (c[i][1] - c[i - 1][1]) * f]; }
     return c[c.length - 1];
   }
-  // Übernachtungsort nahe einem Streckenpunkt: größte Stadt im Umkreis, sonst Nominatim
-  function pickTown(p) {
-    var q = '[out:json][timeout:25];(node["place"~"^(city|town)$"](around:30000,' + p[0].toFixed(4) + ',' + p[1].toFixed(4) + '););out 80;';
-    return fetchJ('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q), 25000).then(function (j) {
-      var els = (j.elements || []).filter(function (e) { return e.tags && e.tags.name; });
-      if (!els.length) throw new Error('none');
-      els.sort(function (x, y) { var px = Number(x.tags.population) || 0, py = Number(y.tags.population) || 0; if (!px && !py) return hav(p, [x.lat, x.lon]) - hav(p, [y.lat, y.lon]); return py - px; });
-      var e = els[0]; return { name: e.tags.name, gps: [e.lat, e.lon], found: true };
-    }).catch(function () {
-      return fetchJ('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=de&lat=' + p[0] + '&lon=' + p[1], 12000).then(function (j) { var ad = (j && j.address) || {}; var n = ad.city || ad.town || ad.village || ad.municipality || ad.county; return n ? { name: n, gps: p, found: true } : { name: 'Zwischenstopp', gps: p, found: false }; }).catch(function () { return { name: 'Zwischenstopp', gps: p, found: false }; });
+  // Eine Abfrage mit allen Wegpunkten: Teilstrecken je Wegpunktpaar
+  function routeLegs(seq) {
+    return fetchJ('https://router.project-osrm.org/route/v1/driving/' + seq.map(function (g) { return g[1] + ',' + g[0]; }).join(';') + '?overview=false', 20000, true).then(function (j) { var r = j.routes && j.routes[0]; if (!r || !Array.isArray(r.legs) || r.legs.length !== seq.length - 1) throw new Error('no legs'); return r.legs.map(function (l) { return { km: l.distance / 1000, min: l.duration / 60 }; }); });
+  }
+  function estLeg(seq, vias) { var km = 0; for (var i = 1; i < seq.length; i++) km += hav(seq[i - 1], seq[i]) * 1.3; return { km: km, min: km / 70 * 60, est: true, vias: vias || [] }; }
+  // Overpass mit Ausweichservern: der nächste Server startet nach 3,5 s oder sofort bei einem Fehler, die erste gültige Antwort zählt
+  var OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
+  function overpass(q, ms) {
+    var url = '?data=' + encodeURIComponent(q);
+    return new Promise(function (res, rej) {
+      var done = false, started = 0, failed = 0, timer = null;
+      function next() {
+        if (done || started >= OVP.length) return; var u = OVP[started++]; clearTimeout(timer); if (started < OVP.length) timer = setTimeout(next, 3500);
+        fetchJ(u + url, ms, true).then(function (j) { if (done) return; if (!j || !Array.isArray(j.elements)) throw new Error('bad'); done = true; clearTimeout(timer); res(j); }).catch(function (e) { if (done) return; if (++failed >= OVP.length) { done = true; clearTimeout(timer); rej(e); } else next(); });
+      }
+      next();
     });
   }
+  // Übernachtungsorte nahe mehreren Streckenpunkten: je Punkt die größte Stadt im Umkreis von 30 km, alle in einer Abfrage, sonst Nominatim
+  var TOWNC = {};
+  function townKey(p) { return p[0].toFixed(2) + ',' + p[1].toFixed(2); }
+  function bestTown(p, els) {
+    els = els.filter(function (e) { return e.tags && e.tags.name && e.lat != null; }); if (!els.length) return null;
+    els.sort(function (x, y) { var px = Number(x.tags.population) || 0, py = Number(y.tags.population) || 0; if (!px && !py) return hav(p, [x.lat, x.lon]) - hav(p, [y.lat, y.lon]); return py - px; });
+    return { name: els[0].tags.name, gps: [els[0].lat, els[0].lon], found: true };
+  }
+  function nomReverse(p) { return fetchJ('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=de&lat=' + p[0] + '&lon=' + p[1], 12000).then(function (j) { var ad = (j && j.address) || {}; var n = ad.city || ad.town || ad.village || ad.municipality || ad.county; return n ? { name: n, gps: p, found: true } : { name: 'Zwischenstopp', gps: p, found: false }; }).catch(function () { return { name: 'Zwischenstopp', gps: p, found: false }; }); }
+  async function pickTowns(list, onProg) {
+    var out = new Array(list.length), todo = [], i;
+    for (i = 0; i < list.length; i++) { var c = TOWNC[townKey(list[i])]; if (c) out[i] = c; else todo.push(i); }
+    for (var c0 = 0; c0 < todo.length; c0 += 20) {
+      var part = todo.slice(c0, c0 + 20), q = '[out:json][timeout:20];' + part.map(function (ix, k) { var p = list[ix]; return 'make p n=' + k + ';out;node["place"~"^(city|town)$"](around:30000,' + p[0].toFixed(4) + ',' + p[1].toFixed(4) + ');out 60;'; }).join('');
+      var els = null; try { els = (await overpass(q, 15000)).elements || []; } catch (e) { els = null; }
+      if (els) {
+        var grp = part.map(function () { return []; }), cur = -1, mark = false;
+        els.forEach(function (e) { if (e.type === 'p' && e.tags && e.tags.n != null) { cur = Number(e.tags.n); mark = true; return; } if (cur >= 0 && cur < grp.length) grp[cur].push(e); });
+        if (!mark) els.forEach(function (e) { if (e.lat == null) return; part.forEach(function (ix, k) { if (hav(list[ix], [e.lat, e.lon]) <= 32) grp[k].push(e); }); });
+        part.forEach(function (ix, k) { var t = bestTown(list[ix], grp[k]); if (t) { out[ix] = t; TOWNC[townKey(list[ix])] = t; } });
+      }
+      if (onProg) onProg(Math.min(todo.length, c0 + 20), todo.length);
+    }
+    // Ersatz für Punkte ohne Treffer: Nominatim, höchstens eine Anfrage pro Sekunde
+    var last = 0;
+    for (i = 0; i < list.length; i++) {
+      if (out[i]) continue; var w = 1100 - (Date.now() - last); if (last && w > 0) await new Promise(function (r) { setTimeout(r, w); });
+      last = Date.now(); out[i] = await nomReverse(list[i]); if (out[i].found) TOWNC[townKey(list[i])] = out[i];
+    }
+    return out;
+  }
+  function pickTown(p) { return pickTowns([p]).then(function (r) { return r[0]; }); }
+  function pool(items, n, fn) { var res = new Array(items.length), i = 0; function work() { if (i >= items.length) return Promise.resolve(); var k = i++; return Promise.resolve().then(function () { return fn(items[k], k); }).then(function (v) { res[k] = v; }, function () { res[k] = null; }).then(work); } var ws = []; for (var w = 0; w < Math.min(n, items.length); w++) ws.push(work()); return Promise.all(ws).then(function () { return res; }); }
   // Sehenswürdigkeiten-Dichte: Anzahl georeferenzierter Wikipedia-Artikel im Umkreis von 10 km
   var wikiDown = false;
   function wikiScore(g) {
     S.score = S.score || {}; var k = key(g); if (S.score[k] != null) return Promise.resolve(S.score[k]);
     if (wikiDown) return Promise.resolve(null);
-    return fetchJ('https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=' + g[0].toFixed(4) + '%7C' + g[1].toFixed(4) + '&gsradius=10000&gslimit=500&format=json&origin=*', 9000).then(function (j) { var n = j && j.query && j.query.geosearch ? j.query.geosearch.length : null; if (n != null) S.score[k] = n; return n; }).catch(function () { wikiDown = true; return null; });
+    return fetchJ('https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=' + g[0].toFixed(4) + '%7C' + g[1].toFixed(4) + '&gsradius=10000&gslimit=500&format=json&origin=*', 9000, true).then(function (j) { var n = j && j.query && j.query.geosearch ? j.query.geosearch.length : null; if (n != null) S.score[k] = n; return n; }).catch(function () { wikiDown = true; return null; });
   }
   function prog(p, l) { $('[data-prog]').hidden = false; $('[data-progbar]').style.width = p + '%'; $('[data-proglabel]').textContent = l; }
 
@@ -477,12 +518,12 @@ label small{display:block;font-weight:400}
   function wait(ms) { return new Promise(function (r) { setTimeout(r, calm ? 0 : ms); }); }
   function liveStart() {
     liveEnd(); var box = $('[data-result]'); box.innerHTML = '<div data-livemap class="map" role="img" aria-label="Karte: Aufbau des Vorschlags"></div><p class="mute" style="margin:0"><b>So entsteht der Vorschlag</b></p><ol class="livelog mute" data-livelog aria-live="polite"></ol>';
-    LIVE = { map: null, pts: [], log: [], t0: Date.now() };
+    LIVE = { map: null, pts: [], log: [], t0: Date.now(), step: 160 };
     if (window.L) { try { var m = window.L.map($('[data-livemap]'), { scrollWheelZoom: true, zoomControl: false }); window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap-Mitwirkende' }).addTo(m); m.setView([20, 0], 2); LIVE.map = m; } catch (e) { LIVE.map = null; } }
     $('[data-sec=result]').scrollIntoView({ block: 'start', behavior: calm ? 'auto' : 'smooth' });
   }
   function liveEnd() { if (LIVE && LIVE.map) { try { LIVE.map.remove(); } catch (e) {} } LIVE = null; }
-  function liveLog(html) { if (!LIVE) return Promise.resolve(); LIVE.log.push(html); var ol = $('[data-livelog]'); if (ol) { var li = document.createElement('li'); li.innerHTML = html; ol.appendChild(li); ol.scrollTop = ol.scrollHeight; } return wait(260); }
+  function liveLog(html) { if (!LIVE) return Promise.resolve(); LIVE.log.push(html); var ol = $('[data-livelog]'); if (ol) { var li = document.createElement('li'); li.innerHTML = html; ol.appendChild(li); ol.scrollTop = ol.scrollHeight; } return wait(LIVE.step || 160); }
   function liveFit() { if (!LIVE || !LIVE.map || !LIVE.pts.length) return; try { if (LIVE.pts.length === 1) LIVE.map.setView(LIVE.pts[0], 6); else LIVE.map.fitBounds(window.L.latLngBounds(LIVE.pts), { padding: [40, 40], animate: !calm }); } catch (e) {} }
   function livePoint(g, label, cls, name) {
     if (!LIVE || !g) return; LIVE.pts.push(g); if (!LIVE.map) return;
@@ -579,30 +620,56 @@ label small{display:block;font-weight:400}
       var airport = null;
       if (I.mode !== 'car' && I.home && I.homeAirport) { prog(38, 'Fahrt zum Flughafen'); try { var gh = await geocode(I.home), ga = await geocode(I.homeAirport); if (gh && ga) { var la = await leg(gh, ga); airport = { from: I.home, to: I.homeAirport, km: Math.round(la.km), min: Math.round(la.min), est: !!la.est }; await liveLog('Fahrt zum Flughafen: ' + esc(first(I.home)) + ' → ' + esc(first(I.homeAirport)) + ', ' + kmTxt(la)); } } catch (e) { airport = null; } }
       { var all0 = []; pts.forEach(function (p0, k0) { all0.push(p0.gps); (legV[k0] || []).forEach(function (v0) { all0.push(v0.gps); }); }); liveLine(all0, true); await liveLog('Reihenfolge festgelegt: ' + pts.length + ' Orte' + (legV.reduce(function (a0, v0) { return a0 + v0.length; }, 0) ? ' und ' + legV.reduce(function (a0, v0) { return a0 + v0.length; }, 0) + ' Stopp(s) auf dem Weg' : '') + '. Jetzt die Strecken, Tagesgrenze ' + Number(I.maxKm) + ' km' + (edgeRule(I).edge ? ', erste und letzte Etappe ' + edgeRule(I).edge + ' km' : '') + '.'); }
-      var legs = [], withStops = [pts[0]], nL = pts.length - 1;
+      var legs = [], withStops = [pts[0]], nL = pts.length - 1, L0 = [], FR = [];
+      // 1) Strecken zwischen den festen Punkten
       for (var j = 0; j < nL; j++) {
-        prog(40 + Math.round(50 * j / nL), 'Berechne Strecke ' + (j + 1) + ' von ' + nL);
-        var l0 = await legVia(pts[j].gps, legV[j], pts[j + 1].gps, true), fr = splitFracs(I, l0.km, j, nL);
+        prog(40 + Math.round(30 * j / nL), 'Berechne Strecke ' + (j + 1) + ' von ' + nL);
+        var l0 = await legVia(pts[j].gps, legV[j], pts[j + 1].gps, true), fr = splitFracs(I, l0.km, j, nL); L0.push(l0); FR.push(fr);
         liveLine(l0.coords && l0.coords.length > 1 ? l0.coords : [pts[j].gps].concat(legV[j].map(function (v) { return v.gps; }), [pts[j + 1].gps]), false);
         await liveLog('Strecke ' + esc(first(pts[j].name)) + ' → ' + esc(first(pts[j + 1].name)) + ': ' + kmTxt(l0) + '. ' + (fr.length ? 'Zu lang für einen Tag (Grenze ' + (legLimit(I, j, nL) !== Number(I.maxKm) ? (j === 0 ? 'am ersten Tag ' : 'am letzten Tag ') + legLimit(I, j, nL) + ' km, sonst ' + Number(I.maxKm) : Number(I.maxKm)) + ' km), ' + fr.length + (fr.length > 1 ? ' Zwischenübernachtungen' : ' Zwischenübernachtung') + ' nötig.' : 'Passt in einen Tag.'));
-        if (fr.length) {
-          var prev = pts[j], vf = legV[j].map(function (v) { return { v: v, f: fracAlong(pts[j].gps, pts[j + 1].gps, l0, v.gps) }; }), lastF = 0;
-          for (var s = 0; s < fr.length; s++) {
-            prog(40 + Math.round(50 * j / nL), 'Suche Übernachtungsort ' + (s + 1) + ' von ' + fr.length + ' zwischen ' + pts[j].name.split(',')[0] + ' und ' + pts[j + 1].name.split(',')[0]);
-            var tp = await pickTown(pointAt(pts[j].gps, pts[j + 1].gps, l0, fr[s]));
-            var stop = { name: tp.name, gps: tp.gps, date: '', nights: '', auto: true, unnamed: !tp.found };
-            var sub = vf.filter(function (x) { return (s === 0 || x.f > lastF) && x.f <= fr[s]; }).map(function (x) { return x.v; });
-            legs.push(await legVia(prev.gps, sub, stop.gps)); withStops.push(stop); prev = stop; lastF = fr[s];
-            livePoint(stop.gps, '', 'auto', stop.name); await liveLog('Zwischenübernachtung nach etwa ' + Math.round(l0.km * fr[s]) + ' km: <b>' + esc(stop.name) + '</b>' + (tp.found ? ' (größte Stadt in der Nähe der Route)' : ' (kein Ortsname gefunden)'));
-          }
-          legs.push(await legVia(prev.gps, vf.filter(function (x) { return x.f > lastF; }).map(function (x) { return x.v; }), pts[j + 1].gps)); withStops.push(pts[j + 1]);
-        } else { legs.push(l0); withStops.push(pts[j + 1]); }
+      }
+      // 2) Alle Übernachtungsorte in einer gemeinsamen Abfrage
+      var spots = []; FR.forEach(function (fr0, j0) { fr0.forEach(function (f0) { spots.push(pointAt(pts[j0].gps, pts[j0 + 1].gps, L0[j0], f0)); }); });
+      if (LIVE && spots.length > 6) LIVE.step = 60;
+      var towns = [];
+      if (spots.length) { prog(72, 'Suche ' + spots.length + (spots.length > 1 ? ' Übernachtungsorte' : ' Übernachtungsort')); await liveLog('Suche ' + (spots.length > 1 ? 'alle ' + spots.length + ' Übernachtungsorte in einer gemeinsamen Abfrage' : 'den Übernachtungsort') + ' …'); towns = await pickTowns(spots, function (d0, t0) { prog(72 + Math.round(12 * d0 / t0), 'Übernachtungsorte: ' + d0 + ' von ' + t0); }); }
+      // 3) Teilstrecken je Abschnitt mit einer einzigen Streckenabfrage
+      var ti = 0;
+      for (var j = 0; j < nL; j++) {
+        var l0 = L0[j], fr = FR[j];
+        if (!fr.length) { legs.push(l0); withStops.push(pts[j + 1]); continue; }
+        prog(84 + Math.round(8 * j / nL), 'Teilstrecken ' + first(pts[j].name) + ' → ' + first(pts[j + 1].name));
+        var vf = legV[j].map(function (v) { return { v: v, f: fracAlong(pts[j].gps, pts[j + 1].gps, l0, v.gps) }; }), lastF = 0, segs = [];
+        for (var s = 0; s < fr.length; s++) {
+          var tp = towns[ti++], stop = { name: tp.name, gps: tp.gps, date: '', nights: '', auto: true, unnamed: !tp.found };
+          segs.push({ vias: vf.filter(function (x) { return (s === 0 || x.f > lastF) && x.f <= fr[s]; }).map(function (x) { return x.v; }), to: stop, tp: tp, f: fr[s] }); lastF = fr[s];
+        }
+        segs.push({ vias: vf.filter(function (x) { return x.f > lastF; }).map(function (x) { return x.v; }), to: pts[j + 1] });
+        var seq = [pts[j].gps], cnt = []; segs.forEach(function (sg) { sg.vias.forEach(function (v) { seq.push(v.gps); }); seq.push(sg.to.gps); cnt.push(sg.vias.length + 1); });
+        var parts = null; if (!l0.est) { try { parts = await routeLegs(seq); } catch (e) { parts = null; } }
+        var from = pts[j], off = 0;
+        for (var q = 0; q < segs.length; q++) {
+          var sg = segs[q], lg;
+          if (parts) { var km1 = 0, mi1 = 0; for (var k1 = 0; k1 < cnt[q]; k1++) { km1 += parts[off + k1].km; mi1 += parts[off + k1].min; } lg = { km: km1, min: mi1, est: false, vias: sg.vias }; }
+          else if (l0.est) lg = estLeg([from.gps].concat(sg.vias.map(function (v) { return v.gps; }), [sg.to.gps]), sg.vias);
+          else lg = await legVia(from.gps, sg.vias, sg.to.gps);
+          off += cnt[q]; legs.push(lg); withStops.push(sg.to); from = sg.to;
+          if (sg.tp) { livePoint(sg.to.gps, '', 'auto', sg.to.name); await liveLog('Zwischenübernachtung nach etwa ' + Math.round(l0.km * sg.f) + ' km: <b>' + esc(sg.to.name) + '</b>' + (sg.tp.found ? ' (größte Stadt in der Nähe der Route)' : ' (kein Ortsname gefunden)')); }
+        }
       }
       pts = withStops;
-      for (var si = 1; si < pts.length - 1; si++) { var pp = pts[si]; if (!pp.date && (pp.nights === '' || pp.nights == null)) { prog(92 + Math.round(7 * si / pts.length), 'Prüfe Sehenswürdigkeiten: ' + pp.name.split(',')[0]); var sc = await wikiScore(pp.gps); if (pp.aiW) sc = pp.aiW * 1000; if (sc != null) { pp.score = sc; if (pp.aiW) continue; await liveLog('Sehenswürdigkeiten bei ' + esc(first(pp.name)) + ': ' + (sc >= 500 ? '500+' : sc) + ' Wikipedia-Artikel im Umkreis von 10 km'); } } }
+      // 4) Sehenswürdigkeiten der Orte mit freien Tagen, mehrere Abfragen gleichzeitig
+      var cand = []; for (var si = 1; si < pts.length - 1; si++) { var pp = pts[si]; if (!pp.date && (pp.nights === '' || pp.nights == null)) cand.push(pp); }
+      if (cand.length) {
+        prog(92, 'Prüfe Sehenswürdigkeiten (' + cand.length + ' Orte)');
+        var scs = await pool(cand, 4, function (p1) { return p1.aiW ? p1.aiW * 1000 : wikiScore(p1.gps); }), shown = [];
+        cand.forEach(function (p1, k2) { var sc = scs[k2]; if (sc == null) return; p1.score = sc; if (!p1.aiW) shown.push('<b>' + esc(first(p1.name)) + '</b> ' + (sc >= 500 ? '500+' : sc)); });
+        if (shown.length === 1) await liveLog('Sehenswürdigkeiten bei ' + shown[0] + ' Wikipedia-Artikel im Umkreis von 10 km');
+        else if (shown.length) await liveLog('Sehenswürdigkeiten (Wikipedia-Artikel im Umkreis von 10 km): ' + shown.join(', '));
+      }
       prog(100, 'Fertig');
       var r = plan(I, pts, legs);
-      { var ex0 = r.stages.filter(function (x) { return x.extra; }), tn0 = r.stages.reduce(function (a0, x) { return a0 + x.nights; }, 0); await liveLog('Tage verteilt: ' + diffDays(I.startDate, I.endDate) + ' Nächte Reisedauer, ' + r.stages.length + ' Etappen.' + (ex0.length ? ' Zusätzliche Tage für ' + ex0.map(function (x) { return '<b>' + esc(first(x.toCity)) + '</b> (+' + x.extra + ')'; }).join(', ') + '.' : '')); if (r.warns.length) await liveLog('Hinweis: ' + esc(r.warns[0])); await wait(700); }
+      { var ex0 = r.stages.filter(function (x) { return x.extra; }), tn0 = r.stages.reduce(function (a0, x) { return a0 + x.nights; }, 0); await liveLog('Tage verteilt: ' + diffDays(I.startDate, I.endDate) + ' Nächte Reisedauer, ' + r.stages.length + ' Etappen.' + (ex0.length ? ' Zusätzliche Tage für ' + ex0.map(function (x) { return '<b>' + esc(first(x.toCity)) + '</b> (+' + x.extra + ')'; }).join(', ') + '.' : '')); if (r.warns.length) await liveLog('Hinweis: ' + esc(r.warns[0])); if (LIVE) await liveLog('Berechnet in ' + String(Math.round((Date.now() - LIVE.t0) / 100) / 10).replace('.', ',') + ' Sekunden.'); await wait(500); }
       var liveLogKeep = LIVE ? LIVE.log.slice() : []; liveEnd();
       S.proposal = { edited: false, log: liveLogKeep, airport: airport, resolved: resolved, stages: r.stages, warns: r.warns, start: { name: pts[0].name, gps: pts[0].gps }, raw: { pts: pts, legs: legs }, created: Date.now() }; S.climate = null; S.status = 'proposal'; S.trip = null; save();
       $('[data-prog]').hidden = true; renderResult();
@@ -1180,7 +1247,7 @@ label small{display:block;font-weight:400}
   var editReq = null; if (location.hash === '#edit') { try { editReq = JSON.parse(localStorage.getItem(EDIT_KEY) || 'null'); history.replaceState(null, '', location.pathname); } catch (e) { editReq = null; } }
   if (editReq && editReq.stages) importTrip(editReq); else if (S.proposal && S.status !== 'input') renderResult();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
-  window.__assistant = { aiPrompt: function () { return aiPrompt(); }, aiExtract: aiExtract, plan: plan, S: function () { return S; }, mergedTrip: function () { return mergedTrip(); }, splitFracs: splitFracs, legLimit: legLimit };
+  window.__assistant = { aiPrompt: function () { return aiPrompt(); }, aiExtract: aiExtract, plan: plan, S: function () { return S; }, mergedTrip: function () { return mergedTrip(); }, splitFracs: splitFracs, legLimit: legLimit, clearCache: function () { FJC = {}; FJN = 0; TOWNC = {}; S.score = {}; } };
 })();
 </script>
 </body>

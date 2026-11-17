@@ -450,3 +450,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v101
 - Neues Design: Inter und Space Grotesk (lokal), hell Blau, dunkel Nachtblau mit Strassengelb, Kennzahlen, kompakte Etappenliste mit Strassenlinie, Karte neben der Liste am grossen Bildschirm. Bisherige Ansicht ueber den Schalter.
+
+## v102
+- Routen-Vorschlag deutlich schneller: alle Zwischenuebernachtungen in einer gemeinsamen Overpass-Abfrage mit Ausweichservern, eine Streckenabfrage je Abschnitt, Sehenswuerdigkeit parallel, kuerzere Pausen, Zwischenspeicher in der Sitzung.
+- Vorschlaege entlang der Etappe: OpenStreetMap standardmaessig mit mehr Arten, nur bekannte Orte standardmaessig aus, Wikipedia-Filter gelockert, dichtere Suche entlang langer Strecken.

@@ -17537,14 +17537,15 @@ var qrcode = function() {
     // ===== Vorschläge entlang der Etappe (OpenStreetMap/Overpass) =====
     const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
     const SUG_CATS = {
-      sight: { label: 'Sehenswürdigkeiten', q: ['["tourism"~"^(attraction|viewpoint)$"]'] },
-      museum: { label: 'Museen & Kultur', q: ['["tourism"~"^(museum|gallery)$"]'] },
-      fun: { label: 'Freizeit & Tiere', q: ['["tourism"~"^(zoo|aquarium|theme_park)$"]', '["leisure"="water_park"]'] },
-      nature: { label: 'Natur & Strand', q: ['["natural"~"^(beach|spring)$"]', '["leisure"="nature_reserve"]'] },
-      history: { label: 'Historisches', q: ['["historic"~"^(monument|memorial|castle|fort|ruins|archaeological_site)$"]'] },
+      sight: { label: 'Sehenswürdigkeiten', q: ['["tourism"~"^(attraction|viewpoint)$"]', '["man_made"~"^(lighthouse|pier)$"]'] },
+      museum: { label: 'Museen & Kultur', q: ['["tourism"~"^(museum|gallery)$"]', '["amenity"~"^(theatre|arts_centre|planetarium)$"]'] },
+      fun: { label: 'Freizeit & Tiere', q: ['["tourism"~"^(zoo|aquarium|theme_park)$"]', '["leisure"~"^(water_park|garden)$"]'] },
+      nature: { label: 'Natur & Strand', q: ['["natural"~"^(beach|spring|waterfall|peak|cave_entrance|arch|hot_spring|geyser)$"]', '["leisure"="nature_reserve"]', '["boundary"="national_park"]'] },
+      history: { label: 'Historisches', q: ['["historic"~"^(monument|memorial|castle|fort|ruins|archaeological_site|battlefield|ship|manor|building|lighthouse|mine)$"]'] },
       shop: { label: 'Mall / Shopping', q: ['["shop"~"^(mall|department_store|outlet)$"]', '["amenity"="marketplace"]'] },
       food: { label: 'Restaurant / Fastfood', q: ['["amenity"~"^(restaurant|fast_food|cafe)$"]'] }
     };
+    const RT_WIKI_PLACE = /\b(city|town|village|borough|township|county|census|unincorporated|community|suburb|hamlet|municipality|neighbou?rhood|human settlement|populated place|county seat|region|metropolitan)\b/i;
     let SUG_CACHE = null; // überlebt Tab-Wechsel innerhalb der Sitzung
 
     const catLabelOf = (t) => {
@@ -17558,7 +17559,18 @@ var qrcode = function() {
       if (t.leisure === 'water_park') return 'Wasserpark';
       if (t.leisure === 'nature_reserve' || t.boundary === 'national_park') return 'Naturschutzgebiet';
       if (t.natural === 'beach') return 'Strand';
-      if (t.natural === 'spring') return 'Quelle';
+      if (t.natural === 'spring' || t.natural === 'hot_spring') return 'Quelle';
+      if (t.natural === 'waterfall') return 'Wasserfall';
+      if (t.natural === 'peak') return 'Berg / Gipfel';
+      if (t.natural === 'cave_entrance') return 'Höhle';
+      if (t.natural === 'arch') return 'Felsbogen';
+      if (t.natural === 'geyser') return 'Geysir';
+      if (t.man_made === 'lighthouse' || t.historic === 'lighthouse') return 'Leuchtturm';
+      if (t.man_made === 'pier') return 'Pier';
+      if (t.amenity === 'theatre') return 'Theater';
+      if (t.amenity === 'arts_centre') return 'Kulturzentrum';
+      if (t.amenity === 'planetarium') return 'Planetarium';
+      if (t.leisure === 'garden') return 'Garten';
       if (t.shop === 'mall') return 'Mall / Einkaufszentrum';
       if (t.shop === 'department_store') return 'Kaufhaus';
       if (t.shop === 'outlet') return 'Outlet';
@@ -17673,7 +17685,7 @@ var qrcode = function() {
       const [stageIdx, setStageIdx] = useState(init.stageIdx != null && stages[init.stageIdx] ? init.stageIdx : firstWithHotel);
       const [radius, setRadius] = useState(init.radius || 5);
       const [maxDetour, setMaxDetour] = useState(init.maxDetour != null ? init.maxDetour : 0);
-      const [known, setKnown] = useState(init.known != null ? init.known : true);
+      const [known, setKnown] = useState(init.known != null ? init.known : false);
       const [cats, setCats] = useState({ sight: true, museum: true, fun: true, nature: true, history: true, shop: false, food: false, ...(init.cats || {}) });
       const [results, setResults] = useState(init.results || []);
       const [routeInfo, setRouteInfo] = useState(init.routeInfo || null);
@@ -17685,7 +17697,7 @@ var qrcode = function() {
       const [detailVer, setDetailVer] = useState(0);
       const mountedRef = useRef(true);
       useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
-      const [useOsm, setUseOsm] = useState(init.useOsm != null ? init.useOsm : false);
+      const [useOsm, setUseOsm] = useState(init.useOsm != null ? init.useOsm : true);
       const [shown, setShown] = useState(15);
       const [sortBy, setSortBy] = useState('pos');
       const saved = trip.savedSuggestions || [];
@@ -17732,7 +17744,7 @@ var qrcode = function() {
           let samples;
           if (A) {
             let totalLen = 0; for (let i = 0; i < coords.length - 1; i++) totalLen += haversineM(coords[i], coords[i + 1]);
-            samples = sampleAlong(coords, Math.max(rEff * 1.6, totalLen / 44, 1500));
+            samples = sampleAlong(coords, Math.max(rEff * 1.5, totalLen / 80, 1500));
           } else samples = [B];
           let wikiFail = 0;
           const geoRes = await runPool(samples, 4, async (pt, idx) => {
@@ -17759,8 +17771,8 @@ var qrcode = function() {
             const matched = active.some((k) => WIKI_RULES[k].test(`${desc} ${p.title}`));
             const bizOk = active.some((k) => (k === 'shop' || k === 'food') && WIKI_RULES[k].test(desc));
             if (WIKI_EXCLUDE.test(desc) && !bizOk) return;
-            if (!matched && (known || desc)) return;
-            cands.push({ key: `wp-${p.pageid}`, name: p.title, gps: p.gps, catLabel: wikiCatLabel(desc), isKnown: true, address: '', website: pg.fullurl || '', src: 'Wikipedia' });
+            if (!matched && (known || RT_WIKI_PLACE.test(desc) || RT_WIKI_PLACE.test(p.title))) return;
+            cands.push({ key: `wp-${p.pageid}`, name: p.title, gps: p.gps, catLabel: matched ? wikiCatLabel(desc) : (desc ? wikiCatLabel(desc) : 'Ort von Interesse'), isKnown: true, rank: matched ? 3 : 1, address: '', website: pg.fullurl || '', src: 'Wikipedia' });
           });
 
           // 2b) Optional: OpenStreetMap (Overpass), nicht kritisch
@@ -17777,19 +17789,21 @@ var qrcode = function() {
               if (!A) chunks.push(`${B[0]},${B[1]}`);
               else { const size = 8; for (let st = 0; st < thin.length - 1; st += size - 1) { const part = thin.slice(st, st + size); if (part.length >= 2) chunks.push(part.map((c) => `${c[0].toFixed(5)},${c[1].toFixed(5)}`).join(',')); } }
               const merged = new Map(); let failed = 0; const t0 = Date.now();
-              for (let ci = 0; ci < chunks.length; ci++) {
-                setProgress(`OpenStreetMap-Abschnitt ${ci + 1} von ${chunks.length} …`);
-                if (Date.now() - t0 > 90000) { failed += chunks.length - ci; break; }
+              let doneC = 0;
+              setProgress(`OpenStreetMap: ${chunks.length} Abschnitte …`);
+              await runPool(chunks, 3, async (chunk, ci) => {
+                if (Date.now() - t0 > 90000 || (failed >= 3 && merged.size === 0)) { failed += 1; return; }
                 let d = null;
-                for (const url of OVERPASS_URLS) { try { d = await fetchJsonTimeout(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(makeBody(chunks[ci])) }, 20000); break; } catch (e) { /* nächster Server */ } }
-                if (d) (d.elements || []).forEach((el) => merged.set(`${el.type}-${el.id}`, el)); else { failed += 1; if (failed >= 2 && merged.size === 0) break; }
-              }
+                for (let ui = 0; ui < OVERPASS_URLS.length && !d; ui++) { const url = OVERPASS_URLS[(ci + ui) % OVERPASS_URLS.length]; try { d = await fetchJsonTimeout(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(makeBody(chunk)) }, 15000); } catch (e) { /* nächster Server */ } }
+                if (d) (d.elements || []).forEach((el) => merged.set(`${el.type}-${el.id}`, el)); else failed += 1;
+                doneC += 1; setProgress(`OpenStreetMap: ${doneC} von ${chunks.length} Abschnitten …`);
+              });
               if (failed) notes.push(`OpenStreetMap: ${failed} von ${chunks.length} Abschnitten nicht erreichbar (Dienst überlastet)`);
               merged.forEach((el) => {
                 const t = el.tags || {}; const lat = el.lat != null ? el.lat : el.center && el.center.lat, lon = el.lon != null ? el.lon : el.center && el.center.lon;
                 const name = t['name:de'] || t.name; if (lat == null || lon == null || !name) return;
                 const addr = [[t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' '), t['addr:city']].filter(Boolean).join(', ');
-                cands.push({ key: `osm-${el.type}-${el.id}`, name, gps: [lat, lon], catLabel: catLabelOf(t), isKnown: !!(t.wikidata || t.wikipedia), address: addr, website: t.website || t['contact:website'] || '', src: 'OpenStreetMap', tags: { description: t['description:de'] || t.description || '', opening_hours: t.opening_hours || '', cuisine: t.cuisine || '' } });
+                cands.push({ key: `osm-${el.type}-${el.id}`, name, gps: [lat, lon], catLabel: catLabelOf(t), isKnown: !!(t.wikidata || t.wikipedia), rank: (t.wikidata || t.wikipedia) ? 3 : 2, address: addr, website: t.website || t['contact:website'] || '', src: 'OpenStreetMap', tags: { description: t['description:de'] || t.description || '', opening_hours: t.opening_hours || '', cuisine: t.cuisine || '' } });
               });
             } catch (e) { notes.push('OpenStreetMap-Zusatzsuche fehlgeschlagen'); }
           }
@@ -17815,8 +17829,8 @@ var qrcode = function() {
               for (const o of seen.near || []) { if (haversineM(o.gps, s.gps) < 150) return false; }
               seen.add(k); (seen.near = seen.near || []).push(s); return true;
             });
-          list.sort((a, b) => (b.isKnown - a.isKnown) || (a.distM - b.distM));
-          list = list.slice(0, 80);
+          list.sort((a, b) => ((b.rank || 2) - (a.rank || 2)) || (a.distM - b.distM));
+          list = list.slice(0, 150);
           setRouteInfo(ri); setResults(list); if (list.length) setCtrlOpen(false);
           const extra = notes.length ? notes.join('. ') + '. Zum Ergänzen einfach erneut suchen. ' : '';
           if (!list.length) setMsg(extra + 'Keine passenden Orte gefunden. Vergrößere den Umkreis, wähle mehr Kategorien oder schalte „nur bekannte Orte“ aus.'); else if (extra) setMsg(extra);
@@ -17835,7 +17849,7 @@ var qrcode = function() {
       const keep = (s) => { onSave({ ...trip, savedSuggestions: [...saved.filter((x) => x.id !== s.key), toSavedEntry(s)] }, `„${s.name}“ in der Merkliste gespeichert`); drop(s.key); };
       const keepRest = () => { const rest = sorted.map(toSavedEntry); const ids = new Set(rest.map((x) => x.id)); onSave({ ...trip, savedSuggestions: [...saved.filter((x) => !ids.has(x.id)), ...rest] }, `${rest.length} Vorschläge in der Merkliste gespeichert`); setResults([]); };
 
-      const sorted = [...results].sort((a, b) => (sortBy === 'pos' ? a.pos - b.pos : sortBy === 'detour' ? a.distM - b.distM : (b.isKnown - a.isKnown) || (a.distM - b.distM)));
+      const sorted = [...results].sort((a, b) => (sortBy === 'pos' ? a.pos - b.pos : sortBy === 'detour' ? a.distM - b.distM : ((b.rank || 2) - (a.rank || 2)) || (a.distM - b.distM)));
       useEffect(() => {
         loadDetails(sorted.slice(0, shown)).then((changed) => { if (changed && mountedRef.current) setDetailVer((v) => v + 1); });
       }, [results, shown, sortBy]);
@@ -17888,7 +17902,7 @@ var qrcode = function() {
               <div className="flex flex-wrap gap-1.5">
                 {Object.keys(SUG_CATS).map((k) => <React.Fragment key={k}>{chipBtn(cats[k], SUG_CATS[k].label, () => setCats((c) => ({ ...c, [k]: !c[k] })))}</React.Fragment>)}
                 {chipBtn(known, '★ nur bekannte Orte', () => setKnown((v) => !v))}
-                {chipBtn(useOsm, '＋ OpenStreetMap (langsamer)', () => setUseOsm((v) => !v))}
+                {chipBtn(useOsm, '＋ OpenStreetMap mitsuchen', () => setUseOsm((v) => !v))}
                 {(cats.shop || cats.food) && !useOsm && <span className="text-[11px] text-slate-500 self-center">Mall / Restaurant werden automatisch über OpenStreetMap gesucht.</span>}
               </div>
               {!A && B && <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2">Für diese Etappe gibt es keinen Start-Hotelpunkt. Gesucht wird deshalb im Umkreis um das Hotel (passend für „Aktionen vor Ort“).</p>}
@@ -19443,7 +19457,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 101</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 102</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19453,7 +19467,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 101'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 102'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
