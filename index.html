@@ -17546,6 +17546,29 @@ var qrcode = function() {
       food: { label: 'Restaurant / Fastfood', q: ['["amenity"~"^(restaurant|fast_food|cafe)$"]'] }
     };
     const RT_WIKI_PLACE = /\b(city|town|village|borough|township|county|census|unincorporated|community|suburb|hamlet|municipality|neighbou?rhood|human settlement|populated place|county seat|region|metropolitan)\b/i;
+    // ===== v103: Wikivoyage (Sehenswertes / Aktivitäten) =====
+    const WV_API = 'https://en.wikivoyage.org/w/api.php';
+    const rtWvClean = (v) => String(v || '')
+      .replace(/<ref[\s\S]*?(<\/ref>|\/>)/gi, '').replace(/<[^>]+>/g, '')
+      .replace(/\{\{[^{}]*\}\}/g, '').replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, '$1')
+      .replace(/\[https?:\/\/\S+\s+([^\]]+)\]/g, '$1').replace(/\[https?:\/\/[^\]]+\]/g, '')
+      .replace(/'{2,}/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+    const rtWvSplit = (body) => { const out = []; let d = 0, cur = ''; for (let i = 0; i < body.length; i++) { const c = body[i], n = body[i + 1]; if ((c === '{' && n === '{') || (c === '[' && n === '[')) { d++; cur += c + n; i++; continue; } if ((c === '}' && n === '}') || (c === ']' && n === ']')) { d--; cur += c + n; i++; continue; } if (c === '|' && d === 0) { out.push(cur); cur = ''; continue; } cur += c; } out.push(cur); return out; };
+    // Einträge {{see|…}}, {{do|…}} und {{listing|type=see|…}} aus dem Wikitext eines Wikivoyage-Artikels
+    const rtWvParse = (text) => {
+      const res = []; const re = /\{\{\s*(see|do|listing|marker)\s*\|/gi; let m;
+      while ((m = re.exec(text || ''))) {
+        let d = 0, k = m.index; for (; k < text.length - 1; k++) { if (text[k] === '{' && text[k + 1] === '{') { d++; k++; } else if (text[k] === '}' && text[k + 1] === '}') { d--; k++; if (d === 0) break; } }
+        const body = text.slice(m.index + 2, k - 1); re.lastIndex = k;
+        const parts = rtWvSplit(body), p = {}; parts.slice(1).forEach((x) => { const e = x.indexOf('='); if (e > 0) p[x.slice(0, e).trim().toLowerCase()] = x.slice(e + 1).trim(); });
+        let type = m[1].toLowerCase(); if (type === 'listing' || type === 'marker') type = String(p.type || '').toLowerCase();
+        if (type !== 'see' && type !== 'do') continue;
+        const name = rtWvClean(p.name); const lat = parseFloat(p.lat), lon = parseFloat(p.long != null ? p.long : p.lon);
+        if (!name) continue;
+        res.push({ type, name, lat: Number.isFinite(lat) ? lat : null, lon: Number.isFinite(lon) ? lon : null, url: /^https?:\/\//.test(p.url || '') ? p.url.trim() : '', address: rtWvClean(p.address), hours: rtWvClean(p.hours), price: rtWvClean(p.price), content: rtWvClean(p.content || p.description) });
+      }
+      return res;
+    };
     let SUG_CACHE = null; // überlebt Tab-Wechsel innerhalb der Sitzung
 
     const catLabelOf = (t) => {
@@ -17775,6 +17798,33 @@ var qrcode = function() {
             cands.push({ key: `wp-${p.pageid}`, name: p.title, gps: p.gps, catLabel: matched ? wikiCatLabel(desc) : (desc ? wikiCatLabel(desc) : 'Ort von Interesse'), isKnown: true, rank: matched ? 3 : 1, address: '', website: pg.fullurl || '', src: 'Wikipedia' });
           });
 
+          // 2a') Wikivoyage: Abschnitte „See“ und „Do“ der Orte an der Strecke, nicht kritisch
+          const wvCats = active.filter((k) => k !== 'shop' && k !== 'food');
+          if (wvCats.length) {
+            try {
+              setProgress('Wikivoyage-Reiseführer …');
+              const wvPts = A ? [B, ...sampleAlong(coords, Math.max(30000, R * 4)).filter((pt) => haversineM(pt, B) > 8000)] : [B];
+              const geo = await runPool(wvPts.slice(0, 24), 4, async (pt) => fetchJsonTimeout(`${WV_API}?action=query&list=geosearch&gscoord=${pt[0].toFixed(5)}%7C${pt[1].toFixed(5)}&gsradius=10000&gslimit=3&gsnamespace=0&format=json&formatversion=2&origin=*`, {}, 12000));
+              const titles = []; geo.forEach((r) => ((r && r.query && r.query.geosearch) || []).forEach((g) => { if (!titles.includes(g.title)) titles.push(g.title); }));
+              if (geo.every((r) => !r)) notes.push('Wikivoyage nicht erreichbar');
+              const pagesWv = await runPool(titles.slice(0, 8), 4, async (t) => { const j = await fetchJsonTimeout(`${WV_API}?action=parse&page=${encodeURIComponent(t)}&prop=wikitext&redirects=1&format=json&formatversion=2&origin=*`, {}, 15000); return { t, text: (j && j.parse && j.parse.wikitext) || '' }; });
+              let noGps = 0;
+              pagesWv.forEach((pg) => {
+                if (!pg) return;
+                rtWvParse(pg.text).forEach((l, li) => {
+                  if (l.lat == null || l.lon == null) { noGps += 1; return; }
+                  const txt = `${l.name} ${l.content}`;
+                  const hit = wvCats.filter((k) => WIKI_RULES[k] && WIKI_RULES[k].test(txt));
+                  if (l.type === 'do' ? !(wvCats.includes('fun') || wvCats.includes('nature') || hit.length) : !(hit.length || wvCats.includes('sight'))) return;
+                  const lab = hit.length ? wikiCatLabel(l.content || l.name) : (l.type === 'do' ? 'Aktivität' : 'Sehenswert');
+                  const wvUrl = `https://en.wikivoyage.org/wiki/${encodeURIComponent(pg.t.replace(/ /g, '_'))}`;
+                  cands.push({ key: `wv-${pg.t}-${li}`, name: l.name, gps: [l.lat, l.lon], catLabel: /^(Ort|.{40,})$/.test(lab) ? (l.type === 'do' ? 'Aktivität' : 'Sehenswert') : lab, isKnown: true, rank: 3, address: l.address, website: l.url, wvUrl, wvTitle: pg.t, src: 'Wikivoyage', extract: `${[l.content, l.price ? `Preis: ${l.price}` : '', l.hours ? `Öffnungszeiten: ${l.hours}` : ''].filter(Boolean).join(' · ')} (Quelle: Wikivoyage, ${wvUrl}, CC BY-SA)`, tags: { description: [l.content, l.price ? `Preis: ${l.price}` : ''].filter(Boolean).join(' · '), opening_hours: l.hours } });
+                });
+              });
+              if (noGps) notes.push(`Wikivoyage: ${noGps} Einträge ohne Koordinaten nicht berücksichtigt`);
+            } catch (e) { notes.push('Wikivoyage-Suche fehlgeschlagen'); }
+          }
+
           // 2b) Optional: OpenStreetMap (Overpass), nicht kritisch
           const osmActive = useOsm ? active : active.filter((k) => k === 'shop' || k === 'food');
           if (osmActive.length) {
@@ -17951,6 +18001,7 @@ var qrcode = function() {
                     {s.tags && s.tags.opening_hours && <div className="text-[11px] text-slate-600">{s.tags.opening_hours}</div>}
                     {s.address && <div className="text-[11px] text-slate-500"><Ic n="pin" />{s.address}</div>}
                     {link && <a href={link} target="_blank" rel="noopener noreferrer" className="text-[11px] text-teal-700 underline break-all">{s.src === 'Wikipedia' ? 'Wikipedia-Artikel öffnen' : 'Webseite öffnen'}</a>}
+                    {s.wvUrl && <div className="text-[11px] text-slate-500" data-wv-src>Text: <a href={s.wvUrl} target="_blank" rel="noopener noreferrer" className="text-teal-700 underline">Wikivoyage, {s.wvTitle}</a> (CC BY-SA) · Text auf Englisch</div>}
                     <div className="flex flex-wrap gap-2">
                       <button type="button" onClick={() => { addWay(s); drop(s.key); }} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">Auf dem Weg zum Hotel</button>
                       <button type="button" onClick={() => { addLocal(s); drop(s.key); }} className="min-h-[40px] px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Aktion vor Ort</button>
@@ -19457,7 +19508,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 102</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 103</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19467,7 +19518,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 102'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 103'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />

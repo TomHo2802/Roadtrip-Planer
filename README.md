@@ -454,3 +454,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v102
 - Routen-Vorschlag deutlich schneller: alle Zwischenuebernachtungen in einer gemeinsamen Overpass-Abfrage mit Ausweichservern, eine Streckenabfrage je Abschnitt, Sehenswuerdigkeit parallel, kuerzere Pausen, Zwischenspeicher in der Sitzung.
 - Vorschlaege entlang der Etappe: OpenStreetMap standardmaessig mit mehr Arten, nur bekannte Orte standardmaessig aus, Wikipedia-Filter gelockert, dichtere Suche entlang langer Strecken.
+
+## v103
+- Vorschlaege entlang der Etappe zusaetzlich aus Wikivoyage (englisch): Abschnitte See und Do der Orte am Ziel und entlang der Strecke, mit Text, Oeffnungszeiten, Preis und Quellenangabe (CC BY-SA).

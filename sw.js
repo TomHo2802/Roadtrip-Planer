@@ -1,4 +1,4 @@
-const V = 'roadtrip-v102';
+const V = 'roadtrip-v103';
 const CORE = ['./', 'index.html', 'assistent.html', 'ortwahl.js', 'fonts/Inter-Regular.woff', 'fonts/Inter-Medium.woff', 'fonts/Inter-SemiBold.woff', 'fonts/Inter-Bold.woff', 'fonts/SpaceGrotesk-Medium.woff2', 'fonts/SpaceGrotesk-Bold.woff2', 'leaflet/leaflet.js', 'leaflet/leaflet.css', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== V).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
