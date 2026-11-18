@@ -462,3 +462,9 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Neue Etappenseite im A+C-Design: ruhiger Kopf, Leiste Weg/Hotel/Vor Ort, schlanke Listen statt grosser Karten, keine GPS-Zahlen im Text.
 - Grunddaten, Strecke, Stopps, Hotel und Aktionen direkt auf der Seite bearbeiten; folgende Etappen und das Reiseende ruecken mit.
 - Loeschen ohne Nachfrage mit Rueckgaengig-Leiste, Wischen zwischen Etappen auf dem Handy.
+
+## v105
+- Buchen als schlanke Liste mit eigenem Schalter gebucht, Storno-Warnungen und Filter nur offene.
+- Kalender-Export (.ics) fuer Fluege, Mietwagen, Hotels, Aktionen und Storno-Fristen.
+- Karten entlang der Route vorab laden (bis Zoomstufe 14), offline aus dem Service Worker.
+- Kassenzettel fotografieren, Karte, Zahler und Aufteilung zuordnen; im Budget je Karte, Kategorie und Person. Im Modus Nur lesen auf dem Handy sammeln und per Datei an den Laptop uebergeben.

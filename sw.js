@@ -1,9 +1,15 @@
-const V = 'roadtrip-v104';
+const V = 'roadtrip-v105';
 const CORE = ['./', 'index.html', 'assistent.html', 'ortwahl.js', 'fonts/Inter-Regular.woff', 'fonts/Inter-Medium.woff', 'fonts/Inter-SemiBold.woff', 'fonts/Inter-Bold.woff', 'fonts/SpaceGrotesk-Medium.woff2', 'fonts/SpaceGrotesk-Bold.woff2', 'leaflet/leaflet.js', 'leaflet/leaflet.css', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
-self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== V).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== V && !k.startsWith('rt-tiles')).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
   const req = e.request; const url = new URL(req.url);
+  // Kartenkacheln: vorab geladene Ausschnitte aus dem Speicher, sonst Netz
+  if (req.method === 'GET' && /(^|\.)tile\.openstreetmap\.org$/.test(url.hostname)) {
+    const key = 'https://tile.openstreetmap.org' + url.pathname;
+    e.respondWith(caches.open('rt-tiles-v1').then((c) => c.match(key)).then((hit) => hit || fetch(req)).catch(() => fetch(req)));
+    return;
+  }
   if (req.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith((async () => {
     const cache = await caches.open(V); const cached = await cache.match(req, { ignoreSearch: true });
