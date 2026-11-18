@@ -457,3 +457,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v103
 - Vorschlaege entlang der Etappe zusaetzlich aus Wikivoyage (englisch): Abschnitte See und Do der Orte am Ziel und entlang der Strecke, mit Text, Oeffnungszeiten, Preis und Quellenangabe (CC BY-SA).
+
+## v104
+- Neue Etappenseite im A+C-Design: ruhiger Kopf, Leiste Weg/Hotel/Vor Ort, schlanke Listen statt grosser Karten, keine GPS-Zahlen im Text.
+- Grunddaten, Strecke, Stopps, Hotel und Aktionen direkt auf der Seite bearbeiten; folgende Etappen und das Reiseende ruecken mit.
+- Loeschen ohne Nachfrage mit Rueckgaengig-Leiste, Wischen zwischen Etappen auf dem Handy.
