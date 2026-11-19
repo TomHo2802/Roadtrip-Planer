@@ -468,3 +468,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Kalender-Export (.ics) fuer Fluege, Mietwagen, Hotels, Aktionen und Storno-Fristen.
 - Karten entlang der Route vorab laden (bis Zoomstufe 14), offline aus dem Service Worker.
 - Kassenzettel fotografieren, Karte, Zahler und Aufteilung zuordnen; im Budget je Karte, Kategorie und Person. Im Modus Nur lesen auf dem Handy sammeln und per Datei an den Laptop uebergeben.
+
+## v106
+- Kassenzettel: Texterkennung im Browser (Tesseract.js, bei Bedarf vom CDN geladen und danach offline) erkennt Betrag, Waehrung, Datum, Geschaeft, Kategorie und Karte. Erkannte Felder markiert, Eingetipptes hat Vorrang.

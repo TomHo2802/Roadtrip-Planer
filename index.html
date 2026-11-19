@@ -14466,6 +14466,13 @@ html .sp3 label.sp3-btn svg{color:inherit}
 html[data-dark="1"] .sp3 .sp3-btn.pri:not(#rt-x):not(#rt-y){background:var(--u-acc)!important;color:var(--u-acc-ink)!important}
 html[data-dark="1"] .sp3 .sp3-btn.soft:not(#rt-x):not(#rt-y){background:var(--u-acc-soft)!important;color:var(--u-acc-deep)!important}
 html[data-dark="1"] .sp3 .sp3-btn.del:not(#rt-x):not(#rt-y){background:transparent!important;color:var(--u-del)!important}
+.sp3-ocr{background:var(--u-acc-soft);color:var(--u-ink);border-radius:12px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+html[data-dark="1"] .sp3-ocr{background:#1E2738}
+.sp3-ocr details summary{cursor:pointer;color:var(--u-acc);font-weight:600;font-size:13px;min-height:32px;display:flex;align-items:center}
+.sp3-ocr pre{white-space:pre-wrap;font-size:12px;max-height:180px;overflow:auto;margin:4px 0 0;background:var(--u-card);padding:8px;border-radius:8px}
+.sp3-auto{font-style:normal;font-size:11px;font-weight:700;color:var(--u-ok);background:var(--u-ok-soft);padding:1px 6px;border-radius:99px;margin-left:4px}
+.sp3-chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--u-mute);min-height:36px}
+.sp3-chk input{width:20px;height:20px;accent-color:var(--u-acc)}
 </style><style id="rt-ac-css">.rt-ac{position:absolute;z-index:100000;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:300px;overflow:auto;list-style:none;margin:0;padding:4px;font-size:14px}.rt-ac li{padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.25}.rt-ac li small{display:block;opacity:.75;font-size:12px}.rt-ac .rt-ac-kind{opacity:.7}.rt-ac li[aria-selected=true],.rt-ac li:hover{background:#1d4ed8;color:#fff}html[data-dark="1"] .rt-ac{background:#1e293b;color:#f1f5f9;border-color:#475569}html[data-dark="1"] .rt-ac li[aria-selected=true],html[data-dark="1"] .rt-ac li:hover{background:#60a5fa;color:#0f172a}@media print{.rt-ac{display:none}}</style><style id="rt-ui2">@media (max-width:640px){html:not([data-ui="classic"]) .rt-bkbar{left:10px;right:10px;transform:none;max-width:none}html:not([data-ui="classic"]) [data-status-general]{flex-direction:column;align-items:stretch}html:not([data-ui="classic"]) [data-status-general] button{width:100%;text-align:left;border-radius:12px;padding-top:8px;padding-bottom:8px}html:not([data-ui="classic"]) [data-status-row] [data-status-chip]{flex:1 1 100%;border-radius:12px}}html[data-dark="1"] [data-stage-menu]{background:#1e293b;border-color:#475569}html[data-dark="1"] [data-stage-menu] button{color:#f1f5f9}html[data-dark="1"] [data-stage-menu] button:hover{background:#334155}html[data-dark="1"] [data-stage-more]{background:#1e293b;color:#f1f5f9;border-color:#475569}</style><style>.rt-ac li.rt-ac-map{border-top:1px solid #cbd5e1;border-radius:0 0 8px 8px}</style><script src="ortwahl.js"></script></head>
 <body>
   <div id="root" aria-live="polite"></div>
@@ -19669,7 +19676,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 105</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 106</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19679,7 +19686,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 105'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 106'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -23094,7 +23101,92 @@ var qrcode = function() {
     }
 
     // ---------- Kassenzettel ----------
-    const RC_CATS = ['Tanken', 'Essen & Trinken', 'Einkauf', 'Eintritt & Touren', 'Parken & Maut', 'Sonstiges'];
+    const RC_CATS = ['Tanken', 'Essen & Trinken', 'Einkauf', 'Eintritt & Touren', 'Parken & Maut', 'Unterkunft', 'Sonstiges'];
+    // ---------- Texterkennung für Kassenzettel (Tesseract, läuft im Browser) ----------
+    const RT_OCR_SRC = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    let RT_OCR_W = null, RT_OCR_CB = null;
+    const rtOcrLib = () => (window.Tesseract ? Promise.resolve(window.Tesseract) : new Promise((res, rej) => {
+      const old = document.querySelector('script[data-rt-ocr]'); if (old) old.remove();
+      const s = document.createElement('script'); s.src = RT_OCR_SRC; s.async = true; s.setAttribute('data-rt-ocr', '1');
+      const t = setTimeout(() => rej(new Error('timeout')), 45000);
+      s.onload = () => { clearTimeout(t); window.Tesseract ? res(window.Tesseract) : rej(new Error('nicht geladen')); };
+      s.onerror = () => { clearTimeout(t); rej(new Error('nicht erreichbar')); }; document.head.appendChild(s);
+    }));
+    // Foto für die Erkennung aufbereiten: Graustufen, Kontrast strecken, sinnvolle Größe
+    const rtOcrCanvas = (blob) => new Promise((res, rej) => {
+      const img = new Image(), url = URL.createObjectURL(blob);
+      img.onload = () => {
+        const W = img.width, H = img.height; const k = Math.max(Math.min(1, 1800 / Math.max(W, H)), Math.min(2, 1100 / W));
+        const c = document.createElement('canvas'); c.width = Math.round(W * k); c.height = Math.round(H * k); const g = c.getContext('2d'); g.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        try { const d = g.getImageData(0, 0, c.width, c.height), a = d.data, hist = new Array(256).fill(0); for (let i = 0; i < a.length; i += 4) { const v = (a[i] * 0.299 + a[i + 1] * 0.587 + a[i + 2] * 0.114) | 0; a[i] = v; hist[v]++; } const n = a.length / 4; let lo = 0, hi = 255, s = 0; for (; lo < 255 && (s += hist[lo]) < n * 0.02; lo++); s = 0; for (; hi > 0 && (s += hist[hi]) < n * 0.02; hi--); const r = Math.max(1, hi - lo); for (let i = 0; i < a.length; i += 4) { const v = Math.max(0, Math.min(255, ((a[i] - lo) * 255) / r)); a[i] = a[i + 1] = a[i + 2] = v; } g.putImageData(d, 0, 0); } catch (e) { /* ohne Aufbereitung */ }
+        res(c);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Bild nicht lesbar')); }; img.src = url;
+    });
+    async function rtOcr(blob, onProg) {
+      RT_OCR_CB = onProg || null;
+      if (onProg) onProg({ status: 'Texterkennung wird geladen', progress: 0 });
+      const T = await rtOcrLib();
+      if (!RT_OCR_W) RT_OCR_W = T.createWorker('eng', 1, { logger: (m) => { if (RT_OCR_CB) RT_OCR_CB(m); } }).catch((e) => { RT_OCR_W = null; throw e; });
+      const w = await RT_OCR_W; const c = await rtOcrCanvas(blob);
+      const r = await w.recognize(c); return String((r && r.data && r.data.text) || '');
+    }
+    const RT_OCR_ST = { 'loading tesseract core': 'Texterkennung wird geladen', 'initializing tesseract': 'Texterkennung startet', 'loading language traineddata': 'Sprachdaten werden geladen', 'initializing api': 'Texterkennung startet', 'recognizing text': 'Text wird gelesen' };
+
+    // Erkannten Text auswerten: Betrag, Währung, Datum, Geschäft, Kategorie, Karte
+    const RC_KW = [
+      ['Tanken', /\b(shell|chevron|exxon|mobil|sunoco|marathon|citgo|valero|speedway|wawa|racetrac|circle ?k|gulf|texaco|sinclair|phillips ?66|bp|gasoline|gas station|fuel|unleaded|diesel|gallons?|gal|pump ?#?\d*|price\/gal|tankstelle|benzin|super ?e10|aral|esso)\b/gi],
+      ['Parken & Maut', /\b(parking|garage|toll|sunpass|e-?pass|valet|meter|parkhaus|maut|parkgeb\S*)\b/gi],
+      ['Essen & Trinken', /\b(restaurant|cafe|caf\S|coffee|starbucks|mcdonald'?s|burger|pizza|grill|bar|tavern|pub|diner|bistro|kitchen|taco|subway|chipotle|wendy'?s|dunkin|chick-fil-a|tip|gratuity|server|table|guests?|dine ?in|take ?out|food|eatery|bakery|ice cream|wings|seafood|steak|brewery|cantina|sushi|bbq|beverage|drinks?|beer|wine|trinkgeld|gastst\S+|b\S+ckerei|imbiss)\b/gi],
+      ['Eintritt & Touren', /\b(admission|tickets?|museum|tour|zoo|aquarium|entrance|attraction|state park|national park|kayak|boat|cruise|snorkel\S*|theme park|disney|universal|seaworld|eintritt|f\S+hrung)\b/gi],
+      ['Unterkunft', /\b(hotel|motel|resort fee|resort|suites|lodge|room rate|check-?in|check-?out|folio|unterkunft)\b/gi],
+      ['Einkauf', /\b(publix|walmart|target|winn-?dixie|whole foods|trader joe'?s|aldi|kroger|costco|cvs|walgreens|dollar general|dollar tree|family dollar|7-eleven|grocery|supermarket|market|pharmacy|outlet|souvenirs?|gift shop|store|mart|rewe|edeka|lidl|rossmann|qty|items? sold)\b/gi],
+    ];
+    const rcNum = (s) => { let t = String(s).replace(/\s/g, ''); const c = t.lastIndexOf(','), d = t.lastIndexOf('.'); if (c > d) t = t.replace(/\./g, '').replace(',', '.'); else t = t.replace(/,/g, ''); const n = parseFloat(t); return Number.isFinite(n) ? n : null; };
+    const RC_AMT = /(\$|€|usd|eur)?\s*(\d{1,3}(?:[.,]\d{3})+[.,]\d{2}|\d{1,5}[.,]\d{2})(?![\d%])\s*(€|eur|usd)?/gi;
+    const RC_TOT = [[/\b(grand\s*total|total\s*due|amount\s*due|balance\s*due|total\s*amount|total\s*sale|total\s*purchase|zu\s*zahlen|gesamtbetrag|endbetrag|summe\s*eur)\b/i, 6], [/\b(total|summe|gesamt|betrag)\b/i, 5], [/\b(visa|master\s*card|mastercard|amex|american express|discover|debit|credit|charged|sale|amount|ec-?karte|girocard|kartenzahlung)\b/i, 3]];
+    const RC_NOT = /\b(sub\s*-?\s*total|subtl|zwischensumme|tax|mwst|ust|vat|netto|tip|gratuity|trinkgeld|change|r\S?ckgeld|cash\s*tend|tendered|tend|savings|you\s*saved|discount|rabatt|points|remaining|gift\s*card|suggested|\d{1,2}\s*%)/i;
+    function rtReceiptParse(text, trip) {
+      const raw = String(text || ''); const lines = raw.split(/\r?\n/).map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+      const out = { amount: null, currency: '', date: '', title: '', category: '', card: '', sure: false };
+      // Währung
+      if (/€|\beur\b/i.test(raw)) out.currency = 'EUR'; else if (/\$|\busd\b/i.test(raw)) out.currency = 'USD';
+      // Beträge je Zeile
+      const amts = (l) => { const r = []; let m; RC_AMT.lastIndex = 0; while ((m = RC_AMT.exec(l))) { const n = rcNum(m[2]); if (n != null && n > 0 && n < 100000) r.push(n); } return r; };
+      const cands = [];
+      lines.forEach((l, i) => {
+        let sc = 0; for (const [re, w] of RC_TOT) if (re.test(l)) { sc = Math.max(sc, w); }
+        if (!sc || RC_NOT.test(l)) return;
+        let a = amts(l); if (!a.length && lines[i + 1] && !RC_NOT.test(lines[i + 1])) a = amts(lines[i + 1]);
+        if (a.length) cands.push({ sc, v: a[a.length - 1], i });
+      });
+      if (cands.length) { const top = Math.max(...cands.map((c) => c.sc)); const best = cands.filter((c) => c.sc === top).sort((x, y) => y.v - x.v)[0]; out.amount = best.v; out.sure = top >= 5; }
+      // Restaurant: Total ohne Trinkgeld, danach Betrag mit Trinkgeld -> der höhere zählt
+      if (out.amount) { let tip = 0; lines.forEach((l) => { if (/\b(tip|gratuity|trinkgeld)\b/i.test(l) && !/suggest|%/i.test(l)) { const a = amts(l); if (a.length) tip = Math.max(tip, a[a.length - 1]); } }); if (tip > 0) { const want = Math.round((out.amount + tip) * 100); lines.forEach((l) => { amts(l).forEach((v) => { if (Math.round(v * 100) === want) { out.amount = v; out.tip = tip; } }); }); } }
+      else { const all = []; lines.forEach((l) => { if (!RC_NOT.test(l)) all.push(...amts(l)); }); if (all.length) out.amount = Math.max(...all); }
+      // Datum
+      const plaus = (iso) => { const t = Date.parse(iso + 'T12:00:00'); if (!Number.isFinite(t)) return false; const m = trip && trip.meta || {}; const a = Date.parse((m.startDate || '') + 'T12:00:00'), b = Date.parse((m.endDate || '') + 'T12:00:00'); if (Number.isFinite(a) && Number.isFinite(b)) return t >= a - 90 * 864e5 && t <= b + 30 * 864e5; return Math.abs(t - Date.now()) < 400 * 864e5; };
+      const mk = (y, mo, d) => { y = Number(y); if (y < 100) y += 2000; mo = Number(mo); d = Number(d); if (mo < 1 || mo > 12 || d < 1 || d > 31) return ''; const iso = `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`; return plaus(iso) ? iso : ''; };
+      let m;
+      if ((m = /\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/.exec(raw))) out.date = mk(m[1], m[2], m[3]);
+      if (!out.date && (m = /\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})\b/.exec(raw))) out.date = mk(m[3], m[2], m[1]);
+      if (!out.date && (m = /\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\b/.exec(raw))) out.date = mk(m[3], m[1], m[2]) || mk(m[3], m[2], m[1]);
+      // Kategorie
+      let bestC = '', bestN = 0; RC_KW.forEach(([c, re]) => { const n = (raw.match(re) || []).length; if (n > bestN) { bestN = n; bestC = c; } }); out.category = bestC;
+      // Karte: letzte 4 Ziffern, sonst Kartenart
+      const cards = (trip && trip.creditCards) || []; const dig = (c) => String(c.cardNumber || '').replace(/\D/g, '');
+      const l4 = [...raw.matchAll(/(?:\*+|[x#•]{2,}[\s-]*|ending\s*(?:in)?\s*:?\s*|endet\s*auf\s*|acct\s*#?\s*:?\s*|card\s*#?\s*:?\s*)(\d{4})\b/gi)].map((x) => x[1]);
+      for (const d4 of l4) { const c = cards.find((k) => dig(k).length >= 4 && dig(k).slice(-4) === d4); if (c) { out.card = c.name; break; } }
+      if (!out.card) { const brand = /\bvisa\b/i.test(raw) ? 'visa' : /master\s*card|mastercard|\bmc\b/i.test(raw) ? 'master' : /\bamex\b|american express/i.test(raw) ? 'amex' : ''; if (brand) { const re = brand === 'visa' ? /visa/i : brand === 'master' ? /master/i : /amex|american/i; const L = cards.filter((k) => { const d = dig(k); return re.test(`${k.fullName || ''} ${k.name || ''} ${k.type || ''}`) || (d.length >= 12 && (brand === 'visa' ? d[0] === '4' : brand === 'master' ? /^[25]/.test(d) : d[0] === '3')); }); if (L.length === 1) out.card = L[0].name; } }
+      if (!out.card && /\bcash\b|\bbar\b(?!\s*&)/i.test(raw) && !l4.length && !/visa|master|amex|debit|credit/i.test(raw)) out.card = 'Bar';
+      // Geschäft: erste sinnvolle Zeile
+      const bad = /receipt|welcome|thank|store\s*#|tel|phone|www|http|@|\d{3}[-) .]\d{3}|^\W*\d|^(date|time|cashier|server|table|order)/i;
+      const t = lines.slice(0, 6).find((l) => (l.match(/[a-zäöü]/gi) || []).length >= 4 && !bad.test(l));
+      if (t) { let s = t.replace(/[^\wäöüÄÖÜß&'’.\- ]+/g, ' ').replace(/\s+/g, ' ').trim(); if (s === s.toUpperCase()) s = s.toLowerCase().replace(/(^|[\s-])(\w)/g, (x, a, c) => a + c.toUpperCase()); out.title = s.slice(0, 40); }
+      return out;
+    }
+    try { window.__rtReceiptParse = rtReceiptParse; } catch (e) {}
+
     const rcDb = () => new Promise((res, rej) => { try { const r = indexedDB.open('roadtrip_receipts_v1', 1); r.onupgradeneeded = () => r.result.createObjectStore('r', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } });
     const rcTx = async (mode, fn) => { const db = await rcDb(); return new Promise((res, rej) => { const tx = db.transaction('r', mode); const rq = fn(tx.objectStore('r')); tx.oncomplete = () => res(rq && rq.result); tx.onerror = () => rej(tx.error); }); };
     const rcShrink = (file) => new Promise((res) => {
@@ -23119,7 +23211,25 @@ var qrcode = function() {
       const [prev, setPrev] = useState(() => rcBlobUrl(init && init.blob)); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
       useEffect(() => () => { if (prev) URL.revokeObjectURL(prev); }, [prev]);
       const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
-      const onPhoto = async (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; if (!file) return; setBusy(true); const b = await rcShrink(file); setBusy(false); setF((x) => ({ ...x, blob: b, blobNew: true })); setPrev(rcBlobUrl(b)); };
+      const touched = useRef(new Set()); const setU = (k, v) => { touched.current.add(k); set(k, v); };
+      const fRef = useRef(f); fRef.current = f;
+      const [ocr, setOcr] = useState(null); const [filled, setFilled] = useState([]);
+      const [auto, setAuto] = useState(() => { try { return localStorage.getItem('rt_ocr_auto_v1') !== '0'; } catch (e) { return true; } });
+      const runOcr = async (blob) => {
+        if (!blob) return; setOcr({ st: 'run', p: 0, msg: 'Texterkennung wird geladen' }); setFilled([]);
+        try {
+          const text = await rtOcr(blob, (m) => setOcr((o) => (o && o.st === 'run' ? { ...o, p: m.status === 'recognizing text' ? (m.progress || 0) : o.p, msg: RT_OCR_ST[m.status] || o.msg } : o)));
+          const r = rtReceiptParse(text, trip); const y = { ...fRef.current }; const fill = [];
+          const put = (k, v) => { if (v && !touched.current.has(k)) { y[k] = v; fill.push(k); } };
+          if (r.amount) put('amount', r.amount.toFixed(2).replace('.', ','));
+          if (r.currency && [rcCur0(trip), 'EUR'].includes(r.currency)) put('currency', r.currency);
+          put('title', r.title); put('category', r.category); put('date', r.date);
+          if (r.card && (r.card === 'Bar' || cards.includes(r.card)) && !touched.current.has('creditCard')) { y.creditCard = r.card; fill.push('creditCard'); if (r.card !== 'Bar' && !touched.current.has('paidBy')) y.paidBy = rcHolder(trip, r.card); }
+          setF(y); setFilled(fill); setOcr({ st: 'done', r, text });
+        } catch (e) { setOcr({ st: 'err', msg: navigator.onLine === false ? 'Die Texterkennung braucht beim ersten Mal Internet (etwa 10 MB, am besten im WLAN). Danach geht sie auch offline. Bitte die Angaben jetzt eintippen.' : `Texterkennung nicht möglich (${e && e.message ? e.message : e}). Bitte die Angaben eintippen.` }); }
+      };
+      const tag = (k) => (filled.includes(k) ? <em className="sp3-auto" data-ocr-filled={k}>erkannt</em> : null);
+      const onPhoto = async (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; if (!file) return; setBusy(true); const b = await rcShrink(file); setBusy(false); setF((x) => ({ ...x, blob: b, blobNew: true })); setPrev(rcBlobUrl(b)); if (auto) runOcr(b); };
       const stg = rcStageFor(trip, f.date);
       const eur = rcToEur(trip, f.amount, f.currency);
       const submit = (e) => { e.preventDefault(); if (!(rtNum(f.amount) > 0)) { setErr('Bitte einen Betrag eingeben.'); return; } if (!f.splitAmong.length) { setErr('Mindestens eine Person zum Aufteilen wählen.'); return; } onDone({ ...f, amountEur: eur, stageId: stg ? stg.id : '', title: f.title.trim() || f.category }); };
@@ -23133,17 +23243,26 @@ var qrcode = function() {
                 <label className="sp3-btn pri" data-rc-cam><RtI n="cam" s={18} />&nbsp;{prev ? 'Neu fotografieren' : 'Foto aufnehmen'}<input type="file" accept="image/*" capture="environment" onChange={onPhoto} className="sp3-hide" data-readonly-allow /></label>
                 <label className="sp3-btn">Aus Fotos<input type="file" accept="image/*" onChange={onPhoto} className="sp3-hide" data-rc-file data-readonly-allow /></label>
                 {busy && <span className="sp3-mute">Foto wird verkleinert …</span>}
+                {f.blob && (!ocr || ocr.st !== 'run') && <button type="button" data-readonly-allow data-ocr-run className="sp3-btn" onClick={() => runOcr(f.blob)}>{ocr ? 'Erneut erkennen' : 'Text erkennen'}</button>}
               </div>
+              {ocr && ocr.st === 'run' && <div className="sp3-ocr" role="status" data-ocr="run"><span>{ocr.msg} … {ocr.p ? `${Math.round(ocr.p * 100)} %` : ''}</span><div className="sp3-prog"><span style={{ width: `${Math.round((ocr.p || 0) * 100)}%` }} /></div></div>}
+              {ocr && ocr.st === 'done' && <div className="sp3-ocr" role="status" data-ocr="done">
+                {filled.length ? <span><b>Erkannt:</b> {[filled.includes('amount') && `Betrag ${f.amount} ${f.currency}`, filled.includes('title') && f.title, filled.includes('category') && f.category, filled.includes('date') && rtDm(f.date), filled.includes('creditCard') && (f.creditCard === 'Bar' ? 'bar bezahlt' : `Karte ${f.creditCard}`)].filter(Boolean).join(' · ')}. Bitte kurz prüfen.</span> : <span>Auf dem Foto wurde nichts Verwertbares erkannt. Bitte die Angaben eintippen.</span>}
+                {ocr.r && ocr.r.amount && !ocr.r.sure && filled.includes('amount') && <span className="sp3-stw">Kein „Total“ gefunden, der Betrag ist der größte auf dem Bon.</span>}
+                <details><summary>Erkannten Text zeigen</summary><pre data-ocr-text>{ocr.text || '(leer)'}</pre></details>
+              </div>}
+              {ocr && ocr.st === 'err' && <p className="sp3-stw" role="alert" data-ocr="err">{ocr.msg}</p>}
+              <label className="sp3-chk"><input type="checkbox" data-readonly-allow data-ocr-auto checked={auto} onChange={(e) => { setAuto(e.target.checked); try { localStorage.setItem('rt_ocr_auto_v1', e.target.checked ? '1' : '0'); } catch (x) {} }} /> Text nach dem Foto automatisch erkennen</label>
             </div>
             <div className="sp3-grid">
-              <label className="sp3-f"><span>Betrag</span><input data-readonly-allow name="amount" inputMode="decimal" autoComplete="off" value={f.amount} onChange={(e) => set('amount', e.target.value)} placeholder="z. B. 23,40" /></label>
-              <div className="sp3-f"><span>Währung</span><div className="sp3-seg2" role="group" aria-label="Währung">{[...new Set([rcCur0(trip), 'EUR'])].map((c) => <button key={c} type="button" data-readonly-allow aria-pressed={f.currency === c} onClick={() => set('currency', c)}>{c}</button>)}</div></div>
+              <label className="sp3-f"><span>Betrag {tag('amount')}</span><input data-readonly-allow name="amount" inputMode="decimal" autoComplete="off" value={f.amount} onChange={(e) => setU('amount', e.target.value)} placeholder="z. B. 23,40" /></label>
+              <div className="sp3-f"><span>Währung</span><div className="sp3-seg2" role="group" aria-label="Währung">{[...new Set([rcCur0(trip), 'EUR'])].map((c) => <button key={c} type="button" data-readonly-allow aria-pressed={f.currency === c} onClick={() => setU('currency', c)}>{c}</button>)}</div></div>
               {f.currency !== 'EUR' && <p className="sp3-hint wide">{rcRate(trip) ? `= ${rtEur(eur)} (Kurs 1 € = ${String(rcRate(trip)).replace('.', ',')} ${f.currency}, einstellbar unter Budget)` : 'Kein Wechselkurs hinterlegt, der Betrag wird 1:1 als Euro gezählt.'}</p>}
-              <label className="sp3-f wide"><span>Wofür / Geschäft</span><input data-readonly-allow name="title" value={f.title} onChange={(e) => set('title', e.target.value)} placeholder="z. B. Shell Tankstelle" /></label>
-              <div className="sp3-f wide"><span>Kategorie</span><div className="sp3-chips" role="group" aria-label="Kategorie">{RC_CATS.map((c) => <button key={c} type="button" data-readonly-allow aria-pressed={f.category === c} onClick={() => set('category', c)}>{c}</button>)}</div></div>
-              <label className="sp3-f"><span>Datum</span><input data-readonly-allow type="date" name="date" value={f.date} onChange={(e) => set('date', e.target.value)} /></label>
-              <label className="sp3-f"><span>Bezahlt mit</span><select data-readonly-allow name="creditCard" value={f.creditCard} onChange={(e) => { const v = e.target.value; setF((x) => ({ ...x, creditCard: v, paidBy: v === 'Bar' ? x.paidBy : rcHolder(trip, v) })); }}>{cards.map((c) => <option key={c} value={c}>{c}</option>)}<option value="Bar">Bar</option></select></label>
-              <label className="sp3-f"><span>Bezahlt von</span><select data-readonly-allow name="paidBy" value={f.paidBy} onChange={(e) => set('paidBy', e.target.value)}>{P.map((p) => <option key={p} value={p}>{p}</option>)}</select></label>
+              <label className="sp3-f wide"><span>Wofür / Geschäft {tag('title')}</span><input data-readonly-allow name="title" value={f.title} onChange={(e) => setU('title', e.target.value)} placeholder="z. B. Shell Tankstelle" /></label>
+              <div className="sp3-f wide"><span>Kategorie {tag('category')}</span><div className="sp3-chips" role="group" aria-label="Kategorie">{RC_CATS.map((c) => <button key={c} type="button" data-readonly-allow aria-pressed={f.category === c} onClick={() => setU('category', c)}>{c}</button>)}</div></div>
+              <label className="sp3-f"><span>Datum {tag('date')}</span><input data-readonly-allow type="date" name="date" value={f.date} onChange={(e) => setU('date', e.target.value)} /></label>
+              <label className="sp3-f"><span>Bezahlt mit {tag('creditCard')}</span><select data-readonly-allow name="creditCard" value={f.creditCard} onChange={(e) => { const v = e.target.value; touched.current.add('creditCard'); setF((x) => ({ ...x, creditCard: v, paidBy: v === 'Bar' ? x.paidBy : rcHolder(trip, v) })); }}>{cards.map((c) => <option key={c} value={c}>{c}</option>)}<option value="Bar">Bar</option></select></label>
+              <label className="sp3-f"><span>Bezahlt von</span><select data-readonly-allow name="paidBy" value={f.paidBy} onChange={(e) => setU('paidBy', e.target.value)}>{P.map((p) => <option key={p} value={p}>{p}</option>)}</select></label>
               <div className="sp3-f wide"><span>Aufteilen auf</span><div className="sp3-chips" role="group" aria-label="Aufteilen auf">{P.map((p) => { const on = f.splitAmong.includes(p); return <button key={p} type="button" data-readonly-allow aria-pressed={on} onClick={() => set('splitAmong', on ? f.splitAmong.filter((x) => x !== p) : [...f.splitAmong, p])}>{on ? '✓ ' : ''}{p}</button>; })}</div></div>
               <p className="sp3-hint wide">{stg ? `Gehört zur Etappe nach ${stg.toCity || '?'} (nach Datum).` : 'Das Datum liegt außerhalb der Etappen.'}{f.splitAmong.length > 1 && rtNum(f.amount) > 0 ? ` Je Person ${rtEur(eur / f.splitAmong.length)}.` : ''}</p>
               <label className="sp3-f wide"><span>Notiz</span><input data-readonly-allow name="notes" value={f.notes || ''} onChange={(e) => set('notes', e.target.value)} placeholder="optional" /></label>
