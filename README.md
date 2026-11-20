@@ -479,3 +479,4 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Deutlich schnellerer Start: Programm wird vorab uebersetzt (Babel entfaellt im Browser), zwei veraltete eingebettete Programmkopien entfernt. index.html von 6,4 auf 1,8 MB, Start am Laptop von etwa 5 s auf 0,5 s.
 - Quelltext liegt jetzt in src/index.src.html. Aenderungen dort machen, dann node build.js ausfuehren, das erzeugt index.html. Kein Netz noetig.
 - Sicherung des Stands davor: Zweig sicherung-v107.
+- Korrektur: Die Versionsanzeige in der App wird beim Bauen aus sw.js uebernommen (vorher stand fest v107 im Quelltext).

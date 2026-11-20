@@ -21,5 +21,9 @@ const out = ctx.Babel.transform(jsx, { presets: [['react', { runtime: 'classic' 
 // Hinten zuerst ersetzen, damit die Positionen stimmen
 let res = src.slice(0, aTagStart) + '<script>' + out + src.slice(aEnd);
 res = res.slice(0, bTagStart) + res.slice(res.indexOf('</script>', bTagStart) + 9);
+// Versionsanzeige in der App aus sw.js uebernehmen (roadtrip-vNNN), damit sie nicht vergessen wird
+const ver = (fs.readFileSync('sw.js', 'utf8').match(/roadtrip-v(\d+)/) || [])[1];
+if (!ver) throw new Error('Version in sw.js nicht gefunden');
+res = res.replace(/Version 1\d\d(?=<|')/g, 'Version ' + ver);
 fs.writeFileSync('index.html', res);
 console.log('index.html:', (res.length / 1e6).toFixed(2), 'MB');
