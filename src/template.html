@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de"><head><script>@@js/boot-ansicht.js@@</script><script>@@js/boot-theme.js@@</script>
+  <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#173B6B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Roadtrip-Planer · Offline</title>
+  <!-- Tailwind CSS via CDN -->
+  <script>@@lib/tailwind-runtime.js@@</script>
+  <!-- Systemschrift: keine Online-Schrift erforderlich -->
+  <!-- React 18 & Babel Standalone eingebettet – ohne CDN-Abhängigkeit -->
+  <script>@@lib/react.min.js@@</script>
+  <script>@@lib/react-dom.min.js@@</script>
+  <script>@@lib/babel-standalone.js@@</script>
+  
+  
+
+  <style>@@css/basis.css@@</style>
+
+<style id="roadtrip-readonly-style">@@css/roadtrip-readonly-style.css@@</style>
+<style id="stage-page-css">@@css/stage-page-css.css@@</style><style id="v60-design">@@css/v60-design.css@@</style><style id="dark-theme">@@css/dark-theme.css@@</style><style id="dark-sel">@@css/dark-sel.css@@</style><style id="dark-ui2">@@css/dark-ui2.css@@</style><style id="ui2">@@css/ui2.css@@</style><style id="ui3">@@css/ui3.css@@</style><style id="ui4">@@css/ui4.css@@</style><style id="rt-ac-css">@@css/rt-ac-css.css@@</style><style id="rt-ui2">@@css/rt-ui2.css@@</style><style>@@css/rt-ac-map.css@@</style><script src="ortwahl.js"></script></head>
+<body>
+  <div id="root" aria-live="polite"></div>
+
+  <!-- =========================================================================
+       EMBEDDED INITIAL TRIP DATA (USED OR UPDATED WHEN EXPORTING HTML)
+  ========================================================================== -->
+  <script id="embedded-trip-data" type="application/json"></script>
+
+  <!-- =========================================================================
+       APPLICATION LOGIC (REACT 18)
+  ========================================================================== -->
+  <style id="leaflet-css">@@css/leaflet-css.css@@</style>
+<script>@@lib/leaflet.js@@</script>
+<script>@@lib/qrcode-generator.js@@</script>
+<style>@@css/dialog.css@@</style>
+<script>@@js/dialog.js@@</script>
+<script type="text/babel">@@app/*.jsx@@</script>
+
+<script>@@js/drive-datei.js@@</script>
+
+
+<script>@@js/sw-anmeldung.js@@</script>
+</body></html>

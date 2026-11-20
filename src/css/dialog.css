@@ -1,0 +1,15 @@
+
+/* v109: eigene Rueckfragen und Hinweise statt Systemfenster */
+.rt-dlg-bg{position:fixed;inset:0;z-index:2147483000;background:rgba(16,24,40,.45);display:flex;align-items:center;justify-content:center;padding:16px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.rt-dlg{width:100%;max-width:420px;background:#fff;color:var(--rt-ink,#101828);border-radius:var(--rt-r,14px);box-shadow:var(--rt-sh2,0 6px 16px rgba(16,24,40,.2));padding:20px 20px 16px;font:15px/1.45 Inter,system-ui,sans-serif}
+.rt-dlg p{margin:0 0 16px;white-space:pre-line;word-break:break-word}
+.rt-dlg .rt-dlg-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.rt-dlg button{min-height:44px;padding:0 18px;border-radius:12px;font:600 14px Inter,system-ui,sans-serif;cursor:pointer;border:1px solid var(--rt-line,#E6E9EE);background:#fff;color:inherit}
+.rt-dlg button.rt-dlg-ok{background:#1F4E8C;border-color:#1F4E8C;color:#fff}
+.rt-dlg button.rt-dlg-bad{background:var(--rt-bad,#B42318);border-color:var(--rt-bad,#B42318);color:#fff}
+.rt-dlg button:focus-visible{outline:3px solid var(--rt-sel,#FFC93C);outline-offset:2px}
+html[data-dark="1"] .rt-dlg{background:#16233a;color:#e8edf5}
+html[data-dark="1"] .rt-dlg button{background:#1d2d49;border-color:#2c405f;color:#e8edf5}
+html[data-dark="1"] .rt-dlg button.rt-dlg-ok{background:#FFC93C;border-color:#FFC93C;color:#1c1204}
+.rt-upd{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147482000;max-width:460px;margin:0 auto;display:flex;align-items:center;gap:12px;justify-content:space-between;background:#173B6B;color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 6px 16px rgba(16,24,40,.3);font:600 14px Inter,system-ui,sans-serif}
+.rt-upd button{min-height:40px;padding:0 16px;border-radius:10px;border:0;background:#FFC93C;color:#1c1204;font:700 14px Inter,system-ui,sans-serif;cursor:pointer}

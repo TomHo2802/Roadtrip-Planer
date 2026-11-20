@@ -1,7 +1,19 @@
 // Baut index.html aus src/index.src.html: JSX wird vorab uebersetzt, Babel-Standalone entfaellt.
 // Aufruf: node build.js   (kein Netz noetig, Babel steckt in der Quelldatei)
 const fs = require('fs'), vm = require('vm');
-let src = fs.readFileSync('src/index.src.html', 'utf8');
+// Quelltext zusammensetzen: src/template.html mit Platzhaltern @@datei@@ (Datei aus src/) und @@app/*.jsx@@ (alle App-Teile in Namensreihenfolge)
+const path = require('path');
+function assemble() {
+  const tpl = fs.readFileSync('src/template.html', 'utf8');
+  return tpl.replace(/@@([^@\s]+)@@/g, (m, p) => {
+    if (p === 'app/*.jsx') return fs.readdirSync('src/app').filter((f) => f.endsWith('.jsx')).sort().map((f) => fs.readFileSync(path.join('src/app', f), 'utf8')).join('');
+    return fs.readFileSync(path.join('src', p), 'utf8');
+  });
+}
+module.exports = { assemble };
+if (require.main !== module) return;
+let src = assemble();
+if (process.argv.includes('--source')) { fs.writeFileSync(process.argv[process.argv.indexOf('--source') + 1] || '/tmp/index.src.html', src); process.exit(0); }
 const BABEL_MARK = '/* Babel Standalone';
 const bs = src.indexOf(BABEL_MARK);
 if (bs < 0) throw new Error('Babel-Block nicht gefunden');

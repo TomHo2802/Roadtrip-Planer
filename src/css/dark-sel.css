@@ -1,0 +1,22 @@
+/* v67: Auswahl im Dunkel-Modus in Orange */
+html[data-dark="1"]{--rt-sel:#F2A044;--rt-sel-ink:#1c1204;--rt-sel-soft:rgba(242,160,68,.20)}
+html[data-dark="1"] .v18-seg button.on,html[data-dark="1"] .v18-seg button[aria-selected="true"],html[data-dark="1"] .v18-day.on{background:var(--rt-sel) !important;color:var(--rt-sel-ink) !important;border-color:var(--rt-sel) !important;box-shadow:none !important}
+html[data-dark="1"] .v18-day.on b,html[data-dark="1"] .v18-day.on *{color:var(--rt-sel-ink) !important}
+html[data-dark="1"] .v18-nav.on{background:var(--rt-sel-soft) !important;color:var(--rt-sel) !important}
+html[data-dark="1"] .v18-bottom button.on{color:var(--rt-sel) !important}
+html[data-dark="1"] .v18-bottom button.on i{background:var(--rt-sel-soft) !important}
+html[data-dark="1"] .v18-bottom button.on i svg{color:var(--rt-sel) !important}
+html[data-dark="1"] button[aria-pressed="true"][data-navi-type],html[data-dark="1"] button[aria-pressed="true"][data-navi-pref-btn],html[data-dark="1"] button[aria-pressed="true"][data-view-btn]{background:var(--rt-sel) !important;color:var(--rt-sel-ink) !important;border-color:var(--rt-sel) !important}
+html[data-dark="1"] button[aria-pressed="true"][data-navi-type] *{color:var(--rt-sel-ink) !important}
+
+/* Ja / Nein im Dunkel-Modus */
+html[data-dark="1"] button[data-hotel-toggle][class*="bg-emerald"][class][class],html[data-dark="1"] [data-hotel-facts] span[class*="bg-emerald"][class][class]{background:#1d6b47 !important;color:#e8fff3 !important;border-color:#3fbf84 !important}
+html[data-dark="1"] button[data-hotel-toggle][class*="bg-rose"][class][class],html[data-dark="1"] [data-hotel-facts] span[class*="bg-rose"][class][class]{background:#8e2b3e !important;color:#fff0f3 !important;border-color:#e0566f !important}
+html[data-dark="1"] [data-hotel-facts] span[class*="bg-amber"][class][class]{background:#7a5a14 !important;color:#fff6dc !important;border-color:#d9a932 !important}
+html[data-dark="1"] [data-hotel-facts] span[class*="bg-slate"][class][class]{background:#25324a !important;color:#aab7cc !important;border-color:#3a4a66 !important}
+html[data-dark="1"] [data-hotel-facts] span b{color:inherit !important}
+html[data-dark="1"] .v18-side .v18-nav.on{background:rgba(242,160,68,.2) !important;color:#F2A044 !important;border-color:transparent !important;box-shadow:inset 3px 0 0 #F2A044}
+html[data-dark="1"] .rt-fspill{background:rgba(20,30,48,.92)!important;border-color:#2c3e5c!important;color:#a9b8d0!important}
+html[data-dark="1"] .rt-fsbar{background:#12301f!important;border-color:#2f7d52!important;color:#d6f5e3!important}
+html[data-dark="1"] .rt-fsbar.warn{background:#3a2a10!important;border-color:#F2A044!important;color:#ffe2bd!important}
+html[data-dark="1"] .rt-fsbar button.ghost{background:#1f3150!important;color:#e5ecf7!important;border-color:#2c3e5c!important}

@@ -1,0 +1,1 @@
+html[data-roadtrip-readonly] body.read-only-mode button:not(nav button):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}html[data-roadtrip-readonly] body.read-only-mode :is(input,select,textarea):not([data-readonly-allow]):not([data-ro-ok] *){display:none!important}body.read-only-mode{--readonly-banner:1}

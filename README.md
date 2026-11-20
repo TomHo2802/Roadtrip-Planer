@@ -477,7 +477,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v108
 - Deutlich schnellerer Start: Programm wird vorab uebersetzt (Babel entfaellt im Browser), zwei veraltete eingebettete Programmkopien entfernt. index.html von 6,4 auf 1,8 MB, Start am Laptop von etwa 5 s auf 0,5 s.
-- Quelltext liegt jetzt in src/index.src.html. Aenderungen dort machen, dann node build.js ausfuehren, das erzeugt index.html. Kein Netz noetig.
+- Quelltext liegt in src/ (siehe v111). Aenderungen dort machen, dann node build.js ausfuehren, das erzeugt index.html. Kein Netz noetig.
 - Sicherung des Stands davor: Zweig sicherung-v107.
 - Korrektur: Die Versionsanzeige in der App wird beim Bauen aus sw.js uebernommen (vorher stand fest v107 im Quelltext).
 
@@ -488,3 +488,12 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v110
 - Tailwind wird nicht mehr im Browser erzeugt: die Stile stehen fest in der Datei (src/tailwind.generated.css, erzeugt mit python3 tools/gen-tailwind.py aus allen Klassen im Quelltext). Laufzeit (400 KB) und zwei alte erzeugte Stilbloecke entfallen. index.html 1,4 MB, Start am Laptop etwa 0,2 s, am Handy (geschaetzt) unter 1 s.
 - Wer neue Tailwind-Klassen im Quelltext benutzt: python3 tools/gen-tailwind.py ausfuehren, dann node build.js.
+
+## v111
+- Quelltext aufgeteilt, Verhalten unveraendert. index.html wird aus den Teilen in src/ gebaut (node build.js, kein Netz noetig). Beim Umbau war die neu gebaute index.html byte-gleich mit der von v110.
+- Aufbau von src/:
+  - template.html: Seitengeruest mit Platzhaltern @@datei@@; app/*.jsx wird in Namensreihenfolge zusammengesetzt.
+  - app/01 bis 14: die App in Abschnitten (Basis, Karte und Vorschlaege, Tagesplan, Daten und Reisen, Demo-Reise, Online und Unterwegs, Etappen-Assistent, Schritt-Assistent, Etappenseite, Design/Sync/Karten, Planen-Ansicht, Buchen und Belege, App). Die Reihenfolge ist wichtig, weil alles ein gemeinsamer Bereich ist.
+  - css/: alle Stile, js/: kleine Hilfsskripte (Start, Rueckfragen, Drive-Datei, Service-Worker-Anmeldung), lib/: React, Leaflet, QR, Babel (nur zum Bauen), Tailwind-Laufzeit (nur zum Erzeugen der CSS).
+  - tailwind.generated.css: erzeugt mit python3 tools/gen-tailwind.py.
+- Ablauf fuer eine Aenderung: Datei in src/ aendern, bei neuen Tailwind-Klassen python3 tools/gen-tailwind.py, dann node build.js, sw.js-Version erhoehen, committen.

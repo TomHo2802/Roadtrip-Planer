@@ -1,0 +1,91 @@
+/* v101: Design A+C ("Aufgeräumt"). Klassische Ansicht: html[data-ui=classic] */
+@font-face{font-family:"Inter";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/Inter-Regular.woff) format("woff")}
+@font-face{font-family:"Inter";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/Inter-Medium.woff) format("woff")}
+@font-face{font-family:"Inter";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/Inter-SemiBold.woff) format("woff")}
+@font-face{font-family:"Inter";font-style:normal;font-weight:700 900;font-display:swap;src:url(fonts/Inter-Bold.woff) format("woff")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/SpaceGrotesk-Medium.woff2) format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:600 900;font-display:swap;src:url(fonts/SpaceGrotesk-Bold.woff2) format("woff2")}
+html:not([data-ui="classic"]){--u-bg:#F2F3F7;--u-card:#FFFFFF;--u-ink:#111827;--u-mute:#5B6170;--u-line:#ECEDF2;--u-acc:#2457D6;--u-acc-ink:#FFFFFF;--u-acc-soft:#EEF2FD;--u-acc-deep:#1A3F9E;--u-road:#9DB4EE;--u-miss:#8A4200;--u-miss-soft:#FFE9CC;--u-seg:#E3E5EC}
+html[data-dark="1"]:not([data-ui="classic"]){--u-bg:#0E1420;--u-card:#161E2D;--u-ink:#EEF1F6;--u-mute:#9AA4B5;--u-line:#222B3B;--u-acc:#FFC93C;--u-acc-ink:#1A1404;--u-acc-soft:#2A3446;--u-acc-deep:#FFDC7A;--u-road:#FFC93C;--u-miss:#FFC93C;--u-miss-soft:#3A2E0C;--u-seg:#161E2D}
+html:not([data-ui="classic"]) body{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;background:var(--u-bg)!important}
+html:not([data-ui="classic"]) main h1,html:not([data-ui="classic"]) main h2,html:not([data-ui="classic"]) .rt2-name,html:not([data-ui="classic"]) .rt2-num,html:not([data-ui="classic"]) .v18-side .v18-trip b{font-family:"Space Grotesk",Inter,sans-serif!important;letter-spacing:-.01em}
+html:not([data-ui="classic"]) main h1{font-weight:700!important}
+/* Hauptfarbe */
+html:not([data-ui="classic"]):not([data-dark="1"]) .v18-btn.pri,html:not([data-ui="classic"]):not([data-dark="1"]) [class*="bg-[#1F4E8C]"]{background:var(--u-acc)!important;border-color:var(--u-acc)!important;color:#fff!important;box-shadow:none!important}
+html:not([data-ui="classic"]):not([data-dark="1"]) [class*="bg-[#1F4E8C]"]:hover,html:not([data-ui="classic"]):not([data-dark="1"]) .v18-btn.pri:hover{background:var(--u-acc-deep)!important}
+html:not([data-ui="classic"]):not([data-dark="1"]) [class*="text-[#1F4E8C]"],html:not([data-ui="classic"]):not([data-dark="1"]) [class*="text-[#173B6B]"]{color:var(--u-acc)!important}
+html:not([data-ui="classic"]):not([data-dark="1"]) .v18-nav.on{background:var(--u-acc-soft)!important;color:var(--u-acc-deep)!important}
+html:not([data-ui="classic"]):not([data-dark="1"]) .v18-seg{background:var(--u-seg)!important;border-color:transparent!important}
+html:not([data-ui="classic"]):not([data-dark="1"]) .v18-seg button.on{background:#fff!important;color:var(--u-ink)!important;box-shadow:0 1px 2px rgba(17,24,39,.1)!important}
+html:not([data-ui="classic"]) .v18-btn{border-radius:12px}
+/* Weniger Rahmen: Karten im Hauptbereich ohne Linie */
+html:not([data-ui="classic"]):not([data-dark="1"]) main .rounded-2xl.bg-white,html:not([data-ui="classic"]):not([data-dark="1"]) main .rounded-2xl[class*="bg-[#F5F8FC]"]{border-color:transparent!important;box-shadow:0 1px 2px rgba(17,24,39,.05)!important}
+html:not([data-ui="classic"]):not([data-dark="1"]) main .rounded-2xl[class*="bg-[#F5F8FC]"]{background:#fff!important}
+/* Kennzahlen */
+.rt2-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rt2-tile{display:flex;flex-direction:column;gap:1px;padding:10px 12px;border-radius:14px;background:var(--u-card);color:var(--u-ink);text-align:left;border:0;min-height:64px;font:inherit}
+.rt2-tile .rt2-num{font-size:22px;font-weight:700;line-height:1.15}
+.rt2-tile small{font-size:12px;color:var(--u-mute)}
+button.rt2-tile{cursor:pointer}
+.rt2-tile.acc{background:var(--u-acc);color:var(--u-acc-ink)}
+.rt2-tile.acc small{color:var(--u-acc-ink);font-weight:600;opacity:.92}
+.rt2-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:space-between}
+.rt2-msg{font-size:14px;color:var(--u-mute);padding:2px 4px}
+.rt2-msg b{color:var(--u-miss)}
+@media (min-width:1024px){.rt2-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.rt2-tile .rt2-num{font-size:26px}}
+/* Etappenliste */
+html:not([data-ui="classic"]) [data-stage-list]:not(.rt2-page){background:var(--u-card);border-radius:16px;padding:4px 16px;box-shadow:0 1px 2px rgba(17,24,39,.05)}
+html:not([data-ui="classic"]) [data-stage-list]:not(.rt2-page)>*+*{margin-top:0!important}
+html:not([data-ui="classic"]) [data-stage-list]:not(.rt2-page)::before{display:none!important}
+.rt2-row{display:flex;gap:14px;align-items:stretch;color:var(--u-ink)}
+.rt2-rail{width:32px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}
+.rt2-rail::before,.rt2-rail::after{content:"";width:2px;background:repeating-linear-gradient(var(--u-road) 0 6px,transparent 6px 12px)}
+.rt2-rail::before{height:12px}.rt2-rail::after{flex-grow:1}
+.rt2-row:first-child .rt2-rail::before{background:none}
+.rt2-row:last-child .rt2-rail::after{background:none}
+.rt2-badge{width:32px;height:32px;border-radius:9px;background:var(--u-acc-soft);color:var(--u-acc);display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:14px;flex-shrink:0}
+.rt2-row.miss .rt2-badge{background:var(--u-miss-soft);color:var(--u-miss)}
+html[data-dark="1"] .rt2-row.miss .rt2-badge{background:var(--u-acc);color:var(--u-acc-ink)}
+.rt2-row.today .rt2-badge{background:#047857;color:#fff}
+.rt2-body{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--u-line);padding:8px 0}
+.rt2-row:last-child .rt2-body{border-bottom:0}
+.rt2-open{flex:1;min-width:0;min-height:52px;display:flex;flex-direction:column;justify-content:center;gap:2px;text-align:left;background:transparent;border:0;padding:4px 0;color:inherit;font:inherit;cursor:pointer;border-radius:10px}
+.rt2-open:focus-visible{outline:3px solid var(--u-acc);outline-offset:2px}
+.rt2-top{display:flex;flex-wrap:wrap;justify-content:space-between;column-gap:10px;row-gap:0;align-items:baseline}
+.rt2-name{font-size:17px;font-weight:700;overflow-wrap:anywhere}
+.rt2-date{font-size:12px;color:var(--u-mute);white-space:nowrap}
+.rt2-sub{font-size:13px;color:var(--u-mute);overflow-wrap:anywhere}
+.rt2-sub .m{color:var(--u-miss);font-weight:600}
+.rt2-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:#047857;color:#fff;font-size:11px;font-weight:700;font-family:Inter,sans-serif;vertical-align:2px}
+@media (min-width:1024px){.rt2-open{flex-direction:row;align-items:center;gap:16px}.rt2-open .rt2-top{flex:0 0 38%;flex-direction:column;gap:2px}.rt2-open .rt2-sub{flex:1}}
+/* Liste und Karte nebeneinander am Desktop */
+.rt2-split{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.rt2-split>.rt2-main{flex:1 1 520px;min-width:0}
+.rt2-split>.rt2-mapbox{flex:1 1 320px;min-width:0;display:none}
+@media (min-width:1280px){.rt2-split>.rt2-mapbox{display:block;position:sticky;top:16px}}
+.rt2-mapbox .rt2-map{height:420px;border-radius:12px;overflow:hidden;background:var(--u-seg)}
+.rt2-card{background:var(--u-card);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.rt2-map .mk2{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--u-acc);box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:700 10px Inter,sans-serif;color:var(--u-ink)}
+.rt2-map .mk2.miss{background:#E8833A;border-color:#fff;color:#fff}
+html[data-dark="1"] .rt2-map .mk2{background:#161E2D;color:#EEF1F6}
+@media print{.rt2-mapbox,.rt2-stats,.rt2-bar{display:none!important}}
+/* Dunkel: Straßengelb als Hauptfarbe */
+html[data-dark="1"]:not([data-ui="classic"]) .v18-btn.pri,html[data-dark="1"]:not([data-ui="classic"]) [class*="bg-[#1F4E8C]"],html[data-dark="1"]:not([data-ui="classic"]) .bg-blue-600{background:#FFC93C!important;border-color:#FFC93C!important;color:#1A1404!important;box-shadow:none!important}
+html[data-dark="1"]:not([data-ui="classic"]) .v18-btn.pri *,html[data-dark="1"]:not([data-ui="classic"]) [class*="bg-[#1F4E8C]"] *{color:#1A1404!important}
+html[data-dark="1"]:not([data-ui="classic"]) [class*="text-[#1F4E8C]"],html[data-dark="1"]:not([data-ui="classic"]) [class*="text-[#173B6B]"]{color:#FFC93C!important}
+html[data-dark="1"]:not([data-ui="classic"]) main .rounded-2xl.bg-white,html[data-dark="1"]:not([data-ui="classic"]) main .rounded-2xl[class*="bg-[#F5F8FC]"]{border-color:transparent!important;background:#161E2D!important}
+html[data-dark="1"]:not([data-ui="classic"]) [data-stage-list]:not(.rt2-page){background:#161E2D!important}
+
+.stage-page-mode>div[data-stage-wrap]:not(#rt-x){display:block!important}
+html:not([data-ui="classic"]) .stage-page-mode>div[data-stage-wrap].rt2-split:not(#rt-x){display:flex!important}
+.rt2-name{flex:0 1 auto;min-width:0}
+html[data-dark="1"] .rt2-open,html[data-dark="1"] .rt2-open:hover{background:transparent!important;border:0!important;box-shadow:none!important;color:#EEF1F6!important}
+html:not([data-ui="classic"]) .rt2-tile:not(#rt-x){background:var(--u-card)!important;color:var(--u-ink)!important;border:0!important}
+html:not([data-ui="classic"]) .rt2-tile.acc:not(#rt-x){background:var(--u-acc)!important;color:var(--u-acc-ink)!important}
+html:not([data-ui="classic"]) .rt2-tile.acc:not(#rt-x) small{color:var(--u-acc-ink)!important}
+html[data-dark="1"]:not([data-ui="classic"]) .rt2-open:not(#rt-x),html[data-dark="1"]:not([data-ui="classic"]) .rt2-open:not(#rt-x):hover{background:transparent!important;border:0!important;box-shadow:none!important;color:#EEF1F6!important}
+html[data-dark="1"]:not([data-ui="classic"]) .v18-bottom :is(a,button):not([aria-current="page"]):not(.on):not(#rt-x){background:transparent!important;box-shadow:none!important}
+html:not([data-ui="classic"]) [data-stage-tab][aria-selected="true"]:not(#rt-x){background:var(--u-acc)!important;border-color:var(--u-acc)!important;color:var(--u-acc-ink)!important}
+html:not([data-ui="classic"]) [data-stage-tab][aria-selected="true"]:not(#rt-x) *{color:var(--u-acc-ink)!important}
+html:not([data-ui="classic"]) [data-stage-tab]{border-radius:12px!important}
+html:not([data-ui="classic"]) [data-stage-pagebar] .text-base,html:not([data-ui="classic"]) [data-stage-pagebar] .sm\:text-lg{font-family:"Space Grotesk",Inter,sans-serif;font-size:20px!important}

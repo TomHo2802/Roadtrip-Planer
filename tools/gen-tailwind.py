@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Erzeugt src/tailwind.generated.css aus allen Klassen, die im Quelltext vorkommen.
-Braucht Playwright mit Chrome (nur zum Erzeugen, nicht fuer den Build) und die in
-src/index.src.html eingebettete Tailwind-Laufzeit. Aufruf: python3 tools/gen-tailwind.py
+Braucht Playwright mit Chrome (nur zum Erzeugen, nicht fuer den Build) und die Tailwind-Laufzeit
+in src/lib/tailwind-runtime.js. Aufruf: python3 tools/gen-tailwind.py
 Danach: node build.js"""
 import re, sys, tempfile, os
 from playwright.sync_api import sync_playwright
-src = open('src/index.src.html', encoding='utf8').read()
+import subprocess
+subprocess.check_call(['node', 'build.js', '--source', '/tmp/rt-index.src.html'])
+src = open('/tmp/rt-index.src.html', encoding='utf8').read()
 # Tailwind-Laufzeit herausloesen
 m = src.find('/* Lokal eingebettete Bibliothek: tailwind */')
 a = src.rfind('<script', 0, m); b = src.find('</script>', m)

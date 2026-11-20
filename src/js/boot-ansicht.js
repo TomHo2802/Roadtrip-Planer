@@ -1,0 +1,1 @@
+try{if(localStorage.getItem("rt_ui_v1")==="classic")document.documentElement.setAttribute("data-ui","classic")}catch(e){}

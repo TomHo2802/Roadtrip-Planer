@@ -1,0 +1,1 @@
+try{var m=localStorage.getItem("roadtrip_theme_v1");if(m==="dark"||(m!=="light"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-dark","1")}catch(e){}
