@@ -1,0 +1,65 @@
+/* v112: Design 2. Ruhigere Flaechen, Reisekopf, Etappenkarten mit Chips, Heute-Karte, breitere PC-Ansicht. Klassische Ansicht bleibt unveraendert. */
+html:not([data-ui="classic"]):not([data-dark="1"]){--u-bg:#F3F5F9;--u-acc:#1F4E8C;--u-acc-deep:#173B6B;--u-acc-soft:#E3ECF9;--u-seg:#E6EBF3;--u-line:#E3E8F0}
+/* Reisekopf */
+.rt3-hero{display:none}
+html:not([data-ui="classic"]) .rt3-hero{display:block;background:#173B6B;color:#fff;border-radius:24px;padding:18px 18px 16px;box-shadow:0 10px 24px rgba(23,59,107,.22)}
+.rt3-hero-top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px 24px}
+.rt3-hero h2{margin:0;font:700 28px/1.1 "Space Grotesk",Inter,sans-serif;letter-spacing:-.01em;color:#fff;overflow-wrap:anywhere}
+.rt3-meta{margin:6px 0 0;color:#C9D8EE;font-size:14px}
+.rt3-ver{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;background:rgba(255,255,255,.16);color:#fff;font-size:12px;font-weight:600;white-space:nowrap}
+.rt3-prog{margin-top:16px}
+.rt3-prog-top{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:600}
+.rt3-prog-top span+span{color:#C9D8EE;font-weight:500}
+.rt3-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.18);margin-top:8px;overflow:hidden}
+.rt3-bar i{display:block;height:6px;border-radius:3px;background:#FFC93C}
+@media (min-width:1024px){.rt3-hero{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:22px 28px}.rt3-hero h2{font-size:32px}.rt3-prog{margin-top:0;flex:0 1 380px;min-width:260px}}
+html[data-dark="1"]:not([data-ui="classic"]) .rt3-hero{background:#16233A;box-shadow:none;border:1px solid #25364f}
+/* Kennzahlen und Hinweis */
+html:not([data-ui="classic"]) .rt2-tile:not(#rt-x){border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06)}
+html:not([data-ui="classic"]) .rt2-msg:has(b):not(#rt-x){background:var(--u-miss-soft);color:var(--u-miss);border-radius:12px;padding:9px 12px;font-weight:500}
+/* Etappenliste als einzelne Karten */
+html:not([data-ui="classic"]) [data-stage-list]:not(.rt2-page):not(#rt-x){background:transparent!important;box-shadow:none!important;padding:0!important;display:flex;flex-direction:column;gap:10px}
+html:not([data-ui="classic"]) .rt2-row:not(#rt-x){background:var(--u-card);border-radius:18px;padding:12px;gap:12px;align-items:center;box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.07)}
+html:not([data-ui="classic"]) .rt2-rail::before,html:not([data-ui="classic"]) .rt2-rail::after{display:none}
+html:not([data-ui="classic"]) .rt2-rail{width:auto}
+html:not([data-ui="classic"]) .rt2-badge:not(#rt-x){width:44px;height:44px;border-radius:14px;font-size:20px}
+html:not([data-ui="classic"]) .rt2-body:not(#rt-x){border-bottom:0;padding:0}
+html:not([data-ui="classic"]) .rt2-open:not(#rt-x){flex-direction:column;align-items:stretch;gap:2px;min-height:44px}
+html:not([data-ui="classic"]) .rt2-open .rt2-top:not(#rt-x){flex:0 0 auto;flex-direction:row}
+html:not([data-ui="classic"]) .rt2-open .rt2-sub:not(#rt-x){flex:0 0 auto}
+.rt2-hotel{display:block;font-size:13px;color:var(--u-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rt2-hotel.m{color:var(--u-miss);font-weight:600}
+.rt2-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.rt2-chip{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;background:var(--u-acc-soft);color:var(--u-acc);font-size:12px;font-weight:600;white-space:nowrap}
+.rt2-chip.ok{background:var(--u-ok-soft);color:var(--u-ok)}
+.rt2-chip.miss{background:var(--u-miss-soft);color:var(--u-miss)}
+html[data-dark="1"] .rt2-chip{background:#223049;color:#DCE6F7}
+html[data-dark="1"] .rt2-chip.ok{background:var(--u-ok-soft);color:var(--u-ok)}
+html[data-dark="1"] .rt2-chip.miss{background:var(--u-miss-soft);color:var(--u-miss)}
+/* Untere Navigation */
+html:not([data-ui="classic"]) .v18-bottom button i{width:56px}
+html:not([data-ui="classic"]) .v18-bottom button.on{color:var(--u-acc-deep)}
+html:not([data-ui="classic"]):not([data-dark="1"]) .v18-bottom button.on i{background:var(--u-acc-soft)}
+/* Heute: dunkle Karte mit gelbem Knopf */
+html:not([data-ui="classic"]) .v18-hero:not(#rt-x){background:#173B6B!important;border:0!important;border-radius:24px!important;padding:18px!important;color:#fff;box-shadow:0 10px 24px rgba(23,59,107,.25)!important}
+html:not([data-ui="classic"]) .v18-hero .v18-lbl:not(#rt-x){color:#FFC93C!important;letter-spacing:.08em}
+html:not([data-ui="classic"]) .v18-hero h3:not(#rt-x){color:#fff!important;font:700 22px/1.2 "Space Grotesk",Inter,sans-serif!important}
+html:not([data-ui="classic"]) .v18-hero p:not(#rt-x){color:#C9D8EE!important}
+html:not([data-ui="classic"]) .v18-hero .v18-btn.pri:not(#rt-x){background:#FFC93C!important;border-color:#FFC93C!important;color:#1C1204!important;min-height:52px;border-radius:16px;font-weight:700;box-shadow:none!important}
+html:not([data-ui="classic"]) .v18-hero .v18-btn.pri:not(#rt-x) *{color:#1C1204!important}
+html[data-dark="1"]:not([data-ui="classic"]) .v18-hero:not(#rt-x){background:#16233A!important;border:1px solid #25364f!important;box-shadow:none!important}
+/* PC-Ansicht: Inhalt nutzt die Breite */
+@media (min-width:1100px){
+  html:not([data-ui="classic"]) .sp3:not(#rt-x){max-width:none}
+  html:not([data-ui="classic"]) .sp3-body:not(#rt-x){display:block;column-count:2;column-gap:16px}
+  html:not([data-ui="classic"]) .sp3-body>*:not(#rt-x){break-inside:avoid;margin-bottom:12px}
+  html:not([data-ui="classic"]) .sp3-head:not(#rt-x){max-width:none}
+}
+@media (min-width:1700px){
+  html:not([data-ui="classic"]) main.v18-main:not(#rt-x){max-width:1680px}
+  html:not([data-ui="classic"]) .sp3-body:not(#rt-x){column-count:3}
+}
+@media (min-width:1280px){
+  html:not([data-ui="classic"]) .rt2-mapbox .rt2-map:not(#rt-x){height:calc(100vh - 220px);min-height:420px}
+}
+@media print{.rt3-hero{display:none!important}}

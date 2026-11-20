@@ -497,3 +497,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
   - css/: alle Stile, js/: kleine Hilfsskripte (Start, Rueckfragen, Drive-Datei, Service-Worker-Anmeldung), lib/: React, Leaflet, QR, Babel (nur zum Bauen), Tailwind-Laufzeit (nur zum Erzeugen der CSS).
   - tailwind.generated.css: erzeugt mit python3 tools/gen-tailwind.py.
 - Ablauf fuer eine Aenderung: Datei in src/ aendern, bei neuen Tailwind-Klassen python3 tools/gen-tailwind.py, dann node build.js, sw.js-Version erhoehen, committen.
+
+## v112
+- Neue Oberflaeche (Design 2): Reisekopf mit Titel, Zeitraum, Fortschrittsbalken und sichtbarer Versionsnummer; Etappen als einzelne Karten mit Hotel und Chips (Naechte, km, Aktionen, fehlende Angaben in Rot); Heute-Karte in Dunkelblau mit gelbem Navigationsknopf.
+- PC-Ansicht nutzt die Breite besser: Etappenseite ohne Maximalbreite und in zwei bzw. drei Spalten, groessere Karte neben der Etappenliste.
+- Stile in src/css/ui5.css; die klassische Ansicht bleibt unveraendert. Sicherung der Vorversion: Branch sicherung-v111.

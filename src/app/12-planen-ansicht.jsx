@@ -1,6 +1,31 @@
 /* ===== v100: aufgeraeumte Ansicht "Planen" (umschaltbar: rt_ui_v1 = new | classic) ===== */
     const rtUiClassic = () => document.documentElement.getAttribute('data-ui') === 'classic';
     const rtChipCls = (classic, missing) => rtUiClassic() ? classic : (missing ? 'px-2.5 py-1 rounded-full bg-amber-100 text-amber-950 border border-amber-500 font-semibold' : 'px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-300 font-semibold');
+    function RtHero({ trip }) {
+      const meta = (trip && trip.meta) || {}, title = String(meta.title || 'Roadtrip').replace(/\s*\([^)]*\)\s*$/, '');
+      const iso = (x) => /^\d{4}-\d{2}-\d{2}$/.test(x || '') ? Date.UTC(+x.slice(0, 4), +x.slice(5, 7) - 1, +x.slice(8, 10)) : null;
+      const a = iso(meta.startDate), b = iso(meta.endDate), D = 86400000, now = new Date(), t0 = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+      const days = a != null && b != null && b >= a ? Math.round((b - a) / D) + 1 : 0;
+      const fmt = (ms) => { const d = new Date(ms); return `${d.getUTCDate()}.`; };
+      const range = days ? `${fmt(a)}–${new Date(b).getUTCDate()}. ${RT_MO[new Date(b).getUTCMonth()]} ${new Date(b).getUTCFullYear()}` : '';
+      const people = ((trip && trip.participants) || []).length;
+      const meta2 = [range, days ? `${days} ${days === 1 ? 'Tag' : 'Tage'}` : '', people ? `${people} ${people === 1 ? 'Reisende/r' : 'Reisende'}` : ''].filter(Boolean).join(' · ');
+      let left = '', right = '', pct = 0;
+      if (days) {
+        if (t0 < a) { const n = Math.round((a - t0) / D); left = n === 1 ? 'Morgen geht es los' : `Noch ${n} Tage bis zur Abreise`; pct = 0; }
+        else if (t0 > b) { left = 'Reise beendet'; right = 'Rückblick'; pct = 100; }
+        else { const d = Math.round((t0 - a) / D) + 1; left = `Tag ${d} von ${days}`; pct = Math.round(d / days * 100); }
+      }
+      return (
+        <section className="rt3-hero" aria-label="Reise">
+          <div>
+            <div className="rt3-hero-top"><h2>{title}</h2><span className="rt3-ver" title="Version der App">{'Version 107'.replace('Version ', 'v')}</span></div>
+            {meta2 && <p className="rt3-meta">{meta2}</p>}
+          </div>
+          {days > 0 && <div className="rt3-prog"><div className="rt3-prog-top"><span>{left}</span><span>{right}</span></div><div className="rt3-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={pct} aria-label="Reisefortschritt"><i style={{ width: pct + '%' }} /></div></div>}
+        </section>
+      );
+    }
     function RtPlanTop({ trip, goTab, children }) {
       const S = rtPlanStats(trip), n = S.rows.length;
       const [open, setOpen] = useState(() => { try { const v = localStorage.getItem('rt_status_open_v1'); if (v === '1') return true; if (v === '0') return false; } catch (e) {} return n > 0 && S.hOk === 0 && S.rOk === 0; });
@@ -13,6 +38,7 @@
       const msg = !S.datesOk ? <><b>Reisezeitraum fehlt</b></> : firstMiss ? <><b>{firstMiss.to}</b> braucht noch ein Hotel{S.hN - S.hOk > 1 ? ` (und ${S.hN - S.hOk - 1} weitere)` : ''}</> : firstRoute ? <>Strecke nach <b>{firstRoute.to}</b> fehlt noch</> : !S.nightsOk ? <><b>Nächte und Zeitraum passen nicht zusammen</b></> : <>Hotels und Strecken sind vollständig</>;
       return (
         <div data-plan-top className="no-print space-y-3">
+          <RtHero trip={trip} />
           <div className="rt2-stats">
             <div className="rt2-tile" data-stat="km"><span className="rt2-num">{km ? km.toLocaleString('de-DE') : '–'}</span><small>Kilometer</small></div>
             <div className="rt2-tile" data-stat="nights"><span className="rt2-num">{S.sum}</span><small>{S.sum === 1 ? 'Nacht' : 'Nächte'}</small></div>
@@ -44,10 +70,12 @@
             <button type="button" data-readonly-allow data-stage-open onClick={onOpen} className="rt2-open" aria-label={`Etappe ${idx + 1}: ${stage.fromCity || 'Start'} nach ${to} öffnen`}>
               <span className="rt2-top"><span className="rt2-name">{to}{today && <span className="rt2-tag">Heute</span>}</span><span className="rt2-date">{rtShortDate(stage.dateRange)}{stage.fromCity && !same ? ` · ab ${String(stage.fromCity).split(',')[0]}` : ''}</span></span>
               <span className="rt2-sub">
-                {ret ? 'Rückreise, keine Übernachtung' : `${n} ${n === 1 ? 'Nacht' : 'Nächte'}`}
-                {!ret && <> · {missH ? <span className="m" data-foot-chip="hotel" data-miss="1">Hotel fehlt</span> : <span data-foot-chip="hotel">{h}</span>}</>}
-                {!same && <> · {missR ? <span className="m" data-foot-chip="way" data-miss="1">Strecke fehlt</span> : <span data-foot-chip="way">{km ? `${Math.round(km).toLocaleString('de-DE')} km` : String(rt.distanceKm)}</span>}</>}
-                {acts > 0 && <> · <span data-foot-chip="do">{acts} {acts === 1 ? 'Aktion' : 'Aktionen'}</span></>}
+                {!ret && (missH ? <span className="rt2-hotel m" data-foot-chip="hotel" data-miss="1">Hotel fehlt</span> : <span className="rt2-hotel" data-foot-chip="hotel">{h}</span>)}
+                <span className="rt2-chips">
+                  <span className="rt2-chip">{ret ? 'Rückreise, keine Übernachtung' : `${n} ${n === 1 ? 'Nacht' : 'Nächte'}`}</span>
+                  {!same && (missR ? <span className="rt2-chip miss" data-foot-chip="way" data-miss="1">Strecke fehlt</span> : <span className="rt2-chip" data-foot-chip="way">{km ? `${Math.round(km).toLocaleString('de-DE')} km` : String(rt.distanceKm)}</span>)}
+                  {acts > 0 && <span className="rt2-chip ok" data-foot-chip="do">{acts} {acts === 1 ? 'Aktion' : 'Aktionen'}</span>}
+                </span>
               </span>
             </button>
             <span className="v18-edit-only"><RtStageMenu label={`Etappe ${idx + 1}`} upOff={idx === 0} downOff={idx === count - 1} onUp={onUp} onDown={onDown} onDelete={onDelete} onBasics={onBasics} /></span>
