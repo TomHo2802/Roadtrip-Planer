@@ -19676,7 +19676,7 @@ var qrcode = function() {
             <div className="mt-auto flex flex-col gap-3">
               <div className="border-t border-slate-200 pt-4 text-[13px] text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-2"><span style={{ width: 8, height: 8, borderRadius: '50%', background: status.c, display: 'inline-block' }} />{status.t}</div>
-                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 106</div>
+                <div className="text-slate-500">Gesamt: {formatEur(total)}</div><div className="text-[11px] text-slate-400">Version 107</div>
                 <button type="button" data-meta-open onClick={() => window.dispatchEvent(new CustomEvent('rt-wizard', { detail: { step: 'frame' } }))} className="text-[13px] font-semibold" style={{ color: '#173B6B' }}>Reise & Zeitraum ändern</button>
               </div>
               <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500"><span>Darstellung</span><ThemeSwitch /></div>
@@ -19686,7 +19686,7 @@ var qrcode = function() {
             </div>
           </aside>
           <header className="v18-mhead md:hidden">
-            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 106'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
+            <div className="font-bold text-[17px]">{g.label}<span className="ml-2 text-[10px] font-normal text-slate-400">{'Version 107'.replace('Version ', 'v')}</span>{trip.meta && trip.meta.tripId === 'demo-florida-v1' && <span className="ml-2 text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">DEMO</span>}</div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" data-readonly-allow data-help-open onClick={rtOpenHelp} aria-label="Hilfe: Erste Schritte" title="Hilfe" className="rt-help-btn">?</button>
               <ThemeSwitch compact />
@@ -20315,18 +20315,18 @@ var qrcode = function() {
     };
     async function asHotelRun(P, setP, cancelled) {
       setP(5, 'Unterkünfte werden gesucht …');
-      const mk = (R, types) => `[out:json][timeout:20];(${types.map((k) => `nwr["tourism"="${k}"](around:${R},${P[0]},${P[1]});`).join('')});out center tags 150;`;
-      const attempts = [[6000, ['hotel', 'motel', 'guest_house', 'hostel']], [3500, ['hotel', 'motel', 'guest_house']]];
+      const mk = (R, types) => `[out:json][timeout:20];(${types.map((k) => `nwr["tourism"="${k}"](around:${R},${P[0]},${P[1]});`).join('')});out center tags 400;`;
+      const attempts = [[30000, ['hotel', 'motel', 'guest_house', 'hostel']], [15000, ['hotel', 'motel', 'guest_house']], [6000, ['hotel', 'motel', 'guest_house']]];
       let j = null, lastErr = '';
       for (let i = 0; i < attempts.length && !j; i++) {
-        const stop = asProgressTicker(setP, i ? 45 : 10, i ? 60 : 40, i ? 'Zweiter Versuch mit kleinerem Umkreis …' : 'Unterkünfte werden geladen …');
+        const stop = asProgressTicker(setP, i ? 45 : 10, i ? 60 : 40, i ? `Weiterer Versuch mit ${attempts[i][0] / 1000} km Umkreis …` : 'Unterkünfte im Umkreis von 30 km werden geladen …');
         try { j = await Promise.any(AS_OVP.map((u) => fetchJsonT(`${u}?data=${encodeURIComponent(mk(...attempts[i]))}`, 22000))); } catch (e) { lastErr = (e.errors || [e]).map((x) => x && x.message).filter(Boolean).join(' | '); } finally { stop(); }
         if (cancelled()) throw new Error('__cancel');
       }
       let elements = j ? (j.elements || []) : [];
       if (!j) {
         const stop = asProgressTicker(setP, 62, 88, 'Alternative Quelle (Nominatim) wird abgefragt …'); let nom = [];
-        try { nom = await asNomHotels(P, 0.06); } finally { stop(); }
+        try { nom = await asNomHotels(P, 0.27); } finally { stop(); }
         if (cancelled()) throw new Error('__cancel');
         if (!nom.length) throw new Error('Overpass: ' + (lastErr || 'keine Antwort') + ' · Nominatim ohne Ergebnis');
         elements = nom.map((x) => ({ type: x.osm_type || 'n', id: x.osm_id, lat: Number(x.lat), lon: Number(x.lon), tags: { name: x.name || (x.display_name || '').split(',')[0], tourism: AS_HTYPES[x.type] ? x.type : (x.type === 'guest_house' ? 'guest_house' : 'hotel'), ...(x.extratags || {}), 'addr:street': x.address && x.address.road, 'addr:housenumber': x.address && x.address.house_number, 'addr:postcode': x.address && x.address.postcode, 'addr:city': x.address && (x.address.city || x.address.town || x.address.village) } }));
@@ -20378,7 +20378,7 @@ var qrcode = function() {
         cancelRef.current = false; setErr(''); setRes(null); setPr({ pct: 1, label: 'Start …', busy: true }); const setP = (pct, label) => setPr({ pct, label, busy: true });
         try {
           setP(3, 'Ort wird bestimmt …'); const C = await asCenter(stage); if (!C) throw new Error('Ort nicht gefunden. Bitte Zielort prüfen oder GPS beim Hotel eintragen.'); setPt(C);
-          const key = `hotels|${C[0].toFixed(3)}|${C[1].toFixed(3)}`; const cached = force === true ? null : sfwGet(key);
+          const key = `hotels30|${C[0].toFixed(3)}|${C[1].toFixed(3)}`; const cached = force === true ? null : sfwGet(key);
           if (cached) { setRes(cached); setSelId(null); setPr({ pct: 100, label: 'Fertig (aus Zwischenspeicher)', busy: false }); return; }
           const r = await asHotelRun(C, setP, () => cancelRef.current); if (r.items.length) sfwPut(key, r); setRes(r); setPr({ pct: 100, label: 'Fertig', busy: false });
         } catch (e) { if (e.message === '__cancel') setPr({ pct: 0, label: 'Abgebrochen', busy: false }); else { setErr(/nicht gefunden/.test(e.message) ? e.message : `Suche fehlgeschlagen (${String(e.message).slice(0, 200)}). Internet nötig.`); setPr({ pct: 0, label: '', busy: false }); } }
@@ -20414,7 +20414,7 @@ var qrcode = function() {
               </div>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
                 <span className="inline-flex items-center gap-1.5">Sterne:{[[0, 'alle'], [2, '2+'], [3, '3+'], [4, '4+']].map(([v, l]) => <button key={v} type="button" data-readonly-allow data-as-stars={v} aria-pressed={minStars === v} onClick={() => setMinStars(v)} className={`h-8 px-2.5 rounded-full border text-xs font-semibold ${minStars === v ? 'bg-[#1F4E8C] border-[#1F4E8C] text-white' : 'bg-white border-slate-300'}`}>{l}</button>)}</span>
-                <label className="flex items-center gap-2 font-semibold">Entfernung bis <b data-as-maxkm className="text-[#1F4E8C] w-12">{maxKm} km</b><input data-readonly-allow type="range" min="1" max="8" step="1" value={maxKm} onChange={(e) => setMaxKm(+e.target.value)} className="v20-range" aria-label="Maximale Entfernung zum Zentrum" /></label>
+                <label className="flex items-center gap-2 font-semibold">Entfernung bis <b data-as-maxkm className="text-[#1F4E8C] w-12">{maxKm} km</b><input data-readonly-allow type="range" min="1" max="30" step="1" value={maxKm} onChange={(e) => setMaxKm(+e.target.value)} className="v20-range" aria-label="Maximale Entfernung zum Zentrum" /></label>
                 <label className="inline-flex items-center gap-1.5"><input data-readonly-allow type="checkbox" checked={wifi} onChange={(e) => setWifi(e.target.checked)} />WLAN</label>
                 <label className="inline-flex items-center gap-1.5"><input data-readonly-allow data-as-onlyfav type="checkbox" checked={onlyFav} onChange={(e) => setOnlyFav(e.target.checked)} />Nur Merkliste ★</label>
               </div>

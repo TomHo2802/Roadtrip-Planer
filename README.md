@@ -471,3 +471,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v106
 - Kassenzettel: Texterkennung im Browser (Tesseract.js, bei Bedarf vom CDN geladen und danach offline) erkennt Betrag, Waehrung, Datum, Geschaeft, Kategorie und Karte. Erkannte Felder markiert, Eingetipptes hat Vorrang.
+
+## v107
+- Hotelsuche je Etappe im Umkreis bis 30 km (Abfrage und Regler), Ausweichstufen 15 und 6 km.
