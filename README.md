@@ -480,3 +480,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Quelltext liegt jetzt in src/index.src.html. Aenderungen dort machen, dann node build.js ausfuehren, das erzeugt index.html. Kein Netz noetig.
 - Sicherung des Stands davor: Zweig sicherung-v107.
 - Korrektur: Die Versionsanzeige in der App wird beim Bauen aus sw.js uebernommen (vorher stand fest v107 im Quelltext).
+
+## v109
+- Eigene Rueckfragen und Hinweise statt der grauen Browser-Fenster (27 Rueckfragen, 5 Hinweise): gleiche Abfragen wie zuvor, aber im App-Design, mit Escape, Tastatur und Dunkelmodus. Loeschen und Verwerfen sind rot.
+- Hinweisleiste "Neue Version bereit. Jetzt laden", sobald eine neue Version auf dem Geraet angekommen ist. Die App prueft beim Zurueckkehren in den Vordergrund und alle 30 Minuten auf Updates.

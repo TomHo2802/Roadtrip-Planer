@@ -4103,6 +4103,61 @@ var qrcode = function() {
 }));
 
 </script>
+<style>
+/* v109: eigene Rueckfragen und Hinweise statt Systemfenster */
+.rt-dlg-bg{position:fixed;inset:0;z-index:2147483000;background:rgba(16,24,40,.45);display:flex;align-items:center;justify-content:center;padding:16px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.rt-dlg{width:100%;max-width:420px;background:#fff;color:var(--rt-ink,#101828);border-radius:var(--rt-r,14px);box-shadow:var(--rt-sh2,0 6px 16px rgba(16,24,40,.2));padding:20px 20px 16px;font:15px/1.45 Inter,system-ui,sans-serif}
+.rt-dlg p{margin:0 0 16px;white-space:pre-line;word-break:break-word}
+.rt-dlg .rt-dlg-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.rt-dlg button{min-height:44px;padding:0 18px;border-radius:12px;font:600 14px Inter,system-ui,sans-serif;cursor:pointer;border:1px solid var(--rt-line,#E6E9EE);background:#fff;color:inherit}
+.rt-dlg button.rt-dlg-ok{background:#1F4E8C;border-color:#1F4E8C;color:#fff}
+.rt-dlg button.rt-dlg-bad{background:var(--rt-bad,#B42318);border-color:var(--rt-bad,#B42318);color:#fff}
+.rt-dlg button:focus-visible{outline:3px solid var(--rt-sel,#FFC93C);outline-offset:2px}
+html[data-dark="1"] .rt-dlg{background:#16233a;color:#e8edf5}
+html[data-dark="1"] .rt-dlg button{background:#1d2d49;border-color:#2c405f;color:#e8edf5}
+html[data-dark="1"] .rt-dlg button.rt-dlg-ok{background:#FFC93C;border-color:#FFC93C;color:#1c1204}
+.rt-upd{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147482000;max-width:460px;margin:0 auto;display:flex;align-items:center;gap:12px;justify-content:space-between;background:#173B6B;color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 6px 16px rgba(16,24,40,.3);font:600 14px Inter,system-ui,sans-serif}
+.rt-upd button{min-height:40px;padding:0 16px;border-radius:10px;border:0;background:#FFC93C;color:#1c1204;font:700 14px Inter,system-ui,sans-serif;cursor:pointer}
+</style>
+<script>
+(function(){
+  function build(msg,o){
+    return new Promise(function(res){
+      var prev=document.activeElement;
+      var bg=document.createElement('div');bg.className='rt-dlg-bg';
+      var d=document.createElement('div');d.className='rt-dlg';d.setAttribute('role',o.cancel?'alertdialog':'dialog');d.setAttribute('aria-modal','true');
+      var p=document.createElement('p');p.textContent=String(msg==null?'':msg);d.appendChild(p);
+      var bar=document.createElement('div');bar.className='rt-dlg-btns';
+      function done(v){document.removeEventListener('keydown',key,true);bg.remove();try{prev&&prev.focus&&prev.focus();}catch(e){}res(v);}
+      var c=null;
+      if(o.cancel){c=document.createElement('button');c.type='button';c.textContent=o.cancel;c.onclick=function(){done(false);};bar.appendChild(c);}
+      var ok=document.createElement('button');ok.type='button';ok.textContent=o.ok;ok.className=o.bad?'rt-dlg-bad':'rt-dlg-ok';ok.onclick=function(){done(true);};bar.appendChild(ok);
+      d.appendChild(bar);bg.appendChild(d);
+      function key(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}else if(e.key==='Tab'){var f=[].slice.call(d.querySelectorAll('button'));var i=f.indexOf(document.activeElement);e.preventDefault();f[(i+(e.shiftKey?-1:1)+f.length)%f.length].focus();}}
+      document.addEventListener('keydown',key,true);
+      bg.addEventListener('mousedown',function(e){if(e.target===bg&&o.cancel)done(false);});
+      document.body.appendChild(bg);(o.cancel&&o.bad?c:ok).focus();
+    });
+  }
+  /* Rueckfrage: Promise<boolean> */
+  window.rtAsk=function(msg,opt){
+    var m=String(msg==null?'':msg),o=opt||{};
+    var bad=o.bad!=null?o.bad:/löschen|verwerfen|entfernen|überschreib|zurückgesetzt/i.test(m);
+    var ok=o.ok||(/löschen/i.test(m)&&!/wiederherstellen/i.test(m)?'Löschen':/verwerfen/i.test(m)?'Verwerfen':'Fortfahren');
+    return build(m,{ok:ok,cancel:o.cancel||'Abbrechen',bad:bad});
+  };
+  /* Hinweis ohne Warten (Ersatz fuer alert) */
+  window.rtNotice=function(msg){return build(msg,{ok:'OK',cancel:null,bad:false});};
+  /* Hinweisleiste bei neuer App-Version */
+  window.rtShowUpdateBar=function(){
+    if(document.getElementById('rt-upd'))return;
+    var b=document.createElement('div');b.id='rt-upd';b.className='rt-upd';b.setAttribute('role','status');
+    var t=document.createElement('span');t.textContent='Neue Version bereit.';
+    var bt=document.createElement('button');bt.type='button';bt.textContent='Jetzt laden';bt.onclick=function(){location.reload();};
+    b.appendChild(t);b.appendChild(bt);document.body.appendChild(b);
+  };
+})();
+</script>
 <script type="text/babel">
     const { useState, useEffect, useMemo, useRef } = React;
 
@@ -5553,7 +5608,7 @@ var qrcode = function() {
         catch (x) { setErr('Speichern fehlgeschlagen: ' + (x && x.message ? x.message : x)); } setBusy(false);
       };
       const open = (d) => { const u = URL.createObjectURL(d.blob); const w = window.open(u, '_blank'); if (!w) { const a = document.createElement('a'); a.href = u; a.download = d.name; a.click(); } setTimeout(() => URL.revokeObjectURL(u), 60000); };
-      const del = async (d) => { if (!window.confirm(`„${d.name}“ löschen?`)) return; try { await docsTx('readwrite', (s) => s.delete(d.id)); await load(); docsChanged(); onSave({ ...trip }, ''); } catch (e) { setErr('Löschen fehlgeschlagen.'); } };
+      const del = async (d) => { if (!(await window.rtAsk(`„${d.name}“ löschen?`))) return; try { await docsTx('readwrite', (s) => s.delete(d.id)); await load(); docsChanged(); onSave({ ...trip }, ''); } catch (e) { setErr('Löschen fehlgeschlagen.'); } };
       return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-base font-bold text-slate-900">Dokumente</h3>
@@ -5613,8 +5668,8 @@ var qrcode = function() {
       const nid = () => `var-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       const snap = (stages) => JSON.parse(JSON.stringify(stages));
       const saveVar = () => { const n = name.trim() || `Variante ${vars.length + 1}`; const v = { id: nid(), name: n, created: new Date().toISOString(), stages: snap(trip.stages || []) }; onSave({ ...trip, variants: [...vars, v].slice(-8) }, ''); setName(''); };
-      const restore = (v) => { if (!window.confirm(`„${v.name}“ wiederherstellen? Der aktuelle Stand wird vorher als Variante gesichert.`)) return; const cur = { id: nid(), name: `Vor Wiederherstellung ${new Date().toLocaleString('de-DE')}`, created: new Date().toISOString(), stages: snap(trip.stages || []) }; onSave({ ...trip, stages: snap(v.stages), variants: [...vars, cur].slice(-8) }, ''); };
-      const rm = (v) => { if (window.confirm(`Variante „${v.name}“ löschen?`)) onSave({ ...trip, variants: vars.filter((x) => x.id !== v.id) }, ''); };
+      const restore = async (v) => { if (!(await window.rtAsk(`„${v.name}“ wiederherstellen? Der aktuelle Stand wird vorher als Variante gesichert.`))) return; const cur = { id: nid(), name: `Vor Wiederherstellung ${new Date().toLocaleString('de-DE')}`, created: new Date().toISOString(), stages: snap(trip.stages || []) }; onSave({ ...trip, stages: snap(v.stages), variants: [...vars, cur].slice(-8) }, ''); };
+      const rm = async (v) => { if ((await window.rtAsk(`Variante „${v.name}“ löschen?`))) onSave({ ...trip, variants: vars.filter((x) => x.id !== v.id) }, ''); };
       const get = (id) => (id === 'current' ? { name: 'Aktuell', stages: trip.stages || [] } : vars.find((v) => v.id === id));
       const VA = get(a), VB = get(b); const opts = [{ id: 'current', name: 'Aktuell' }, ...vars];
       const row = (label, x, y, fmt, lowerBetter) => { const dx = y - x; const cls = dx === 0 ? '' : (lowerBetter ? dx < 0 : dx > 0) ? 'text-emerald-700' : 'text-red-700'; return <tr key={label} className="border-t border-slate-200"><td className="py-1.5 pr-2 font-semibold">{label}</td><td className="py-1.5 pr-2 tabular-nums">{fmt(x)}</td><td className="py-1.5 pr-2 tabular-nums">{fmt(y)}</td><td className={`py-1.5 tabular-nums font-bold ${cls}`}>{dx === 0 ? '±0' : (dx > 0 ? '+' : '−') + fmt(Math.abs(dx))}</td></tr>; };
@@ -5890,14 +5945,14 @@ var qrcode = function() {
       const reload = () => libAll().then(setLib); useEffect(() => { reload(); }, []);
       const run = async (fn) => { setMsg(''); setBusy(true); try { await fn(); } catch (x) { if (!x || x.name !== 'AbortError') setMsg(x && x.message ? x.message : String(x)); } setBusy(false); };
       const onSwitch = (e) => run(async () => { await switchTrip(e.id); location.reload(); });
-      const onRemove = (e) => run(async () => { if (!window.confirm(`Reise „${e.title || 'Ohne Titel'}“ von diesem Gerät entfernen? Die Datei in Drive bleibt unberührt.`)) return; await libDel(e.id); await reload(); });
+      const onRemove = (e) => run(async () => { if (!(await window.rtAsk(`Reise „${e.title || 'Ohne Titel'}“ von diesem Gerät entfernen? Die Datei in Drive bleibt unberührt.`))) return; await libDel(e.id); await reload(); });
       const onFile = (ev) => run(async () => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return; const d = await readTripFile(f); const same = sameTrip(getActiveTrip(), d);
-        if (!window.confirm(same ? `Datei „${f.name}“ ersetzt die aktuelle Reise auf diesem Gerät. Fortfahren?` : `Reise „${d.meta.title || 'Ohne Titel'}“ laden? Die aktuelle Reise wird gesichert und bleibt in der Liste.`)) return;
+        if (!(await window.rtAsk(same ? `Datei „${f.name}“ ersetzt die aktuelle Reise auf diesem Gerät. Fortfahren?` : `Reise „${d.meta.title || 'Ohne Titel'}“ laden? Die aktuelle Reise wird gesichert und bleibt in der Liste.`))) return;
         await loadTripFileAsActive(d); location.reload(); });
       const onConnect = () => run(async () => { const h = await fsSync.pickRaw(); const d = await fsSync.readHandle(h); if (!d) throw new Error('Die Datei ist leer.'); const same = sameTrip(getActiveTrip(), d);
-        if (same) { const fl = (d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (fl > lo && window.confirm('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?')) { await loadTripFileAsActive(d, h); location.reload(); return; } await fsSync.adopt(h); await fsSync.write(trip); setMsg('Verbunden. Der Gerätestand wurde in die Datei geschrieben.'); return; }
-        if (!window.confirm(`Die Datei gehört zur Reise „${d.meta.title || 'Ohne Titel'}“. Aktuelle Reise sichern und zu dieser wechseln?`)) return; await loadTripFileAsActive(d, h); location.reload(); });
-      const onBlank = () => run(async () => { if (!window.confirm('Die aktuelle Reise wird gesichert und bleibt in der Liste. Danach kannst du eine andere Datei laden oder eine neue Reise anlegen. Fortfahren?')) return; await startBlankTrip(); location.reload(); });
+        if (same) { const fl = (d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (fl > lo && (await window.rtAsk('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?'))) { await loadTripFileAsActive(d, h); location.reload(); return; } await fsSync.adopt(h); await fsSync.write(trip); setMsg('Verbunden. Der Gerätestand wurde in die Datei geschrieben.'); return; }
+        if (!(await window.rtAsk(`Die Datei gehört zur Reise „${d.meta.title || 'Ohne Titel'}“. Aktuelle Reise sichern und zu dieser wechseln?`))) return; await loadTripFileAsActive(d, h); location.reload(); });
+      const onBlank = () => run(async () => { if (!(await window.rtAsk('Die aktuelle Reise wird gesichert und bleibt in der Liste. Danach kannst du eine andere Datei laden oder eine neue Reise anlegen. Fortfahren?'))) return; await startBlankTrip(); location.reload(); });
       return (
         <section data-readonly-allow className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
           <h2 className="text-base sm:text-lg font-bold text-indigo-950">Meine Reisen</h2>
@@ -5908,8 +5963,8 @@ var qrcode = function() {
             <div className="text-sm font-bold">Demo-Reise „Florida Rundreise“</div>
             <div className="text-xs text-slate-500">Anonymisierte Beispielreise zum Ausprobieren. Änderungen betreffen nur die Demo. Mit dem Zurücksetzen ist sie wieder im Ursprungszustand; deine echten Reisen bleiben unberührt.</div>
             {isDemoTrip(trip)
-              ? <button data-readonly-allow data-demo-reset type="button" disabled={busy} onClick={() => run(async () => { if (!window.confirm('Die Demo-Reise wird auf den Ursprungszustand zurückgesetzt. Alle Änderungen daran gehen verloren. Fortfahren?')) return; await loadDemo(); location.reload(); })} className="min-h-[44px] px-4 rounded-xl bg-amber-600 text-white text-sm font-bold">Demo auf Ursprungszustand zurücksetzen</button>
-              : <button data-readonly-allow data-demo-open type="button" disabled={busy} onClick={() => run(async () => { const inLib = lib.some((e) => e.id === DEMO_ID); if (!window.confirm(inLib ? 'Die Demo wird im Ursprungszustand neu geöffnet (deine bisherigen Demo-Änderungen gehen verloren). Die aktuelle Reise wird gesichert und bleibt in der Liste. Fortfahren?' : 'Die Demo-Reise wird geöffnet. Die aktuelle Reise wird gesichert und bleibt in der Liste. Fortfahren?')) return; await loadDemo(); location.reload(); })} className="min-h-[44px] px-4 rounded-xl bg-[#1F4E8C] text-white text-sm font-bold">{lib.some((e) => e.id === DEMO_ID) ? 'Demo neu öffnen (Ursprungszustand)' : 'Demo-Reise öffnen'}</button>}
+              ? <button data-readonly-allow data-demo-reset type="button" disabled={busy} onClick={() => run(async () => { if (!(await window.rtAsk('Die Demo-Reise wird auf den Ursprungszustand zurückgesetzt. Alle Änderungen daran gehen verloren. Fortfahren?'))) return; await loadDemo(); location.reload(); })} className="min-h-[44px] px-4 rounded-xl bg-amber-600 text-white text-sm font-bold">Demo auf Ursprungszustand zurücksetzen</button>
+              : <button data-readonly-allow data-demo-open type="button" disabled={busy} onClick={() => run(async () => { const inLib = lib.some((e) => e.id === DEMO_ID); if (!(await window.rtAsk(inLib ? 'Die Demo wird im Ursprungszustand neu geöffnet (deine bisherigen Demo-Änderungen gehen verloren). Die aktuelle Reise wird gesichert und bleibt in der Liste. Fortfahren?' : 'Die Demo-Reise wird geöffnet. Die aktuelle Reise wird gesichert und bleibt in der Liste. Fortfahren?'))) return; await loadDemo(); location.reload(); })} className="min-h-[44px] px-4 rounded-xl bg-[#1F4E8C] text-white text-sm font-bold">{lib.some((e) => e.id === DEMO_ID) ? 'Demo neu öffnen (Ursprungszustand)' : 'Demo-Reise öffnen'}</button>}
             {!isDemoTrip(trip) && lib.some((e) => e.id === DEMO_ID) && <div className="text-xs text-slate-500">Die Demo mit deinen Änderungen findest du oben in der Liste unter „Wechseln“.</div>}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -5926,7 +5981,7 @@ var qrcode = function() {
     function DeviceDataCard({ trip }) {
       const fs = useFsSync(); const [msg, setMsg] = useState(''); const mode = getDeviceMode();
       const run = async (fn) => { setMsg(''); try { await fn(); } catch (x) { if (!x || x.name !== 'AbortError') setMsg(x && x.message ? x.message : String(x)); } };
-      const reactivate = () => run(async () => { const d = await fsSync.activate(); const fl = (d && d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (d && sameTrip(getActiveTrip(), d) && fl > lo && window.confirm('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?')) { await installTripData(d); location.reload(); } else { await fsSync.write(trip); } });
+      const reactivate = () => run(async () => { const d = await fsSync.activate(); const fl = (d && d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (d && sameTrip(getActiveTrip(), d) && fl > lo && (await window.rtAsk('Die Datei ist neuer als der Stand auf diesem Gerät. Datei laden und lokale Daten ersetzen?'))) { await installTripData(d); location.reload(); } else { await fsSync.write(trip); } });
       const createFile = () => run(async () => { await fsSync.pick(true, trip); await fsSync.activate(); setMsg('Datei angelegt und verbunden.'); });
       const exportNow = () => run(async () => { await downloadTripFile(normalizeTrip(trip), 'roadtrip-daten.json'); });
       return (
@@ -5955,7 +6010,7 @@ var qrcode = function() {
           {!FS_SUPPORTED && <div data-readonly-allow className="rounded-xl border border-emerald-300 bg-white p-3 space-y-2">
             <div className="text-sm font-bold">Stand der Daten auf diesem Gerät: {trip.meta && trip.meta.lastUpdated ? new Date(trip.meta.lastUpdated).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'unbekannt'}</div>
             <p className="text-xs text-slate-600">Dieser Browser kann eine Datei nicht dauerhaft verbinden und nicht automatisch nachladen. Änderungen vom Laptop holst du hier mit einem Tipp: Datei aus Drive wählen (die neueste Version wird übernommen).</p>
-            <label data-readonly-allow className="min-h-[44px] inline-flex items-center px-4 rounded-xl bg-[#1F4E8C] text-white text-sm font-bold cursor-pointer">Neueste Datei aus Drive laden<input data-readonly-allow type="file" accept=".json,application/json" className="hidden" onChange={(e) => run(async () => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; const d = await readTripFile(f); const fl = (d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (sameTrip(getActiveTrip(), d) && fl && fl <= lo) { setMsg('Diese Datei ist nicht neuer als der Stand auf dem Gerät. Nichts geändert.'); return; } if (sameTrip(getActiveTrip(), d) && mode !== 'readonly' && !window.confirm('Lokale Daten durch die Datei ersetzen?')) return; await loadTripFileAsActive(d); location.reload(); })} /></label>
+            <label data-readonly-allow className="min-h-[44px] inline-flex items-center px-4 rounded-xl bg-[#1F4E8C] text-white text-sm font-bold cursor-pointer">Neueste Datei aus Drive laden<input data-readonly-allow type="file" accept=".json,application/json" className="hidden" onChange={(e) => run(async () => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; const d = await readTripFile(f); const fl = (d.meta && d.meta.lastUpdated) || '', lo = (trip.meta && trip.meta.lastUpdated) || ''; if (sameTrip(getActiveTrip(), d) && fl && fl <= lo) { setMsg('Diese Datei ist nicht neuer als der Stand auf dem Gerät. Nichts geändert.'); return; } if (sameTrip(getActiveTrip(), d) && mode !== 'readonly' && !(await window.rtAsk('Lokale Daten durch die Datei ersetzen?'))) return; await loadTripFileAsActive(d); location.reload(); })} /></label>
           </div>}
           {msg && <div role="status" className="text-sm rounded-lg bg-white border border-emerald-300 p-2">{msg}</div>}
         </section>
@@ -6315,7 +6370,7 @@ var qrcode = function() {
               <div className="v18-logo"><V18Icon n="logo" size={22} /></div>
               <div className="min-w-0"><div className="font-bold text-[15px] leading-tight break-words">{String(meta.title || 'Roadtrip Planer').replace(/\s*\([^)]*\)\s*$/, '')}</div><div className="text-xs text-slate-500">{(String(meta.title || '').match(/\(([^)]*)\)\s*$/) || [])[1] ? (String(meta.title).match(/\(([^)]*)\)\s*$/))[1] + ' · ' : ''}{people} Personen</div></div>
             </div>
-            {trip.meta && trip.meta.tripId === 'demo-florida-v1' && <div data-demo-chip className="v18-demo"><span>Demo-Reise</span><button type="button" data-demo-reset-chip onClick={async () => { if (window.confirm('Die Demo-Reise wird auf den Ursprungszustand zurückgesetzt. Alle Änderungen daran gehen verloren. Fortfahren?')) { await loadDemo(); location.reload(); } }}>Zurücksetzen</button></div>}
+            {trip.meta && trip.meta.tripId === 'demo-florida-v1' && <div data-demo-chip className="v18-demo"><span>Demo-Reise</span><button type="button" data-demo-reset-chip onClick={async () => { if ((await window.rtAsk('Die Demo-Reise wird auf den Ursprungszustand zurückgesetzt. Alle Änderungen daran gehen verloren. Fortfahren?'))) { await loadDemo(); location.reload(); } }}>Zurücksetzen</button></div>}
             <RtSideStatus trip={trip} />
             {countdown && <button type="button" onClick={onMeta} className={cdCls} title="Abreisedatum, Titel oder Wechselkurs anpassen">{countdown.label}</button>}
             <nav className="flex flex-col gap-1" aria-label="Bereiche">
@@ -7040,9 +7095,9 @@ var qrcode = function() {
       }, [res, types, minStars, maxKm, wifi, onlyFav, sortBy, notes]);
       useEffect(() => { if (shown.length && !shown.some((c) => c.id === selId)) setSelId(shown[0].id); }, [shown]);
       const counts = {}; (res ? res.items : []).forEach((c) => { counts[c.type] = (counts[c.type] || 0) + 1; });
-      const pick = (c) => {
+      const pick = async (c) => {
         const n = getN(c); const nights = Math.max(1, parseInt(stage.nights, 10) || 1); const pr = price(c);
-        if (stage.hotel && stage.hotel.name && !window.confirm(`Das bisherige Hotel „${stage.hotel.name}“ wird durch „${c.name}“ ersetzt. Fortfahren?`)) return;
+        if (stage.hotel && stage.hotel.name && !(await window.rtAsk(`Das bisherige Hotel „${stage.hotel.name}“ wird durch „${c.name}“ ersetzt. Fortfahren?`))) return;
         onSetHotel(stage.id, { name: c.name, address: c.addr || (stage.hotel && stage.hotel.address) || '', gps: `${c.lat.toFixed(6)},${c.lon.toFixed(6)}`, rating: n.rating || '', ...(isFinite(pr) ? { priceNewEur: Math.round(pr * nights * 100) / 100, priceOldEur: Math.round(pr * nights * 100) / 100 } : {}), hotelLink: c.web ? (/^https?:/.test(c.web) ? c.web : 'https://' + c.web) : '', bookingLink: linksOf(c).booking }, c.name);
       };
       return (
@@ -7510,10 +7565,10 @@ var qrcode = function() {
       const dates = sd.map((x) => { if (!cursor) return null; const a = cursor; const b = isoAdd(a, Number(x.nights) || 0); cursor = b; return [a, b]; });
       const upd = (i, p) => { setErr(''); setSd(sd.map((x, k) => (k === i ? { ...x, ...p } : x))); };
       const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= sd.length) return; const c = [...sd]; [c[i], c[j]] = [c[j], c[i]]; setSd(c); };
-      const rm = (i) => { const x = sd[i]; const o = stages.find((s) => s.id === x.id); const has = o && ((o.hotel && o.hotel.name) || (o.localAttractions || []).length); if (has && !window.confirm(`Die Etappe „${x.city || 'ohne Namen'}“ enthält Hotel- oder Aktionsdaten. Wirklich aus dem Plan entfernen?`)) return; setSd(sd.filter((_, k) => k !== i)); };
+      const rm = async (i) => { const x = sd[i]; const o = stages.find((s) => s.id === x.id); const has = o && ((o.hotel && o.hotel.name) || (o.localAttractions || []).length); if (has && !(await window.rtAsk(`Die Etappe „${x.city || 'ohne Namen'}“ enthält Hotel- oder Aktionsdaten. Wirklich aus dem Plan entfernen?`))) return; setSd(sd.filter((_, k) => k !== i)); };
       const nightsLess = (i) => { const x = sd[i]; if (Number(x.nights) <= 1) return; const c = sd.map((y, k) => (k === i ? { ...y, nights: Number(y.nights) - 1 } : y)); c.splice(i + 1, 0, { id: `new-${Date.now()}-${i}`, city: '', nights: 1 }); setSd(c); setErr(''); };
       const nightsMore = (i) => { setErr(''); if (usedNights < budgetNights) { upd(i, { nights: (Number(sd[i].nights) || 0) + 1 }); return; } setSwap(i); };
-      const swapRemove = (k) => { const x = sd[k]; const o = stages.find((s) => s.id === x.id); const has = o && ((o.hotel && o.hotel.name) || (o.localAttractions || []).length); if (has && !window.confirm(`Die Etappe „${x.city || 'ohne Namen'}“ enthält Hotel- oder Aktionsdaten. Wirklich aus dem Plan entfernen?`)) return; const tgt = sd[swap].id; setSd(sd.filter((_, q) => q !== k).map((y) => (y.id === tgt ? { ...y, nights: Number(y.nights) + 1 } : y))); setSwap(null); };
+      const swapRemove = async (k) => { const x = sd[k]; const o = stages.find((s) => s.id === x.id); const has = o && ((o.hotel && o.hotel.name) || (o.localAttractions || []).length); if (has && !(await window.rtAsk(`Die Etappe „${x.city || 'ohne Namen'}“ enthält Hotel- oder Aktionsdaten. Wirklich aus dem Plan entfernen?`))) return; const tgt = sd[swap].id; setSd(sd.filter((_, q) => q !== k).map((y) => (y.id === tgt ? { ...y, nights: Number(y.nights) + 1 } : y))); setSwap(null); };
       const Phase = ({ p }) => <span className="text-[11px] font-bold uppercase tracking-wider text-blue-100">{p}</span>;
 
       const checks = (() => {
@@ -7902,13 +7957,13 @@ var qrcode = function() {
       return (
         <div data-route-all className="v18-edit-only no-print rounded-2xl border border-slate-200 bg-white p-3 flex flex-wrap items-center gap-3 text-sm">
           <button type="button" onClick={() => run(false)} disabled={!open || !!st && /Berechne/.test(st)} className="v18-btn disabled:opacity-50">Entfernung &amp; Fahrzeit für alle Etappen ermitteln</button>
-          <button type="button" data-route-all-force onClick={() => { if (window.confirm('Alle Strecken mit der aktuellen Routenart neu berechnen? Vorhandene km und Fahrzeiten werden überschrieben.')) run(true); }} disabled={!!st && /Berechne/.test(st)} className="v18-btn">Alle neu berechnen ({rtRouteLabel(rtRoutePref())})</button>
+          <button type="button" data-route-all-force onClick={async () => { if ((await window.rtAsk('Alle Strecken mit der aktuellen Routenart neu berechnen? Vorhandene km und Fahrzeiten werden überschrieben.'))) run(true); }} disabled={!!st && /Berechne/.test(st)} className="v18-btn">Alle neu berechnen ({rtRouteLabel(rtRoutePref())})</button>
           <span className="text-slate-700">{open ? `${open} Etappe(n) ohne Angabe` : 'Alle Etappen haben km und Fahrzeit.'} {st}</span>
         </div>
       );
     }
     function RtMigrate({ trip, onSave }) {
-      useEffect(() => {
+      useEffect(() => {(async () => {
         const m = trip.meta || {}, stages = trip.stages || [];
         if (IS_READ_ONLY_COPY || m.returnStageAsked || stages.length < 1 || !m.startLocation || !/^\d{4}-\d{2}-\d{2}$/.test(m.startDate || '')) return;
         if (window.__rtMigAsked === m.tripId + '|' + m.title) return; window.__rtMigAsked = m.tripId + '|' + m.title;
@@ -7917,12 +7972,12 @@ var qrcode = function() {
         if (parseInt(last.nights, 10) > 0 && /^\d{4}-\d{2}-\d{2}$/.test(m.endDate || '')) {
           const nights = stages.reduce((a, s) => a + (parseInt(s.nights, 10) || 0), 0);
           const endIso = isoAdd(m.startDate, nights);
-          const ok = window.confirm(`Die Planung hat noch keine Etappe für die Rückreise.\n\nSoll eine letzte Etappe „${last.toCity || '?'} → ${m.startLocation}“ am ${endIso.slice(8, 10)}.${endIso.slice(5, 7)}.${endIso.slice(0, 4)} ergänzt werden? Sie hat keine Übernachtung, daher kein Hotel und keine Unternehmungen vor Ort; Punkte auf dem Weg sind möglich.\n\nBestehende Etappen bleiben unverändert.`);
+          const ok = (await window.rtAsk(`Die Planung hat noch keine Etappe für die Rückreise.\n\nSoll eine letzte Etappe „${last.toCity || '?'} → ${m.startLocation}“ am ${endIso.slice(8, 10)}.${endIso.slice(5, 7)}.${endIso.slice(0, 4)} ergänzt werden? Sie hat keine Übernachtung, daher kein Hotel und keine Unternehmungen vor Ort; Punkte auf dem Weg sind möglich.\n\nBestehende Etappen bleiben unverändert.`));
           const next = { ...trip, meta: { ...m, returnStageAsked: true } };
           if (ok) { const ns = wzNewStage(last.toCity || '', m.startLocation, 0); ns.dateRange = wzRange(endIso, endIso); next.stages = [...stages, ns]; }
           onSave(next, ok ? 'Rückreise-Etappe ergänzt' : 'Ok, keine Rückreise-Etappe');
         }
-      }, [trip.meta && trip.meta.title, (trip.stages || []).length]);
+      })();}, [trip.meta && trip.meta.title, (trip.stages || []).length]);
       return null;
     }
 
@@ -8445,7 +8500,7 @@ var qrcode = function() {
           {fs.incoming && <div role="alert" className="rt-fsbar warn">
             <span>Auf Drive liegt eine neuere Version (z. B. vom Laptop).</span>
             <button type="button" disabled={busy} onClick={() => run(() => fsSync.applyIncoming())}>Jetzt laden</button>
-            <button type="button" disabled={busy} className="ghost" onClick={() => { if (window.confirm('Die Drive-Datei mit deinem Stand überschreiben? Änderungen der anderen Version gehen dann verloren.')) run(async () => { fsSync.set({ incoming: null }); await fsSync.write(trip, true); }); }}>Meinen Stand behalten</button>
+            <button type="button" disabled={busy} className="ghost" onClick={async () => { if ((await window.rtAsk('Die Drive-Datei mit deinem Stand überschreiben? Änderungen der anderen Version gehen dann verloren.'))) run(async () => { fsSync.set({ incoming: null }); await fsSync.write(trip, true); }); }}>Meinen Stand behalten</button>
           </div>}
           {!fs.incoming && fs.status === 'needs-permission' && <div role="alert" className="rt-fsbar warn">
             <span>Drive-Verbindung pausiert ({fs.name}). Bitte kurz bestätigen.</span>
@@ -8575,7 +8630,7 @@ var qrcode = function() {
         const list = cards.some((c) => c.id === edit.id) ? cards.map((c) => (c.id === edit.id ? next : c)) : [...cards, next];
         onSave({ ...trip, suitcasePins: list }, 'Koffer-PINs gespeichert'); setEdit(null);
       };
-      const del = (c) => { if (window.confirm(`Karte „${c.name}“ mit allen PINs löschen?`)) onSave({ ...trip, suitcasePins: cards.filter((x) => x.id !== c.id) }, 'Koffer-PINs gelöscht'); };
+      const del = async (c) => { if ((await window.rtAsk(`Karte „${c.name}“ mit allen PINs löschen?`))) onSave({ ...trip, suitcasePins: cards.filter((x) => x.id !== c.id) }, 'Koffer-PINs gelöscht'); };
       const setPin = (id, k, v) => setEdit({ ...edit, pins: edit.pins.map((p) => (p.id === id ? { ...p, [k]: v } : p)) });
       return (
         <section data-pin-section className="rounded-2xl border border-slate-300 bg-white shadow-sm overflow-hidden">
@@ -8846,12 +8901,12 @@ var qrcode = function() {
       const isRep = !!d.replaceTripId;
       const adopt = async () => {
         if (isRep) { if (gate || typeof window.__rtSaveTrip !== 'function' || window.__rtActiveTripId !== d.replaceTripId) { setErr('Bitte zuerst zu der Reise wechseln, zu der die Route gehört'); return; } try { await window.__rtSaveTrip(normalizeTrip(JSON.parse(JSON.stringify(t))), 'Route übernommen'); rtDraftRestore(); setNote('updated'); } catch (e) { setErr(String(e && e.message || e).slice(0, 200)); } return; }
-        if (hasTrip && !window.confirm('Der Entwurf wird als neue Reise geöffnet. Deine aktuelle Reise bleibt erhalten und liegt danach unter „Gespeicherte Reisen“. Fortfahren?')) return;
+        if (hasTrip && !(await window.rtAsk('Der Entwurf wird als neue Reise geöffnet. Deine aktuelle Reise bleibt erhalten und liegt danach unter „Gespeicherte Reisen“. Fortfahren?'))) return;
         setBusy(true); setErr('');
         try { const trip = normalizeTrip(JSON.parse(JSON.stringify(t))); await window.__rtAdoptDraft(trip); rtSetDraftStatus('adopted'); location.reload(); }
         catch (e) { setBusy(false); setErr(String(e && e.message || e).slice(0, 200)); }
       };
-      const drop = () => { if (isRep) { if (window.confirm('Geänderte Route verwerfen? Die Reise bleibt, wie sie ist.')) { rtDraftRestore(); f((x) => x + 1); } return; } if (window.confirm('Entwurf verwerfen? Im Routen-Vorschlag bleiben deine Eingaben erhalten.')) { rtSetDraftStatus('dismissed'); f((x) => x + 1); } };
+      const drop = async () => { if (isRep) { if ((await window.rtAsk('Geänderte Route verwerfen? Die Reise bleibt, wie sie ist.'))) { rtDraftRestore(); f((x) => x + 1); } return; } if ((await window.rtAsk('Entwurf verwerfen? Im Routen-Vorschlag bleiben deine Eingaben erhalten.'))) { rtSetDraftStatus('dismissed'); f((x) => x + 1); } };
       const body = <>
         <span data-draft-text><b>{isRep ? 'Geänderte Route liegt bereit:' : 'Routen-Vorschlag liegt bereit:'}</b> {t.meta.title || 'Ohne Titel'} · {n} Etappen · {t.meta.startDate} bis {t.meta.endDate}{err ? ` · Fehler: ${err}` : ''}</span>
         <span className="inline-flex gap-2"><button type="button" data-draft-adopt data-readonly-allow disabled={busy} onClick={adopt}>{busy ? 'Übernehme …' : (isRep ? 'Route übernehmen' : 'Als neue Reise übernehmen')}</button><button type="button" data-draft-drop data-readonly-allow disabled={busy} onClick={drop}>Verwerfen</button></span>
@@ -9016,8 +9071,8 @@ var qrcode = function() {
     function RtRouteEdit({ trip }) {
       const n = (trip.stages || []).length; if (IS_READ_ONLY_COPY || n < 1) return null;
       const go = () => {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test((trip.meta || {}).startDate || '')) { window.alert('Die Reise braucht ein Startdatum. Bitte zuerst unter „Reise & Zeitraum ändern“ eintragen.'); return; }
-        try { localStorage.setItem('rt_edit_trip_v1', JSON.stringify(trip)); } catch (e) { window.alert('Die Reise konnte nicht übergeben werden (Speicher voll).'); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test((trip.meta || {}).startDate || '')) { window.rtNotice('Die Reise braucht ein Startdatum. Bitte zuerst unter „Reise & Zeitraum ändern“ eintragen.'); return; }
+        try { localStorage.setItem('rt_edit_trip_v1', JSON.stringify(trip)); } catch (e) { window.rtNotice('Die Reise konnte nicht übergeben werden (Speicher voll).'); return; }
         location.href = 'assistent.html#edit';
       };
       return (
@@ -9044,9 +9099,9 @@ var qrcode = function() {
       });
     }
     async function sfPickOpen({ from, startGps, startCity, mode, rng, dir, tol, onPick }) {
-      if (!window.RtOrt) { window.alert('Die Kartenwahl konnte nicht geladen werden. Bitte die Seite neu laden.'); return; }
+      if (!window.RtOrt) { window.rtNotice('Die Kartenwahl konnte nicht geladen werden. Bitte die Seite neu laden.'); return; }
       let org = startGps || null; if (!org && startCity) { try { org = await sfGeocode(startCity); } catch (e) { org = null; } }
-      if (!org) { window.alert('Der Startort der Etappe wurde nicht gefunden. Ohne Internet ist die Kartenwahl nicht möglich.'); return; }
+      if (!org) { window.rtNotice('Der Startort der Etappe wurde nicht gefunden. Ohne Internet ist die Kartenwahl nicht möglich.'); return; }
       const maxKm = mode === 'km' ? rng[1] : rng[1] * 70, minKm = mode === 'km' ? rng[0] : rng[0] * 70;
       const res = await window.RtOrt.pick({ mode: 'city', title: 'Nächstes Etappenziel wählen', near: org, nearLabel: String(startCity || 'dem Startort').split(',')[0], radiusKm: maxKm, minKm,
         onMap: (map, L) => {
@@ -9729,7 +9784,7 @@ var qrcode = function() {
         setProg({ done, total: keys.length }); await count();
         setSt(stop.current ? (fail > 40 ? 'Abgebrochen: Der Kartendienst antwortet gerade nicht. Später noch einmal versuchen.' : 'Angehalten. Bereits geladene Karten bleiben gespeichert.') : `Fertig. ${keys.length - fail} Kartenausschnitte sind offline verfügbar${fail ? `, ${fail} fehlgeschlagen` : ''}.`);
       };
-      const clear = async () => { if (!window.confirm('Gespeicherte Karten löschen?')) return; try { await caches.delete(TILE_CACHE); } catch (e) {} setProg(null); setSt('Gespeicherte Karten gelöscht.'); count(); };
+      const clear = async () => { if (!(await window.rtAsk('Gespeicherte Karten löschen?'))) return; try { await caches.delete(TILE_CACHE); } catch (e) {} setProg(null); setSt('Gespeicherte Karten gelöscht.'); count(); };
       const busy = prog && prog.total && prog.done < prog.total && !/Fertig|Angehalten|Abgebrochen/.test(st);
       return (
         <section data-ro-ok data-offline-maps aria-label="Karten für unterwegs" className="sp3"><div className="sp3-card">
@@ -10744,12 +10799,12 @@ var qrcode = function() {
         participants: [], customExpenses: [], creditCards: [], emergencyContacts: [], flights: [], rentalCars: [], stages: [], checklist: []
       });
 
-      const handleCompleteNewTripWizard = () => {
+      const handleCompleteNewTripWizard = async () => {
         if (!isDate(wizardData.startDate) || !isDate(wizardData.endDate) || (wizardData.startDate && wizardData.endDate && wizardData.endDate < wizardData.startDate)) { showToast('Bitte gültige Reisedaten eingeben (Ende nicht vor Start).'); return; }
         if (wizardData.budget && (!Number.isFinite(Number(wizardData.budget)) || Number(wizardData.budget)<0)) { showToast('Bitte einen gültigen Betrag eingeben.'); return; }
         const dayCount = tripDayCount(wizardData.startDate,wizardData.endDate);
         if(dayCount>120){ showToast('Eine Reise darf höchstens 120 Tage umfassen.'); return; }
-        if(dayCount>0 && !window.confirm(`Es werden ${dayCount} Etappen (eine pro Reisetag) angelegt. Fortfahren?`)) return;
+        if(dayCount>0 && !(await window.rtAsk(`Es werden ${dayCount} Etappen (eine pro Reisetag) angelegt. Fortfahren?`))) return;
         const title = wizardData.title.trim() || wizardData.destination.trim() || 'Neue Reise';
         const names = Array.from({ length: Math.max(1, Math.min(20, parseInt(wizardData.people, 10) || 1)) }, (_, i) => ((wizardData.names || [])[i] || '').trim() || `Reisende ${i + 1}`);
         const start = wizardData.startLocation.trim() || 'Startort';
@@ -10883,11 +10938,11 @@ Quelle: ${lt.url}` : '') }] } });
       };
 
       const rtDelStage = (stage, sIdx) => { const before = tripData; confirmDeleteEntity({ type: 'stage', id: stage.id }); rtUndo(`Etappe ${sIdx + 1} (${stage.toCity || 'ohne Ziel'}) gelöscht`, before); };
-      const confirmDeleteEntity = (direct) => {
+      const confirmDeleteEntity = async (direct) => {
         const dcm = direct && direct.type ? direct : deleteConfirmModal; if (!dcm) return;
         const { type, id } = dcm;
         if (type === 'stage') {
-          { const old = tripData.stages || []; const di = old.findIndex((s) => s.id === id); const isLast = di === old.length - 1; const rest = old.filter((s) => s.id !== id); let meta = tripData.meta; const m0 = tripData.meta || {}; const sumN = (a) => a.reduce((x, s) => x + Math.max(0, parseInt(s.nights, 10) || 0), 0); if (/^\d{4}-\d{2}-\d{2}$/.test(m0.startDate || '') && /^\d{4}-\d{2}-\d{2}$/.test(m0.endDate || '') && rest.length) { const oe = isoAdd(m0.startDate, sumN(old)), ne = isoAdd(m0.startDate, sumN(rest)); const dm = (x) => `${x.slice(8, 10)}.${x.slice(5, 7)}.${x.slice(0, 4)}`; if (m0.endDate === oe && ne < oe && window.confirm(`Die Etappen enden jetzt am ${dm(ne)} statt am ${dm(oe)}.\n\nSoll das Reiseende auf den ${dm(ne)} vorgezogen werden?\n\nAbbrechen lässt das Reiseende beim ${dm(oe)}.`)) meta = { ...m0, endDate: ne }; } saveTripData({ ...tripData, meta, stages: rtRechain(rest, tripData.meta, (old[0] || {}).fromCity, isLast ? [] : [di]) }, 'Etappe gelöscht' + (isLast ? '' : '. Daten der folgenden Etappen angepasst.')); }
+          { const old = tripData.stages || []; const di = old.findIndex((s) => s.id === id); const isLast = di === old.length - 1; const rest = old.filter((s) => s.id !== id); let meta = tripData.meta; const m0 = tripData.meta || {}; const sumN = (a) => a.reduce((x, s) => x + Math.max(0, parseInt(s.nights, 10) || 0), 0); if (/^\d{4}-\d{2}-\d{2}$/.test(m0.startDate || '') && /^\d{4}-\d{2}-\d{2}$/.test(m0.endDate || '') && rest.length) { const oe = isoAdd(m0.startDate, sumN(old)), ne = isoAdd(m0.startDate, sumN(rest)); const dm = (x) => `${x.slice(8, 10)}.${x.slice(5, 7)}.${x.slice(0, 4)}`; if (m0.endDate === oe && ne < oe && (await window.rtAsk(`Die Etappen enden jetzt am ${dm(ne)} statt am ${dm(oe)}.\n\nSoll das Reiseende auf den ${dm(ne)} vorgezogen werden?\n\nAbbrechen lässt das Reiseende beim ${dm(oe)}.`))) meta = { ...m0, endDate: ne }; } saveTripData({ ...tripData, meta, stages: rtRechain(rest, tripData.meta, (old[0] || {}).fromCity, isLast ? [] : [di]) }, 'Etappe gelöscht' + (isLast ? '' : '. Daten der folgenden Etappen angepasst.')); }
         } else if (type === 'flight') {
           saveTripData({ ...tripData, flights: (tripData.flights || []).filter((f) => f.id !== id) }, 'Flug gelöscht');
         } else if (type === 'car') {
@@ -13837,7 +13892,7 @@ Quelle: ${lt.url}` : '') }] } });
                     onClick={() => {
                       const cf = chainFix(tripData.stages || [], editingStageModal, tripData.meta || {});
                       saveTripData({ ...tripData, stages: cf.stages, ...(cf.meta ? { meta: cf.meta } : {}) }, `Etappe „${editingStageModal.toCity}“ gespeichert!`);
-                      if (cf.notice) window.alert(cf.notice);
+                      if (cf.notice) window.rtNotice(cf.notice);
                       window.__rtNewStageId = null;
                       setEditingStageModal(null);
                     }}
@@ -14408,7 +14463,7 @@ Quelle: ${lt.url}` : '') }] } });
                 </div>
                 <div className="bg-slate-100 px-5 py-3 flex justify-end">
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const {startDate,endDate}=tripData.meta||{};
                       if(startDate&&endDate&&(endDate<startDate||tripDayCount(startDate,endDate)>120)){showToast(endDate<startDate?'Das Enddatum darf nicht vor dem Startdatum liegen.':'Maximal 120 Tage pro Reise.');return;}
                       const desired=tripDayCount(startDate,endDate);
@@ -14416,7 +14471,7 @@ Quelle: ${lt.url}` : '') }] } });
                       if(desired && desired!==stages.length){
                         const delta=desired-stages.length;
                         const question=delta>0?`Reisedaten ergeben ${desired} Tage. ${delta} Etappen ergänzen?`:`Reisedaten ergeben ${desired} Tage. ${-delta} Etappen am Ende entfernen? Dabei gehen deren Etappendaten verloren. Fortfahren?`;
-                        if(!window.confirm(question)) return;
+                        if(!(await window.rtAsk(question))) return;
                         if(delta>0){const more=makeDailyStages(startDate,endDate,tripData.meta.startLocation,tripData.meta.destination,tripData.meta.exchangeRate).slice(stages.length);stages=[...stages,...more];}
                         else stages=stages.slice(0,desired);
                       }
@@ -14756,5 +14811,5 @@ Quelle: ${lt.url}` : '') }] } });
 </script>
 
 
-<script>if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+<script>if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){var rtHad=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',function(){if(rtHad&&window.rtShowUpdateBar)window.rtShowUpdateBar();});window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(reg){var chk=function(){try{reg.update().catch(function(){});}catch(e){}};document.addEventListener('visibilitychange',function(){if(!document.hidden)chk();});setInterval(chk,30*60*1000);}).catch(function(){});});}</script>
 </body></html>
