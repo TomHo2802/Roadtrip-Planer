@@ -24,6 +24,6 @@ res = res.slice(0, bTagStart) + res.slice(res.indexOf('</script>', bTagStart) + 
 // Versionsanzeige in der App aus sw.js uebernehmen (roadtrip-vNNN), damit sie nicht vergessen wird
 const ver = (fs.readFileSync('sw.js', 'utf8').match(/roadtrip-v(\d+)/) || [])[1];
 if (!ver) throw new Error('Version in sw.js nicht gefunden');
-res = res.replace(/Version 1\d\d(?=<|')/g, 'Version ' + ver);
+res = res.replace(/Version 1\d\d(?=[<'"\\])/g, 'Version ' + ver);
 fs.writeFileSync('index.html', res);
 console.log('index.html:', (res.length / 1e6).toFixed(2), 'MB');
