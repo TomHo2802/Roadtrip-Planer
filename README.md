@@ -484,3 +484,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 ## v109
 - Eigene Rueckfragen und Hinweise statt der grauen Browser-Fenster (27 Rueckfragen, 5 Hinweise): gleiche Abfragen wie zuvor, aber im App-Design, mit Escape, Tastatur und Dunkelmodus. Loeschen und Verwerfen sind rot.
 - Hinweisleiste "Neue Version bereit. Jetzt laden", sobald eine neue Version auf dem Geraet angekommen ist. Die App prueft beim Zurueckkehren in den Vordergrund und alle 30 Minuten auf Updates.
+
+## v110
+- Tailwind wird nicht mehr im Browser erzeugt: die Stile stehen fest in der Datei (src/tailwind.generated.css, erzeugt mit python3 tools/gen-tailwind.py aus allen Klassen im Quelltext). Laufzeit (400 KB) und zwei alte erzeugte Stilbloecke entfallen. index.html 1,4 MB, Start am Laptop etwa 0,2 s, am Handy (geschaetzt) unter 1 s.
+- Wer neue Tailwind-Klassen im Quelltext benutzt: python3 tools/gen-tailwind.py ausfuehren, dann node build.js.

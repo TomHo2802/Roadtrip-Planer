@@ -21,6 +21,20 @@ const out = ctx.Babel.transform(jsx, { presets: [['react', { runtime: 'classic' 
 // Hinten zuerst ersetzen, damit die Positionen stimmen
 let res = src.slice(0, aTagStart) + '<script>' + out + src.slice(aEnd);
 res = res.slice(0, bTagStart) + res.slice(res.indexOf('</script>', bTagStart) + 9);
+// Tailwind: Laufzeit (Play-CDN) entfaellt, stattdessen fest erzeugte CSS (src/tailwind.generated.css, siehe tools/gen-tailwind.py)
+{
+  const TW = '/* Lokal eingebettete Bibliothek: tailwind */';
+  const i = res.indexOf(TW);
+  if (i >= 0) {
+    const a = res.lastIndexOf('<script', i), z = res.indexOf('</script>', i) + 9;
+    res = res.slice(0, a) + res.slice(z);
+    const css = fs.readFileSync('src/tailwind.generated.css', 'utf8');
+    const anchor = res.indexOf('.rt-ac li.rt-ac-map');                     // Stelle, an der die Laufzeit ihr Stylesheet angelegt hat
+    if (anchor < 0) throw new Error('Anker fuer Tailwind-CSS nicht gefunden');
+    const end = res.indexOf('</style>', anchor) + 8;
+    res = res.slice(0, end) + '<style id="tw-static">' + css + '</style>' + res.slice(end);
+  }
+}
 // Versionsanzeige in der App aus sw.js uebernehmen (roadtrip-vNNN), damit sie nicht vergessen wird
 const ver = (fs.readFileSync('sw.js', 'utf8').match(/roadtrip-v(\d+)/) || [])[1];
 if (!ver) throw new Error('Version in sw.js nicht gefunden');
