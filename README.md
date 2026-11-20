@@ -474,3 +474,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v107
 - Hotelsuche je Etappe im Umkreis bis 30 km (Abfrage und Regler), Ausweichstufen 15 und 6 km.
+
+## v108
+- Deutlich schnellerer Start: Programm wird vorab uebersetzt (Babel entfaellt im Browser), zwei veraltete eingebettete Programmkopien entfernt. index.html von 6,4 auf 1,8 MB, Start am Laptop von etwa 5 s auf 0,5 s.
+- Quelltext liegt jetzt in src/index.src.html. Aenderungen dort machen, dann node build.js ausfuehren, das erzeugt index.html. Kein Netz noetig.
+- Sicherung des Stands davor: Zweig sicherung-v107.
