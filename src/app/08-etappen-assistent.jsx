@@ -1068,12 +1068,12 @@
       const rows = useMemo(() => buildDays(trip).map((d) => {
         let tl = null; if (d.kind === 'travel') { try { tl = buildTimeline(trip, d); } catch (e) { tl = null; } }
         const acts = d.dayInStage ? attractionsForDay(d.stage, d.dayInStage) : [];
-        const drive = tl ? tl.driveSum : 0; const prev = d.stageIdx > 0 ? (trip.stages || [])[d.stageIdx - 1] : null;
-        return { d, tl, acts, drive, over: drive > thr * 60, change: d.kind === 'travel' && d.stageIdx > 0, free: d.kind !== 'travel' && acts.length === 0 && d.kind !== 'checkout', prev };
+        const drive = tl ? tl.driveSum : 0; const dayKm = tl && tl.totalKm ? tl.totalKm : 0, mi = tl ? tl.miles : false; const prev = d.stageIdx > 0 ? (trip.stages || [])[d.stageIdx - 1] : null;
+        return { d, tl, acts, drive, dayKm, mi, over: drive > thr * 60, change: d.kind === 'travel' && d.stageIdx > 0, free: d.kind !== 'travel' && acts.length === 0 && d.kind !== 'checkout', prev };
       }), [trip, thr]);
       const needs = (r) => { const w = wxStore.get(r.d.stage, r.d.iso); return r.over || (r.tl && r.tl.warnings.length > 0) || ovRainy(w) || r.free; };
       const vrows = showAll ? rows : rows.filter(needs);
-      const total = rows.reduce((a, r) => a + r.drive, 0); const longest = rows.reduce((m, r) => (r.drive > (m ? m.drive : 0) ? r : m), null);
+      const total = rows.reduce((a, r) => a + r.drive, 0); const totalKm = rows.reduce((a, r) => a + (r.dayKm || 0), 0), anyMi = rows.some((r) => r.mi); const longest = rows.reduce((m, r) => (r.drive > (m ? m.drive : 0) ? r : m), null);
       const nOver = rows.filter((r) => r.over).length, nFree = rows.filter((r) => r.free).length, nChange = rows.filter((r) => r.change).length;
       const setThr = (v) => onSave({ ...trip, meta: { ...meta, maxDriveHours: Number(v) } }, '');
       const Stat = ({ k, v, sub, warn }) => <div data-ov-stat={k} className={`rounded-xl border p-3 ${warn ? 'border-amber-400 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}><div className="text-xs font-semibold text-slate-600">{k}</div><div className="text-lg font-extrabold text-slate-900">{v}</div>{sub && <div className="text-xs text-slate-600">{sub}</div>}</div>;
@@ -1090,8 +1090,8 @@
             <p className="text-xs text-slate-700">Hier stehen nur Tage mit Hinweisen: lange Fahrten, Warnungen, Regen oder freie Tage. Mit „☔ Regenplan“ sammelst du Ausweichideen. Den vollständigen Ablauf jedes Tages gibt es im Tagesplan.</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <Stat k="Reisetage" v={rows.length} sub={`${(trip.stages || []).length} Etappen`} />
-              <Stat k="Fahrzeit gesamt" v={fmtDurMin(total)} sub={longest && longest.drive ? `längster Tag: ${fmtDurMin(longest.drive)}` : ''} />
-              <Stat k="Hotelwechsel" v={nChange} sub={`${nFree} freie(r) Tag(e)`} />
+              <Stat k="Fahrzeit gesamt" v={fmtDurMin(total)} sub={[totalKm ? rtDist(totalKm, anyMi) : '', longest && longest.drive ? `längster Tag: ${fmtDurMin(longest.drive)}` : ''].filter(Boolean).join(' · ')} />
+              <Stat k="Hotelwechsel" v={nChange} sub={`${nFree} ${nFree === 1 ? 'freier Tag' : 'freie Tage'}`} />
               <Stat k="Lange Fahrtage" v={nOver} sub={`über ${thr} Std.`} warn={nOver > 0} />
             </div>
           </section>
@@ -1111,7 +1111,7 @@
                       <div className="flex-1 min-w-[180px]">
                         <div className="text-sm font-semibold text-slate-900 break-words">{title}</div>
                         <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
-                          {d.kind === 'travel' && <span data-ov-badge="drive" className={`px-2 py-0.5 rounded-full font-bold ${r.over ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-900'}`}><Ic n="car" />{fmtDurMin(r.drive)}{r.over ? ' · zu lang' : ''}</span>}
+                          {d.kind === 'travel' && <span data-ov-badge="drive" className={`px-2 py-0.5 rounded-full font-bold ${r.over ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-900'}`}><Ic n="car" />{fmtDurMin(r.drive)}{r.dayKm ? ` · ${rtDist(r.dayKm, r.mi)}` : ''}{r.over ? ' · zu lang' : ''}</span>}
                           {r.change && <span data-ov-badge="change" className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold"><Ic n="hotel" />Hotelwechsel</span>}
                           {d.kind === 'travel' && d.stageIdx === 0 && (trip.flights || []).some((f) => rtFlightFilled(f) && /^hin/i.test(f.direction || '')) && <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold"><Ic n="plane" />Anreise</span>}
                           {r.free && <span data-ov-badge="free" className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold">🌴 Freier Tag</span>}

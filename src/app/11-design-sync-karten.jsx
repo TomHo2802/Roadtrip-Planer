@@ -792,11 +792,11 @@
 
     /* ===== v99: Planungsstand (ersetzt Schritt 4 und 5 des Assistenten) ===== */
     const rtPlanStats = (trip) => {
-      const st = (trip && trip.stages) || [], meta = (trip && trip.meta) || {}, nn = (s) => Math.max(0, parseInt(s.nights, 10) || 0), tx = (v) => String(v == null ? '' : v).trim();
+      const st = (trip && trip.stages) || [], meta = (trip && trip.meta) || {}, nn = (s) => Math.max(0, parseInt(s.nights, 10) || 0), tx = (v) => String(v == null ? '' : v).trim(), ph = (v) => /^(neues ziel|neues hotel( eintragen)?|ziel offen|hotel offen)$/i.test(tx(v)), real = (v) => (ph(v) ? '' : tx(v));
       const rows = st.map((s, i) => {
-        const n = nn(s), same = tx(s.fromCity).toLowerCase() === tx(s.toCity).toLowerCase() && !!tx(s.toCity), named = !!tx(s.toCity);
-        const hotelNeed = n > 0, hotel = !!tx((s.hotel || {}).name), routeNeed = !same, route = !!tx((s.routeToHotel || {}).distanceKm), acts = (s.localAttractions || []).length;
-        return { id: s.id, i, from: tx(s.fromCity) || (i === 0 ? 'Start' : '?'), to: tx(s.toCity) || 'Ziel offen', n, ret: rtIsRet(st, i), named, hotelNeed, hotel, hotelName: tx((s.hotel || {}).name), routeNeed, route, km: tx((s.routeToHotel || {}).distanceKm), acts, actsNeed: n > 0, open: (!named ? 1 : 0) + (hotelNeed && !hotel ? 1 : 0) + (routeNeed && !route ? 1 : 0) };
+        const n = nn(s), same = tx(s.fromCity).toLowerCase() === tx(s.toCity).toLowerCase() && !!real(s.toCity), named = !!real(s.toCity);
+        const hotelNeed = n > 0, hotel = !!real((s.hotel || {}).name), routeNeed = !same, route = named && !!tx((s.routeToHotel || {}).distanceKm), acts = (s.localAttractions || []).length;
+        return { id: s.id, i, from: tx(s.fromCity) || (i === 0 ? 'Start' : '?'), to: real(s.toCity) || 'Ziel offen', n, ret: rtIsRet(st, i), named, hotelNeed, hotel, hotelName: real((s.hotel || {}).name), routeNeed, route, km: tx((s.routeToHotel || {}).distanceKm), acts, actsNeed: n > 0, open: (!named ? 1 : 0) + (hotelNeed && !hotel ? 1 : 0) + (routeNeed && !route ? 1 : 0) };
       });
       const hN = rows.filter((r) => r.hotelNeed).length, hOk = rows.filter((r) => r.hotelNeed && r.hotel).length, rN = rows.filter((r) => r.routeNeed).length, rOk = rows.filter((r) => r.routeNeed && r.route).length, aN = rows.filter((r) => r.actsNeed).length, aOk = rows.filter((r) => r.actsNeed && r.acts > 0).length;
       const datesOk = wzOk(meta.startDate) && wzOk(meta.endDate) && meta.endDate >= meta.startDate, days = datesOk ? tripDayCount(meta.startDate, meta.endDate) : 0, sum = rows.reduce((a, r) => a + r.n, 0), nightsOk = datesOk && sum === days - 1;

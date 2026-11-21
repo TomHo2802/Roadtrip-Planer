@@ -223,6 +223,9 @@
     // "Etappe 1 (14 km / 0,5 h)" -> "Etappe 1 (14 km · 9 mi / 0,5 h)"
     const rtMiText = (t, mi) => (!mi || !t ? t : String(t).replace(/(\d+(?:[.,]\d+)?)\s*km(?!\s*·)/gi, (all, n) => { const v = parseFloat(n.replace(',', '.')); return `${n} km · ${v * 0.621371 < 10 ? (Math.round(v * 0.621371 * 10) / 10).toString().replace('.', ',') : Math.round(v * 0.621371)} mi`; }));
 
+    // v119: echte Stopps = Liste ohne die letzte Zeile "Ankunft ..." (bzw. Eintrag direkt am Hotel)
+    const rtRealStops = (stage) => { const L = (stage && stage.routeToHotel && stage.routeToHotel.stopsOnWay) || []; const last = L[L.length - 1]; if (!last) return L; const H = parseGps(stage.hotel && stage.hotel.gps), G = parseGps(last.gps); return (/^\s*ankunft/i.test(last.name || '') || (H && G && haversineM(H, G) < 300)) ? L.slice(0, -1) : L; };
+
     const getCardColorClasses = (color) => rtCardTheme(color);
 
     class AppErrorBoundary extends React.Component {

@@ -34,8 +34,8 @@
       const tog = () => { const v = !open; setOpen(v); try { localStorage.setItem('rt_status_open_v1', v ? '1' : '0'); } catch (e) {} };
       if (!n) return <><RtPlanStatus trip={trip} goTab={goTab} /></>;
       const todo = S.rows.filter((r) => r.open > 0).length + (S.datesOk && S.nightsOk ? 0 : 1);
-      const km = rtTripKm(trip), firstMiss = S.rows.find((r) => r.hotelNeed && !r.hotel), firstRoute = S.rows.find((r) => r.routeNeed && !r.route);
-      const msg = !S.datesOk ? <><b>Reisezeitraum fehlt</b></> : firstMiss ? <><b>{firstMiss.to}</b> braucht noch ein Hotel{S.hN - S.hOk > 1 ? ` (und ${S.hN - S.hOk - 1} weitere)` : ''}</> : firstRoute ? <>Strecke nach <b>{firstRoute.to}</b> fehlt noch</> : !S.nightsOk ? <><b>Nächte und Zeitraum passen nicht zusammen</b></> : <>Hotels und Strecken sind vollständig</>;
+      const km = rtTripKm(trip), firstUnnamed = S.rows.find((r) => !r.named), firstMiss = S.rows.find((r) => r.hotelNeed && !r.hotel), firstRoute = S.rows.find((r) => r.routeNeed && !r.route);
+      const msg = !S.datesOk ? <><b>Reisezeitraum fehlt</b></> : firstUnnamed ? <><b>Etappe {firstUnnamed.i + 1}</b> hat noch kein Ziel{S.rows.filter((r) => !r.named).length > 1 ? ` (und ${S.rows.filter((r) => !r.named).length - 1} weitere)` : ''}</> : firstMiss ? <><b>{firstMiss.to}</b> braucht noch ein Hotel{S.hN - S.hOk > 1 ? ` (und ${S.hN - S.hOk - 1} weitere)` : ''}</> : firstRoute ? <>Strecke nach <b>{firstRoute.to}</b> fehlt noch</> : !S.nightsOk ? <><b>Etappen haben {S.sum} Nächte, der Zeitraum hat {S.days - 1}</b>{S.sum > S.days - 1 ? ' – ' + (S.sum - S.days + 1) + ' zu viel' : ' – ' + (S.days - 1 - S.sum) + ' fehlen'}</> : <>Hotels und Strecken sind vollständig</>;
       return (
         <div data-plan-top className="no-print space-y-3">
           <RtHero trip={trip} />
@@ -106,7 +106,7 @@
       return (
         <div className="rt2-card" data-route-mini>
           <div ref={el} className="rt2-map" role="img" aria-label="Karte der Etappen. Ein Klick auf einen Punkt öffnet die Etappe." />
-          {pts.length < ((trip && trip.stages) || []).length && <p className="text-xs text-slate-600 m-0">{((trip && trip.stages) || []).length - pts.length} Etappen haben noch keine Koordinaten und fehlen auf der Karte.</p>}
+          {pts.length < ((trip && trip.stages) || []).length && <p className="text-xs text-slate-600 m-0">{((trip && trip.stages) || []).length - pts.length === 1 ? '1 Etappe hat' : `${((trip && trip.stages) || []).length - pts.length} Etappen haben`} noch keine Koordinaten und {((trip && trip.stages) || []).length - pts.length === 1 ? 'fehlt' : 'fehlen'} auf der Karte.</p>}
           <button type="button" data-readonly-allow onClick={() => { const b = document.querySelector('[data-route-edit]'); if (b) b.click(); }} className="v18-btn v18-edit-only justify-center">Route auf der Karte bearbeiten</button>
         </div>
       );
@@ -254,7 +254,7 @@
       const saveAct = (i, v) => { put((s) => { const L = [...(s.localAttractions || [])]; const o = { ...(i == null ? { id: `loc-${Date.now()}-${Math.floor(Math.random() * 1000)}` } : L[i]), name: v.name, category: v.category, day: v.day || '', time: v.time, priceEur: rtNum(v.priceEur), booked: v.booked, address: v.address, gps: v.gps, notes: v.notes }; if (i == null) L.push(o); else L[i] = o; return { localAttractions: L }; }, i == null ? `„${v.name}“ hinzugefügt` : 'Aktion gespeichert'); setEdit(null); };
       const delAct = (i) => { const nm = acts[i] && acts[i].name; put((s) => ({ localAttractions: (s.localAttractions || []).filter((_, k) => k !== i) }), '', `„${nm || 'Aktion'}“ gelöscht`); setEdit(null); setOpenRow(null); };
 
-      const tabs = [['way', isRet ? 'Rückreise' : 'Weg', stops.length ? String(stops.length) : '']].concat(isRet ? [] : [['hotel', 'Hotel', hasHotel ? '' : '!'], ['do', 'Vor Ort', acts.length ? String(acts.length) : '']]);
+      const tabs = [['way', isRet ? 'Rückreise' : 'Weg', rtRealStops(stage).length ? String(rtRealStops(stage).length) : '']].concat(isRet ? [] : [['hotel', 'Hotel', hasHotel ? '' : '!'], ['do', 'Vor Ort', acts.length ? String(acts.length) : '']]);
       const km = rtDist(rtKmVal(rt.distanceKm), rtStageMiles(stage)) || spShort(rt.distanceKm), du = spShort(rt.duration);
 
       const stopForm = (i) => { const s = i == null ? {} : stops[i]; return (
@@ -323,7 +323,7 @@
               ) : <>
                 <div className="sp3-line">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="sp3-acc"><path d="M4 19c4-2 4-12 8-12s4 10 8 12" /></svg>
-                  <span className="sp3-grow"><b className="sp3-big">{[km, du].filter(Boolean).join(' · ') || 'Strecke noch offen'}</b><span className="sp3-mute">{stage.fromCity} → {stage.toCity}{stops.length ? ` · ${stops.length} ${stops.length === 1 ? 'Stopp' : 'Stopps'}` : ' · direkt'}</span></span>
+                  <span className="sp3-grow"><b className="sp3-big">{[km, du].filter(Boolean).join(' · ') || 'Strecke noch offen'}</b><span className="sp3-mute">{stage.fromCity} → {stage.toCity}{rtRealStops(stage).length ? ` · ${rtRealStops(stage).length} ${rtRealStops(stage).length === 1 ? 'Stopp' : 'Stopps'}` : ' · direkt'}</span></span>
                   <button type="button" data-sp-edit-route className="sp3-link v18-edit-only" onClick={() => setEdit('route')}>Bearbeiten</button>
                 </div>
                 {rt.routeDescription && <SpMore text={rt.routeDescription} />}
