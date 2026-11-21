@@ -543,3 +543,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Planen: Der Reisekopf ist am Handy kompakter (kleinere Schrift und Abstaende). Bei beendeter Reise entfaellt der Balken "Reise beendet / Rueckblick".
 - Der Etappenstreifen "Etappen-Uebersicht" unter der Etappenliste entfaellt in der neuen Ansicht (er doppelte die Liste und war abgeschnitten). In der klassischen Ansicht bleibt er.
 - Kachel Kilometer: Meilen stehen in einer eigenen Zeile, kein Umbruch mitten in "922 mi".
+
+## v122
+- Tagesplan (Planen): kompakte Ansicht. Alle Reisetage stehen untereinander als einklappbare Zeilen mit Datum, Route, Strecke (km und Meilen), Fahrzeit sowie Zahl der Stopps und Aktionen. Ein gelbes Symbol zeigt Warnungen. Kopf mit Gesamtstrecke und Gesamtfahrzeit. Der heutige Tag ist offen, es ist immer nur ein Tag offen.
+- Aufgeklappt: Warnungen, Fahrt mit Uhrzeiten und Teilstrecken, Aktionen als Chips. "Details und Bearbeiten" blendet die bisherige vollstaendige Tageskarte ein (Abfahrt, Puffer, Aufenthalt, Karten, Reihenfolge der Aktionen).
+- Die Etappen-Auswahl oben entfaellt, weil jetzt alle Tage in einer Liste stehen.

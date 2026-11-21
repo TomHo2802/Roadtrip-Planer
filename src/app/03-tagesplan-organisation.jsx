@@ -249,28 +249,59 @@
 
     function PlanView({ trip, onSave, todayIso }) {
       useEffect(() => { wxStore.ensure(trip); }, [(trip.stages || []).length]);
-      const stages = trip.stages || []; const days = useMemo(() => buildDays(trip), [trip]);
-      const [stageIdx, setStageIdx] = useState(() => { const d = days.find((x) => x.iso === todayIso); return d ? d.stageIdx : 0; });
-      const stage = stages[stageIdx]; const list = days.filter((d) => d.stageIdx === stageIdx && d.kind !== 'checkout');
-      const co = days.find((d) => d.stageIdx === stageIdx && d.kind === 'checkout');
+      const stages = trip.stages || [];
+      const rows = useMemo(() => buildDays(trip).map((d) => { let tl = null; if (d.kind === 'travel') { try { tl = buildTimeline(trip, d); } catch (e) { tl = null; } } const acts = d.dayInStage ? attractionsForDay(d.stage, d.dayInStage) : []; return { d, tl, acts }; }), [trip]);
+      const [open, setOpen] = useState(() => (rows.some((r) => r.d.iso === todayIso) ? todayIso : null));
+      const [full, setFull] = useState({});
+      const totKm = rows.reduce((a, r) => a + (r.tl && r.tl.totalKm ? r.tl.totalKm : 0), 0), totMin = rows.reduce((a, r) => a + (r.tl ? r.tl.driveSum : 0), 0), anyMi = rows.some((r) => r.tl && r.tl.miles);
       return (
-        <div className="space-y-4">
-          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
-            <h2 className="text-base sm:text-lg font-bold text-slate-900">Tagesplan</h2>
-            <RtHint>Zeitleiste pro Tag mit Abfahrt, Fahrzeiten, Stopps und Ankunft. Abfahrt, Puffer und Aufenthaltsdauer änderst du direkt, alles wird gespeichert. Sonnenzeiten werden lokal berechnet.</RtHint>
-            <label className="block text-xs font-semibold text-slate-700">Etappe
-              <select value={stageIdx} onChange={(e) => setStageIdx(Number(e.target.value))} className="mt-1 w-full min-h-[44px] px-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold">
-                {stages.map((s, i) => <option key={s.id} value={i}>{i + 1}. {i > 0 ? hotelName(stages[i - 1]) : (s.fromCity || 'Start')} → {hotelName(s)}{s.dateRange ? ` (${s.dateRange})` : ''}</option>)}
-              </select>
-            </label>
+        <div className="space-y-3" data-plan-compact>
+          <section className="rt4-top">
+            <h2>Tagesplan</h2>
+            <div className="rt4-stats">
+              <div><span>Strecke gesamt</span><b>{totKm ? rtDist(totKm, anyMi) : '–'}</b></div>
+              <div><span>Fahrzeit gesamt</span><b>{totMin ? fmtDurMin(totMin) : '–'}</b></div>
+            </div>
           </section>
-          {list.length === 0 && <Empty icon="calendar" title="Kein Datum" text="Für diese Etappe ist kein gültiges Datum eingetragen. Trage unter „Etappen“ ein Datum ein, dann erscheint der Tagesplan." />}
-          {list.map((d) => <DayCard key={d.iso} trip={trip} day={d} onSave={onSave} editable={!IS_READ_ONLY_COPY} isToday={d.iso === todayIso} nowMin={-1} />)}
-          {co && <DayCard key={co.iso} trip={trip} day={co} onSave={onSave} editable={false} isToday={co.iso === todayIso} nowMin={-1} />}
+          {rows.length === 0 && <Empty icon="calendar" title="Kein Datum" text="Für die Etappen ist kein gültiges Datum eingetragen. Trage unter „Etappen“ ein Datum ein, dann erscheint der Tagesplan." />}
+          <ol className="rt4-list">
+            {rows.map((r) => {
+              const { d, tl, acts } = r, st = d.stage, prev = d.stageIdx > 0 ? stages[d.stageIdx - 1] : null, isOpen = open === d.iso, isToday = d.iso === todayIso;
+              const [wd, dt] = ovWeekday(d.iso).replace('.', '').split(', ');
+              const title = d.kind === 'travel' ? `${prev ? hotelName(prev) : (st.fromCity || 'Start')} → ${hotelName(st)}` : d.kind === 'checkout' ? `Check-out ${hotelName(st)}` : `Aufenthalt ${hotelName(st)}`;
+              const nStops = tl ? tl.events.filter((e) => e.kind === 'stop').length : 0, warn = tl ? tl.warnings.length : 0;
+              const sub = [tl && tl.totalKm ? rtDist(tl.totalKm, tl.miles) : '', tl ? fmtDurMin(tl.driveSum) : '', nStops ? `${nStops} ${nStops === 1 ? 'Stopp' : 'Stopps'}` : '', acts.length ? `${acts.length} ${acts.length === 1 ? 'Aktion' : 'Aktionen'}` : ''].filter(Boolean).join(' · ');
+              return (
+                <li key={d.iso} data-plan-day={d.iso} className={`rt4-day${isOpen ? ' open' : ''}${isToday ? ' today' : ''}`}>
+                  <button type="button" data-readonly-allow aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : d.iso)} className="rt4-row">
+                    <span className="rt4-date"><small>{wd}</small><b>{dt}</b></span>
+                    <span className="rt4-main"><b>{title}</b>{sub && <small>{sub}</small>}</span>
+                    {warn > 0 && <span className="rt4-warn" title={`${warn} Hinweis(e)`}><Ic n="warn" /></span>}
+                    <span className="rt4-chev" aria-hidden="true">{isOpen ? '▴' : '▾'}</span>
+                  </button>
+                  {isOpen && (
+                    <div className="rt4-body">
+                      {tl && tl.warnings.map((t, i) => <div key={i} className="rt4-note"><Ic n="warn" />{t}</div>)}
+                      {tl && (<>
+                        <div className="rt4-h">Fahrt</div>
+                        <ul className="rt4-ev">{tl.events.map((ev, i) => <li key={i}><b>{fmtHM(ev.at)}</b><span>{ev.title}</span>{ev.kind !== 'depart' && ev.driveKm ? <small>{rtDist(ev.driveKm, tl.miles)}</small> : <small />}</li>)}</ul>
+                      </>)}
+                      {acts.length > 0 && (<>
+                        <div className="rt4-h">Vor Ort, {acts.length} {acts.length === 1 ? 'Aktion' : 'Aktionen'}</div>
+                        <div className="rt4-chips">{acts.map((a, i) => <span key={a.id || i}>{a.name || 'Aktion'}</span>)}</div>
+                      </>)}
+                      {!tl && acts.length === 0 && <p className="rt4-empty">Für diesen Tag ist noch nichts eingetragen.</p>}
+                      <button type="button" data-readonly-allow className="v18-btn sm rt4-more" onClick={() => setFull({ ...full, [d.iso]: !full[d.iso] })}>{full[d.iso] ? 'Details ausblenden' : IS_READ_ONLY_COPY ? 'Details anzeigen' : 'Details und Bearbeiten'}</button>
+                      {full[d.iso] && <div className="rt4-full"><DayCard trip={trip} day={d} onSave={onSave} editable={!IS_READ_ONLY_COPY && d.kind !== 'checkout'} isToday={isToday} nowMin={-1} /></div>}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
         </div>
       );
     }
-
     function RtDayMap({ pts, label, cls }) {
       const el = useRef(null), mapRef = useRef(null), grp = useRef(null);
       const sig = pts.map((p) => p.g.join(',') + ':' + p.n).join('|');

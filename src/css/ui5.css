@@ -165,3 +165,28 @@ html:not([data-ui="classic"]) .v18-hero .v18-facts{border-top-color:rgba(255,255
 /* v121: kompakter Kopf am Handy, Etappenstreifen unter der Liste entfaellt */
 html:not([data-ui="classic"]) [data-etappen-strip]{display:none}
 @media (max-width:1023px){html:not([data-ui="classic"]) .rt3-hero{padding:12px 14px;border-radius:20px}.rt3-hero h2{font-size:22px}.rt3-meta{font-size:12px;margin:4px 0 0}.rt3-prog{margin-top:8px}}
+
+/* v122: kompakter Tagesplan */
+.rt4-top{background:var(--u-card,#fff);border:1px solid var(--u-line,#E2E8F0);border-radius:16px;padding:14px 16px}
+.rt4-top h2{margin:0 0 10px;font-size:18px;font-weight:700;color:var(--u-ink,#101B2D)}
+.rt4-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rt4-stats>div{background:var(--u-acc-soft,#E3ECF9);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column}
+.rt4-stats span{font-size:11px;font-weight:600;color:var(--u-mute,#5A6678)}.rt4-stats b{font-size:16px;color:var(--u-ink,#101B2D)}
+.rt4-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rt4-day{background:var(--u-card,#fff);border:1px solid var(--u-line,#E2E8F0);border-radius:14px;overflow:hidden}
+.rt4-day.today{border:2px solid #2F6DB5}.rt4-day.open{border-color:#2F6DB5}
+.rt4-row{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;background:none;border:0;text-align:left;min-height:56px;cursor:pointer;color:var(--u-ink,#101B2D)}
+.rt4-date{width:46px;flex:none;text-align:center;display:flex;flex-direction:column}.rt4-date small{font-size:11px;color:var(--u-mute,#5A6678)}.rt4-date b{font-size:15px}
+.rt4-main{flex:1;min-width:0;display:flex;flex-direction:column}.rt4-main b{font-size:14px;overflow-wrap:anywhere}.rt4-main small{font-size:12px;color:var(--u-mute,#5A6678)}
+.rt4-warn{background:#FEF3C7;color:#92400E;border-radius:8px;padding:2px 6px;font-size:12px}.rt4-chev{color:var(--u-mute,#5A6678)}
+.rt4-body{border-top:1px solid var(--u-line,#E2E8F0);padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}
+.rt4-h{font-size:12px;font-weight:600;color:var(--u-mute,#5A6678);margin-top:4px}
+.rt4-ev{list-style:none;margin:0;padding:0}.rt4-ev li{display:flex;gap:10px;align-items:baseline;padding:3px 0;font-size:14px}.rt4-ev b{width:46px;flex:none}.rt4-ev span{flex:1;min-width:0;overflow-wrap:anywhere}.rt4-ev small{font-size:12px;color:var(--u-mute,#5A6678);white-space:nowrap}
+.rt4-chips{display:flex;flex-wrap:wrap;gap:6px}.rt4-chips span{background:var(--u-acc-soft,#E3ECF9);border-radius:8px;padding:3px 8px;font-size:13px}
+.rt4-note{background:#FEF3C7;color:#92400E;border-radius:8px;padding:6px 8px;font-size:12px}.rt4-empty{margin:0;font-size:13px;color:var(--u-mute,#5A6678)}
+.rt4-more{align-self:flex-start;margin-top:6px}.rt4-full{margin-top:8px}
+@media (min-width:1100px){.rt4-list{max-width:900px}}
+html[data-dark="1"] .rt4-top,html[data-dark="1"] .rt4-day{background:#1B2638;border-color:#2B3B55}
+html[data-dark="1"] .rt4-top h2,html[data-dark="1"] .rt4-row,html[data-dark="1"] .rt4-stats b{color:#EEF1F6}
+html[data-dark="1"] .rt4-stats>div,html[data-dark="1"] .rt4-chips span{background:#223049}
+html[data-dark="1"] .rt4-note,html[data-dark="1"] .rt4-warn{background:#4A3A12;color:#FCD98B}
