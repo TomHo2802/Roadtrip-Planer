@@ -45,6 +45,35 @@
       useWx(); const w = wxStore.get(stage, iso); if (!w) return null; const [ic, tx] = WMO(w.code); const f = (c) => Math.round(c * 9 / 5 + 32);
       return <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-sky-50 border border-sky-200 px-2 py-1 text-xs text-sky-950" title={`${tx} · ${f(w.tmax)}°F / ${f(w.tmin)}°F`}><span className="text-base">{ic}</span><b>{Math.round(w.tmax)}° / {Math.round(w.tmin)}°</b><span>💧 {w.rain != null ? w.rain + ' %' : '–'}</span><span>💨 {w.wind != null ? Math.round(w.wind) + ' km/h' : '–'}</span>{w.uv != null && <span>☀ UV {Math.round(w.uv)}</span>}{w.sst != null && <span>🌊 Wasser {Math.round(w.sst)}°{w.wave != null ? `, Wellen ${String(w.wave.toFixed(1)).replace('.', ',')} m` : ''}</span>}</div>;
     }
+    function RtWxCard({ stage, iso, trip }) {
+      const wx = useWx(); const w = wxStore.get(stage, iso);
+      if (!w) return (
+        <section data-wx-card className="rt3-wx empty">
+          <div className="rt3-wx-h"><span>Wetter</span></div>
+          <p>{navigator.onLine ? (wx.loading ? 'Wetter wird geladen …' : 'Für diesen Tag liegt noch keine Vorhersage vor (bis 16 Tage im Voraus).') : 'Offline, keine gespeicherte Vorhersage für diesen Tag.'}</p>
+          {navigator.onLine && !wx.loading && <button type="button" data-readonly-allow className="v18-btn sm" onClick={() => wxStore.ensure(trip, true)}>Wetter laden</button>}
+        </section>
+      );
+      const [ic, tx] = WMO(w.code); const f = (c) => Math.round(c * 9 / 5 + 32); const uv = w.uv != null ? Math.round(w.uv) : null;
+      const tips = []; if (w.rain != null && w.rain >= 50) tips.push('Regenjacke einpacken'); if (uv != null && uv >= 6) tips.push('Sonnenschutz nicht vergessen'); if (w.wind != null && w.wind >= 40) tips.push('Windig, Fenster und Schirm sichern');
+      const tile = (k, v, sub) => <div className="rt3-wx-t"><span>{k}</span><b>{v}</b>{sub && <em>{sub}</em>}</div>;
+      return (
+        <section data-wx-card className="rt3-wx" aria-label="Wetter für diesen Tag">
+          <div className="rt3-wx-h"><span>Wetter heute</span><span>{stage.toCity || ''}</span></div>
+          <div className="rt3-wx-main">
+            <div className="rt3-wx-ic" aria-hidden="true">{ic}</div>
+            <div><div className="rt3-wx-temp">{Math.round(w.tmax)}°<small> / {Math.round(w.tmin)}°</small></div><div className="rt3-wx-tx">{tx} · {f(w.tmax)}°F / {f(w.tmin)}°F</div></div>
+          </div>
+          <div className="rt3-wx-grid">
+            {tile('Regen', w.rain != null ? w.rain + ' %' : '–', w.rain != null ? (w.rain >= 60 ? 'wahrscheinlich' : w.rain >= 30 ? 'möglich' : 'gering') : '')}
+            {tile('Wind', w.wind != null ? Math.round(w.wind) + ' km/h' : '–', w.wind != null ? (w.wind >= 40 ? 'stark' : w.wind >= 20 ? 'frisch' : 'schwach') : '')}
+            {uv != null && tile('UV-Index', uv, uv >= 8 ? 'sehr hoch' : uv >= 6 ? 'hoch' : uv >= 3 ? 'mittel' : 'niedrig')}
+            {w.sst != null && tile('Wasser', Math.round(w.sst) + '°', w.wave != null ? 'Wellen ' + String(w.wave.toFixed(1)).replace('.', ',') + ' m' : '')}
+          </div>
+          {tips.length > 0 && <div className="rt3-wx-tip">{tips.join(' · ')}</div>}
+        </section>
+      );
+    }
     function WeatherView({ trip, todayIso }) {
       const wx = useWx(); const days = useMemo(() => buildDays(trip), [trip]);
       useEffect(() => { wxStore.ensure(trip); }, [(trip.stages || []).length]);

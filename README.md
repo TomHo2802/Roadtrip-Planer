@@ -505,3 +505,4 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Unterwegs: Schnellkacheln (Hotel, Parkplatz, Notfall, Wetter) am PC in einer Reihe.
 - Buchen am PC zweispaltig: Fluege und Mietwagen links, Hotels rechts.
 - Unterwegs (Heute) am PC zweispaltig: links naechster Termin, Schnellkacheln 2x2, Flug/Mietwagen, Unterkunft; rechts Tageskarte mit nummerierten Stopps und der Tagesplan. Auf dem Handy unveraendert.
+- Unterwegs: Notfall nur noch einmal (Kachel). Neue Wetterkarte fuer den Tag (Temperatur, Regen, Wind, UV, Wasser, Hinweise). Tagesablauf als Zeitleiste mit Kennzahlen (Abfahrt, Fahrzeit, Ankunft, Check-in), Tagesabschnitten und Fahrzeit zwischen den Stopps.

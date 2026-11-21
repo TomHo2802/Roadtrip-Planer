@@ -134,7 +134,7 @@
       return <a href={rtNavUrl(rtNaviSvc(), g, address, name)} target="_blank" rel="noopener noreferrer" className={className || 'min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold'}>{label || 'Navi'}</a>;
     }
 
-    function DayCard({ trip, day, onSave, editable, nowMin, isToday }) {
+    function DayCard({ trip, day, onSave, editable, nowMin, isToday, hideWx }) {
       const stage = day.stage; const plan = stage.plan || {};
       const tl = day.kind === 'travel' ? buildTimeline(trip, day) : null;
       const H = parseGps(stage.hotel && stage.hotel.gps); const sun = tl ? tl.sun : H ? sunTimes(H[0], H[1], day.iso) : null;
@@ -151,7 +151,7 @@
             </div>
             {sun && <div className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1"><Ic n="sunrise" />{fmtHM(sun.sunrise)} · <Ic n="sunset" />{fmtHM(sun.sunset)}</div>}
           </div>
-          <WxChip stage={stage} iso={day.iso} />
+          {!hideWx && <WxChip stage={stage} iso={day.iso} />}
           <OvRainToggle trip={trip} day={day} onSave={onSave} />
           {day.checkoutStage && <div className="text-xs rounded-lg bg-slate-50 border border-slate-200 p-2">Check-out {hotelName(day.checkoutStage)}{day.checkoutStage.hotel && day.checkoutStage.hotel.checkOut ? ` bis ${day.checkoutStage.hotel.checkOut}` : ''}</div>}
           {day.kind === 'checkout' && <div className="text-xs rounded-lg bg-slate-50 border border-slate-200 p-2">Check-out {hotelName(stage)}{h.checkOut ? ` bis ${h.checkOut}` : ''}. Weiterfahrt oder Rückreise.</div>}
@@ -170,28 +170,42 @@
                   <p className="text-[11px] text-slate-500 flex-1 min-w-[160px]">Maps rechnet ohne Verkehr und Pausen. Der Puffer verlängert nur die Fahrzeiten, nicht die Aufenthalte.</p>
                 </div>
               )}
-              <ol className="space-y-1.5">
-                {tl.events.map((ev, i) => (
-                  <li key={i} className={`flex gap-3 rounded-lg border p-2 ${nextIdx === i ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'} ${nextIdx > i ? 'opacity-50 grayscale' : ''}`}>
-                    <div className="w-14 shrink-0 text-center"><div className="text-base font-extrabold text-slate-900 tabular-nums">{fmtHM(ev.at)}</div>{nextIdx === i && <div className="text-[10px] font-bold text-emerald-700">als Nächstes</div>}</div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-bold text-slate-900 break-words">{ev.kind === 'depart' ? <Ic n="car" /> : ev.kind === 'arrive' ? <Ic n="hotel" /> : <Ic n="flag" />}{ev.title}</div>
-                      {ev.kind !== 'depart' && <div className="text-[11px] text-slate-600">Fahrt davor: {fmtDurMin(ev.driveMin)}{ev.kind === 'stop' ? ` · Aufenthalt: ${fmtDurMin(ev.dwell)}` : ''}</div>}
-                      {ev.note && <div className="text-[11px] text-slate-500">{ev.note}</div>}
-                      {ev.address && <div className="text-[11px] text-slate-500"><Ic n="pin" />{ev.address}</div>}
-                      <div className="flex flex-wrap items-center gap-2 mt-1">
-                        {ev.kind === 'stop' && editable && (
-                          <label className="text-[11px] font-semibold text-slate-700">Aufenthalt (Min.)
-                            <input type="number" min="0" step="5" defaultValue={ev.dwell} key={`${ev.id}-${ev.dwell}`} onBlur={(e) => { const v = Math.max(0, Number(e.target.value) || 0); if (v !== ev.dwell) updPlan({ dwell: { ...(plan.dwell || {}), [ev.id]: v } }); }} className="ml-1 w-20 min-h-[36px] px-2 rounded-lg border border-slate-300 bg-white text-sm" />
-                          </label>
-                        )}
-                        {ev.gps && ev.kind !== 'depart' && <NavLink gps={ev.gps} address={ev.address} name={ev.title} />}
-                      </div>
-                    </div>
-                  </li>
-                ))}
+              <div className="rt3-sum">
+                <div><span>Abfahrt</span><b>{fmtHM(tl.events[0].at)}</b></div>
+                <div><span>Fahrzeit</span><b>{fmtDurMin(tl.driveSum)}</b></div>
+                <div><span>Ankunft</span><b>ca. {fmtHM(tl.arrival)}</b></div>
+                {tl.ci && <div><span>Check-in</span><b>ab {fmtHM(tl.ci.from)}</b></div>}
+              </div>
+              <ol className="rt3-tl">
+                {tl.events.map((ev, i) => {
+                  const part = (m) => (m < 720 ? 'Vormittag' : m < 1080 ? 'Nachmittag' : 'Abend'); const showPart = i === 0 || part(ev.at) !== part(tl.events[i - 1].at);
+                  return (
+                    <React.Fragment key={i}>
+                      {showPart && <li className="rt3-tl-part" aria-hidden="true">{part(ev.at)}</li>}
+                      {ev.kind !== 'depart' && <li className="rt3-tl-drive" aria-hidden="true"><Ic n="car" />{fmtDurMin(ev.driveMin)} Fahrt</li>}
+                      <li className={`rt3-tl-ev k-${ev.kind}${nextIdx === i ? ' next' : ''}${nextIdx > i ? ' past' : ''}`}>
+                        <div className="rt3-tl-time"><b>{fmtHM(ev.at)}</b>{nextIdx === i && <i>als Nächstes</i>}</div>
+                        <div className="rt3-tl-card">
+                          <div className="rt3-tl-title">{ev.kind === 'depart' ? <Ic n="car" /> : ev.kind === 'arrive' ? <Ic n="hotel" /> : <Ic n="flag" />}{ev.title}</div>
+                          <div className="rt3-tl-meta">
+                            {ev.kind === 'stop' && <span className="rt3-chip">Aufenthalt {fmtDurMin(ev.dwell)}</span>}
+                            {ev.note && <span>{ev.note}</span>}
+                            {ev.address && <span><Ic n="pin" />{ev.address}</span>}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            {ev.kind === 'stop' && editable && (
+                              <label className="text-[11px] font-semibold text-slate-700">Aufenthalt (Min.)
+                                <input type="number" min="0" step="5" defaultValue={ev.dwell} key={`${ev.id}-${ev.dwell}`} onBlur={(e) => { const v = Math.max(0, Number(e.target.value) || 0); if (v !== ev.dwell) updPlan({ dwell: { ...(plan.dwell || {}), [ev.id]: v } }); }} className="ml-1 w-20 min-h-[36px] px-2 rounded-lg border border-slate-300 bg-white text-sm" />
+                              </label>
+                            )}
+                            {ev.gps && ev.kind !== 'depart' && <NavLink gps={ev.gps} address={ev.address} name={ev.title} />}
+                          </div>
+                        </div>
+                      </li>
+                    </React.Fragment>
+                  );
+                })}
               </ol>
-              <div className="text-xs text-slate-600">Fahrzeit gesamt (inkl. +{tl.buffer} %): <b>{fmtDurMin(tl.driveSum)}</b> · Ankunft ca. <b>{fmtHM(tl.arrival)}</b>{tl.ci ? ` · Check-in ab ${fmtHM(tl.ci.from)}${tl.ci.to ? ' bis ' + fmtHM(tl.ci.to === 1440 ? 0 : tl.ci.to) : ''}` : ''}</div>
               {tl.warnings.map((w, i) => <div key={i} className="text-xs rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-2"><Ic n="warn" />{w}</div>)}
             </div>
           )}
@@ -287,6 +301,7 @@
           </section>
           <div className="rt3-left space-y-3">
             <V18NextCard trip={trip} day={day} isToday={isToday} nowMin={nowMin} />
+            <RtWxCard stage={stage} iso={day.iso} trip={trip} />
             <RtQuick stage={stage} goTab={goTab} />
           </div>
 
@@ -302,7 +317,7 @@
           <RtDayMap trip={trip} day={day} />
           <details key={day.iso} data-day-sched open className="rt-sched">
             <summary className="min-h-[48px] flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 cursor-pointer">Tagesplan {isToday ? 'heute' : fmtDayShort(day.iso)}<span className="text-xs font-semibold text-slate-500">auf-/zuklappen</span></summary>
-            <div className="mt-2"><DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} /></div>
+            <div className="mt-2"><DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} hideWx /></div>
           </details>
           </div>
 
@@ -323,7 +338,6 @@
             </div>
           </section>
 
-          {emerg.length > 0 && <button type="button" data-emerg-link onClick={() => goTab('cards')} className="rt3-left w-full text-left rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-950"><Ic n="sos" />Notfallnummern → Karten & Notfall</button>}
         </div>
       );
     }
