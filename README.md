@@ -535,3 +535,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Stopps: Die Zeile "Ankunft ..." am Ende der Strecke wird nicht mehr als Stopp gezaehlt (Reiter Weg und Etappenkopf zeigen "3 Stopps" wie der Tagesplan).
 - Uebersicht: Gesamtkilometer in der Kachel Fahrzeit gesamt, Kilometer (und Meilen) je Reisetag im Fahrzeit-Badge.
 - Kleinigkeiten: "1 Etappe hat noch keine Koordinaten", "1 freier Tag".
+
+## v120
+- Warnungen: "Ankunft vor dem Check-in" erscheint nur noch, wenn man mehr als 2 Stunden zu frueh ankommt (vorher ab jeder Minute). Dadurch sind in Uebersicht und Tagesplan deutlich weniger Tage gelb markiert. Sonnenuntergang, Check-in-Ende, lange Fahrzeit und Ankunft nach Mitternacht warnen wie bisher.

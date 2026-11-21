@@ -124,7 +124,7 @@
       const last = legs[stops.length] * (1 + buf / 100); driveSum += last; t += last;
       events.push({ kind: 'arrive', at: t, driveMin: last, driveKm: legKm[stops.length], title: `Ankunft: ${hotelName(stage)}`, gps: H, address: stage.hotel && stage.hotel.address });
       const ci = parseCheckIn(stage.hotel && stage.hotel.checkIn); const sun = H ? sunTimes(H[0], H[1], day.iso) : null; const warnings = [];
-      if (ci && t < ci.from) warnings.push(`Ankunft ${fmtHM(t)} liegt ${fmtDurMin(ci.from - t)} vor dem Check-in (${fmtHM(ci.from)}). Gepäck abgeben oder einen Stopp einplanen.`);
+      if (ci && ci.from - t > 120) warnings.push(`Ankunft ${fmtHM(t)} liegt ${fmtDurMin(ci.from - t)} vor dem Check-in (${fmtHM(ci.from)}). Gepäck abgeben oder einen Stopp einplanen.`);
       if (ci && ci.to && t > ci.to) warnings.push(`Ankunft ${fmtHM(t)} liegt nach dem Ende des Check-in-Fensters (${fmtHM(ci.to === 1440 ? 0 : ci.to)}). Hotel vorab informieren.`);
       if (sun && t > sun.sunset) warnings.push(`Ankunft ${fmtHM(t)} nach Sonnenuntergang (${fmtHM(sun.sunset)}), Fahrt teilweise im Dunkeln.`);
       if (driveSum > 300) warnings.push(`Reine Fahrzeit inkl. Puffer ${fmtDurMin(driveSum)}: lange Etappe, Pausen einplanen.`);
