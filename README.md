@@ -504,3 +504,4 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Stile in src/css/ui5.css; die klassische Ansicht bleibt unveraendert. Sicherung der Vorversion: Branch sicherung-v111.
 - Unterwegs: Schnellkacheln (Hotel, Parkplatz, Notfall, Wetter) am PC in einer Reihe.
 - Buchen am PC zweispaltig: Fluege und Mietwagen links, Hotels rechts.
+- Unterwegs (Heute) am PC zweispaltig: links naechster Termin, Schnellkacheln 2x2, Flug/Mietwagen, Unterkunft; rechts Tageskarte mit nummerierten Stopps und der Tagesplan. Auf dem Handy unveraendert.

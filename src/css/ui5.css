@@ -76,11 +76,22 @@ html:not([data-ui="classic"]) .stage-page-mode .rt2-split>.rt2-main:not(#rt-x){f
   html:not([data-ui="classic"]) .sp3-body .rt-ac-wrap,html:not([data-ui="classic"]) .sp3-body select{max-width:100%}
 }
 /* Unterwegs: Schnellkacheln am PC in einer Reihe, Tagesplan-Zeilen nicht endlos breit */
+.rt3-today{display:flex;flex-direction:column;gap:16px}
+.rt3-left{display:block}.rt3-left>*+*{margin-top:12px}
+.rt3-daymap{display:none}
 @media (min-width:1100px){
-  html:not([data-ui="classic"]) [data-quick]:not(#rt-x){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  html:not([data-ui="classic"]) .rt3-today:not(#rt-x){display:grid;grid-template-columns:minmax(360px,440px) minmax(0,1fr);grid-template-rows:auto repeat(19,max-content) 1fr;column-gap:24px;row-gap:0;align-items:start}
+  html:not([data-ui="classic"]) .rt3-today>.rt3-head:not(#rt-x){grid-column:1/-1;margin-bottom:16px}
+  html:not([data-ui="classic"]) .rt3-today>.rt3-left:not(#rt-x){grid-column:1;margin:0 0 16px}
+  html:not([data-ui="classic"]) .rt3-today>.rt3-right:not(#rt-x){grid-column:2;grid-row:2 / span 20}
+  html:not([data-ui="classic"]) .rt3-banner:not(#rt-x){display:inline-block;width:auto}
+  html:not([data-ui="classic"]) .rt3-daymap:not(#rt-x){display:block;border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.07);background:var(--u-card)}
+  html:not([data-ui="classic"]) .rt3-daymap-el:not(#rt-x){height:300px}
 }
 /* Buchen am PC: Fluege/Mietwagen links, Hotels rechts */
 @media (min-width:1100px){
   html:not([data-ui="classic"]) .rt3-cols:not(#rt-x){column-count:2;column-gap:20px}
   html:not([data-ui="classic"]) .rt3-cols>*:not(#rt-x){break-inside:avoid}
 }
+.rt3-daymap .mk2{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--u-acc);box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:700 10px Inter,sans-serif;color:var(--u-ink)}
+html[data-dark="1"] .rt3-daymap .mk2{background:#161E2D;color:#EEF1F6;border-color:#FFC93C}

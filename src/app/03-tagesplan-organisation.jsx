@@ -235,6 +235,32 @@
       );
     }
 
+    function RtDayMap({ trip, day }) {
+      const el = useRef(null), mapRef = useRef(null), grp = useRef(null);
+      const tl = day.kind === 'travel' ? buildTimeline(trip, day) : null;
+      const raw = tl ? tl.events.map((e) => ({ g: e.gps, t: e.title })) : [{ g: parseGps(day.stage.hotel && day.stage.hotel.gps), t: hotelName(day.stage) }].concat(attractionsForDay(day.stage, day.dayInStage || 1).map((a) => ({ g: parseGps(a.gps || ''), t: a.name || a.title || '' })));
+      const pts = raw.filter((x) => x.g).map((x, i) => ({ g: x.g, t: x.t, n: i + 1 }));
+      const sig = pts.map((p) => p.g.join(',')).join('|');
+      useEffect(() => {
+        if (!window.L || !el.current || mapRef.current) return; const L = window.L;
+        const map = L.map(el.current, { zoomControl: true, attributionControl: true, scrollWheelZoom: false });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
+        mapRef.current = map; grp.current = L.layerGroup().addTo(map); map.setView([28, -82], 5);
+        return () => { try { map.remove(); } catch (e) {} mapRef.current = null; };
+      }, []);
+      useEffect(() => {
+        const L = window.L, map = mapRef.current; if (!L || !map || !grp.current) return; grp.current.clearLayers();
+        if (pts.length > 1) L.polyline(pts.map((p) => p.g), { color: '#1F4E8C', weight: 3, opacity: 0.85 }).addTo(grp.current);
+        pts.forEach((p) => L.marker(p.g, { title: p.t, icon: L.divIcon({ className: '', html: `<div class="mk2">${p.n}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(grp.current));
+        const fit = () => { if (pts.length) { try { map.invalidateSize(); map.fitBounds(L.latLngBounds(pts.map((p) => p.g)), { padding: [40, 40], maxZoom: 15, animate: false }); } catch (e) {} } };
+        fit(); const t = setTimeout(fit, 120);
+        let ro = null; if (window.ResizeObserver && el.current) { ro = new ResizeObserver(() => fit()); ro.observe(el.current); }
+        return () => { clearTimeout(t); if (ro) ro.disconnect(); };
+      }, [sig]);
+      if (!pts.length) return null;
+      return <div data-day-map className="rt3-daymap"><div ref={el} className="rt3-daymap-el" role="img" aria-label="Karte der Stopps dieses Tages" /></div>;
+    }
+
     function TodayView({ trip, onSave, todayIso, goTab }) {
       useEffect(() => { wxStore.ensure(trip); }, [(trip.stages || []).length]);
       const days = useMemo(() => buildDays(trip), [trip]);
@@ -250,32 +276,37 @@
       const cars = []; (trip.rentalCars || []).forEach((c) => { if (c.pickupDate === dmy(day.iso)) cars.push({ c, what: 'Abholung', where: c.pickupLocation, time: c.pickupTime }); if (c.dropoffDate === dmy(day.iso)) cars.push({ c, what: 'Rückgabe', where: c.dropoffLocation, time: c.dropoffTime }); });
       const emerg = trip.emergencyContacts || [];
       return (
-        <div data-today className="space-y-4">
-          <section className="space-y-3">
+        <div data-today className="rt3-today">
+          <section className="space-y-3 rt3-head">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0"><h2 className="text-lg font-bold text-slate-900">{isToday ? 'Heute · ' : ''}Tag {idx + 1} von {days.length}</h2><div className="text-xs text-slate-600">{fmtDayLong(day.iso)} · Etappe {day.stageIdx + 1}: {hotelName(stage)}</div></div>
               {days.some((d) => d.iso === todayIso) && !isToday && <button type="button" onClick={() => setSel(todayIso)} className="v18-btn pri sm shrink-0">Heute</button>}
             </div>
             <V18DayChips days={days} sel={day.iso} onSel={setSel} />
-            {banner && <div className="text-xs rounded-lg bg-sky-50 border border-sky-200 text-sky-950 p-2">{banner}</div>}
+            {banner && <div className="rt3-banner text-xs rounded-lg bg-sky-50 border border-sky-200 text-sky-950 p-2">{banner}</div>}
+          </section>
+          <div className="rt3-left space-y-3">
             <V18NextCard trip={trip} day={day} isToday={isToday} nowMin={nowMin} />
             <RtQuick stage={stage} goTab={goTab} />
-          </section>
+          </div>
 
           {(flights.length > 0 || cars.length > 0) && (
-            <section className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 space-y-2">
+            <section className="rt3-left rounded-2xl border border-indigo-200 bg-indigo-50 p-4 space-y-2">
               <h3 className="text-sm font-bold text-indigo-950">Flug & Mietwagen heute</h3>
               {flights.map((f) => <div key={f.id} className="text-sm">{f.direction}: <b>{f.airline} {f.flightNumber}</b> · {f.from} → {f.to} · {f.departureTime} → {f.arrivalTime}{f.bookingCode ? ` · Buchungscode ${f.bookingCode}` : ''}</div>)}
               {cars.map((x, i) => <div key={i} className="text-sm">{x.what}: <b>{x.c.provider}</b> · {x.where} · {x.time}{x.c.bookingCode ? ` · ${x.c.bookingCode}` : ''}</div>)}
             </section>
           )}
 
+          <div className="rt3-right space-y-3">
+          <RtDayMap trip={trip} day={day} />
           <details key={day.iso} data-day-sched open className="rt-sched">
             <summary className="min-h-[48px] flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 cursor-pointer">Tagesplan {isToday ? 'heute' : fmtDayShort(day.iso)}<span className="text-xs font-semibold text-slate-500">auf-/zuklappen</span></summary>
             <div className="mt-2"><DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} /></div>
           </details>
+          </div>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+          <section className="rt3-left rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
             <h3 className="text-sm font-bold text-slate-900">Unterkunft: {h.name || stage.toCity}</h3>
             <div className="text-sm text-slate-700 space-y-0.5">
               {h.address && <div><Ic n="pin" />{h.address}</div>}
@@ -292,7 +323,7 @@
             </div>
           </section>
 
-          {emerg.length > 0 && <button type="button" data-emerg-link onClick={() => goTab('cards')} className="w-full text-left rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-950"><Ic n="sos" />Notfallnummern → Karten & Notfall</button>}
+          {emerg.length > 0 && <button type="button" data-emerg-link onClick={() => goTab('cards')} className="rt3-left w-full text-left rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-950"><Ic n="sos" />Notfallnummern → Karten & Notfall</button>}
         </div>
       );
     }
