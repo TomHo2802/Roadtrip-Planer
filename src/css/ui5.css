@@ -153,3 +153,11 @@ html[data-dark="1"] .rt3-daymap .mk2.act{background:#FFC93C;color:#1C1204;border
 .rt3-ord button:disabled{opacity:.35;cursor:default}
 html[data-dark="1"] .rt3-daymap{background:#16233A;border-color:#25364f}
 html[data-dark="1"] .rt3-daymap-h{color:#B8C4D6}
+/* Zielort und Hotel im Naechster-Termin-Feld */
+.v18-facts{margin:10px 0 0;padding-top:10px;border-top:1px solid rgba(127,127,127,.28);display:grid;gap:4px}
+.v18-facts>div{display:flex;gap:10px;align-items:baseline;font-size:14px}
+.v18-facts dt{flex:0 0 48px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.v18-facts dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+html:not([data-ui="classic"]) .v18-hero .v18-facts dd{color:#fff}
+html:not([data-ui="classic"]) .v18-hero .v18-facts dt{color:#C9D8EE;opacity:1}
+html:not([data-ui="classic"]) .v18-hero .v18-facts{border-top-color:rgba(255,255,255,.2)}

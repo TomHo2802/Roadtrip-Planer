@@ -518,3 +518,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v115
 - Unterwegs am Handy: Die Unterkunft steht jetzt direkt nach der Route (bei der Ankunft am Hotel), vor "Danach vor Ort". Sie hat eine eigene Karte mit Hotel (H) und Parkplatz (P). Am PC bleibt sie in der linken Spalte.
+
+## v116
+- Unterwegs: Das blaue Feld (Naechster Termin / Tagesstart) zeigt zusaetzlich zu Titel und "Danach" jetzt Ziel und Hotel des Tages.

@@ -129,7 +129,6 @@
       } else {
         label = isToday ? 'Heute' : 'Tagesübersicht';
         title = day.kind === 'stay' ? `Aufenthalt in ${stage.toCity || ''}` : day.kind === 'checkout' ? `Check-out ${hotelName(stage)}` : `Tag in ${stage.toCity || ''}`;
-        sub = h.name ? `Unterkunft: ${h.name}` : '';
         if (parseGps(h.gps)) nav = { gps: h.gps, address: h.address, name: h.name };
       }
       return (
@@ -137,6 +136,12 @@
           <div className="v18-lbl">{label}</div>
           <h3 className="text-lg font-bold mt-0.5 break-words">{title}</h3>
           {sub && <p className="text-[13px] text-slate-600 break-words">{sub}</p>}
+          {(stage.toCity || h.name) && (
+            <dl className="v18-facts">
+              {stage.toCity && <div><dt>Ziel</dt><dd>{stage.toCity}</dd></div>}
+              {h.name && <div><dt>Hotel</dt><dd>{h.name}</dd></div>}
+            </dl>
+          )}
           {nav && <NavLink gps={nav.gps} address={nav.address} name={nav.name} label="Navigation starten" className="v18-btn pri mt-3 w-full sm:w-auto justify-center" />}
         </div>
       );
