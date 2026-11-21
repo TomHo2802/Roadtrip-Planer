@@ -134,7 +134,7 @@
       return <a href={rtNavUrl(rtNaviSvc(), g, address, name)} target="_blank" rel="noopener noreferrer" className={className || 'min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold'}>{label || 'Navi'}</a>;
     }
 
-    function DayCard({ trip, day, onSave, editable, nowMin, isToday, hideWx }) {
+    function DayCard({ trip, day, onSave, editable, nowMin, isToday, hideWx, afterRoute }) {
       const stage = day.stage; const plan = stage.plan || {};
       const tl = day.kind === 'travel' ? buildTimeline(trip, day) : null;
       const H = parseGps(stage.hotel && stage.hotel.gps); const sun = tl ? tl.sun : H ? sunTimes(H[0], H[1], day.iso) : null;
@@ -221,6 +221,7 @@
             </div>
           )}
           {tl && <RtDayMap pts={routePts} cls="route" label="Route zum Ziel" />}
+          {afterRoute}
           {acts.length > 0 && (
             <div className="space-y-1.5">
               <div className="text-xs font-bold text-slate-700">{day.kind === 'travel' ? 'Danach vor Ort' : 'Aktionen für diesen Tag'}</div>
@@ -278,7 +279,7 @@
       }, []);
       useEffect(() => {
         const L = window.L, map = mapRef.current; if (!L || !map || !grp.current) return; grp.current.clearLayers();
-        if (cls !== 'acts' && pts.length > 1) L.polyline(pts.map((p) => p.g), { color: '#1F4E8C', weight: 3, opacity: 0.85 }).addTo(grp.current);
+        if (cls === 'route' && pts.length > 1) L.polyline(pts.map((p) => p.g), { color: '#1F4E8C', weight: 3, opacity: 0.85 }).addTo(grp.current);
         pts.forEach((p) => L.marker(p.g, { title: p.t, icon: L.divIcon({ className: '', html: `<div class="mk2${cls === 'acts' ? ' act' : ''}">${p.n}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(grp.current));
         const fit = () => { if (pts.length) { try { map.invalidateSize(); map.fitBounds(L.latLngBounds(pts.map((p) => p.g)), { padding: [40, 40], maxZoom: 15, animate: false }); } catch (e) {} } };
         fit(); const t = setTimeout(fit, 120);
@@ -295,6 +296,7 @@
     };
 
     function TodayView({ trip, onSave, todayIso, goTab }) {
+      const wide = useWide();
       useEffect(() => { wxStore.ensure(trip); }, [(trip.stages || []).length]);
       const days = useMemo(() => buildDays(trip), [trip]);
       const [sel, setSel] = useState(() => { const t = days.find((d) => d.iso === todayIso); return (t || days[0] || {}).iso; });
@@ -308,6 +310,26 @@
       const flights = (trip.flights || []).filter((f) => f.departureDate === dmy(day.iso));
       const cars = []; (trip.rentalCars || []).forEach((c) => { if (c.pickupDate === dmy(day.iso)) cars.push({ c, what: 'Abholung', where: c.pickupLocation, time: c.pickupTime }); if (c.dropoffDate === dmy(day.iso)) cars.push({ c, what: 'Rückgabe', where: c.dropoffLocation, time: c.dropoffTime }); });
       const emerg = trip.emergencyContacts || [];
+      const hotelPts = [{ g: parseGps(h.gps), t: h.name || stage.toCity || 'Unterkunft', n: 'H' }, { g: parseGps(h.parkingGarageGps), t: h.parkingGarageName || 'Parkplatz', n: 'P' }].filter((x) => x.g);
+      const hotelCard = (
+          <section className="rt3-left rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+            <h3 className="text-sm font-bold text-slate-900">Unterkunft: {h.name || stage.toCity}</h3>
+            <RtDayMap pts={hotelPts} cls="hotel" label="Unterkunft und Parkplatz" />
+            <div className="text-sm text-slate-700 space-y-0.5">
+              {h.address && <div><Ic n="pin" />{h.address}</div>}
+              <div>Check-in: <b>{h.checkIn || '—'}</b> · Check-out: <b>{h.checkOut || '—'}</b>{h.cancelUntil ? ` · Storno bis ${h.cancelUntil}` : ''}</div>
+              {h.bookingCode && <div>Buchungscode: {h.bookingCode}</div>}
+              <RtHotelFacts h={h} />
+              {h.remarks && <div className="text-xs text-slate-500">{h.remarks}</div>}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {parseGps(h.gps) && <NavLink gps={h.gps} address={h.address} name={h.name} label="Zum Hotel" />}
+              {parseGps(h.parkingGarageGps) && <NavLink gps={h.parkingGarageGps} address={h.parkingGarageAddress} name={h.parkingGarageName} label="Zum Parkplatz" className="min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-purple-600 text-white text-xs font-bold" />}
+              <button type="button" onClick={() => goTab('map')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">Karte</button>
+              <button type="button" onClick={() => goTab('plan')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">Tagesplan bearbeiten</button>
+            </div>
+          </section>
+      );
       return (
         <div data-today className="rt3-today">
           <section className="space-y-3 rt3-head">
@@ -335,26 +357,11 @@
           <div className="rt3-right space-y-3">
           <details key={day.iso} data-day-sched open className="rt-sched">
             <summary className="min-h-[48px] flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 cursor-pointer">Tagesplan {isToday ? 'heute' : fmtDayShort(day.iso)}<span className="text-xs font-semibold text-slate-500">auf-/zuklappen</span></summary>
-            <div className="mt-2"><DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} hideWx /></div>
+            <div className="mt-2"><DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} hideWx afterRoute={wide ? null : hotelCard} /></div>
           </details>
           </div>
 
-          <section className="rt3-left rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-            <h3 className="text-sm font-bold text-slate-900">Unterkunft: {h.name || stage.toCity}</h3>
-            <div className="text-sm text-slate-700 space-y-0.5">
-              {h.address && <div><Ic n="pin" />{h.address}</div>}
-              <div>Check-in: <b>{h.checkIn || '—'}</b> · Check-out: <b>{h.checkOut || '—'}</b>{h.cancelUntil ? ` · Storno bis ${h.cancelUntil}` : ''}</div>
-              {h.bookingCode && <div>Buchungscode: {h.bookingCode}</div>}
-              <RtHotelFacts h={h} />
-              {h.remarks && <div className="text-xs text-slate-500">{h.remarks}</div>}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {parseGps(h.gps) && <NavLink gps={h.gps} address={h.address} name={h.name} label="Zum Hotel" />}
-              {parseGps(h.parkingGarageGps) && <NavLink gps={h.parkingGarageGps} address={h.parkingGarageAddress} name={h.parkingGarageName} label="Zum Parkplatz" className="min-h-[36px] inline-flex items-center px-2.5 rounded-lg bg-purple-600 text-white text-xs font-bold" />}
-              <button type="button" onClick={() => goTab('map')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">Karte</button>
-              <button type="button" onClick={() => goTab('plan')} className="min-h-[36px] px-2.5 rounded-lg border border-slate-300 text-xs font-semibold">Tagesplan bearbeiten</button>
-            </div>
-          </section>
+          {wide && hotelCard}
 
         </div>
       );

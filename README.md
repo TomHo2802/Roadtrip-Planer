@@ -515,3 +515,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Reihenfolge der Aktionen vor Ort per Pfeil hoch/runter in der Liste (nicht im Lesemodus). Beim ersten Aendern wird der Tag jeder Aktion explizit gespeichert, damit die Zuordnung zu den Tagen gleich bleibt.
 - Alle Karten verhalten sich gleich: Mausrad zoomt, linke Maustaste zieht die Karte.
 - Karten sind im Dunkelmodus nicht mehr abgedunkelt, sondern wie im hellen Modus.
+
+## v115
+- Unterwegs am Handy: Die Unterkunft steht jetzt direkt nach der Route (bei der Ankunft am Hotel), vor "Danach vor Ort". Sie hat eine eigene Karte mit Hotel (H) und Parkplatz (P). Am PC bleibt sie in der linken Spalte.
