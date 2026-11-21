@@ -75,3 +75,7 @@ html:not([data-ui="classic"]) .stage-page-mode .rt2-split>.rt2-main:not(#rt-x){f
   html:not([data-ui="classic"]) .sp3-body:not(#rt-x){column-gap:20px}
   html:not([data-ui="classic"]) .sp3-body .rt-ac-wrap,html:not([data-ui="classic"]) .sp3-body select{max-width:100%}
 }
+/* Unterwegs: Schnellkacheln am PC in einer Reihe, Tagesplan-Zeilen nicht endlos breit */
+@media (min-width:1100px){
+  html:not([data-ui="classic"]) [data-quick]:not(#rt-x){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
