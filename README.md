@@ -503,3 +503,4 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - PC-Ansicht nutzt die Breite: Begrenzung des Hauptbereichs (1180 px) entfernt, Etappenseite ueber die volle Breite in zwei Spalten, Etappenliste einspaltig (untereinander) neben einer deutlich groesseren Karte, die ihre Route bei jeder Groessenaenderung neu einpasst.
 - Stile in src/css/ui5.css; die klassische Ansicht bleibt unveraendert. Sicherung der Vorversion: Branch sicherung-v111.
 - Unterwegs: Schnellkacheln (Hotel, Parkplatz, Notfall, Wetter) am PC in einer Reihe.
+- Buchen am PC zweispaltig: Fluege und Mietwagen links, Hotels rechts.

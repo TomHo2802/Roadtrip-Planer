@@ -79,3 +79,8 @@ html:not([data-ui="classic"]) .stage-page-mode .rt2-split>.rt2-main:not(#rt-x){f
 @media (min-width:1100px){
   html:not([data-ui="classic"]) [data-quick]:not(#rt-x){grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
+/* Buchen am PC: Fluege/Mietwagen links, Hotels rechts */
+@media (min-width:1100px){
+  html:not([data-ui="classic"]) .rt3-cols:not(#rt-x){column-count:2;column-gap:20px}
+  html:not([data-ui="classic"]) .rt3-cols>*:not(#rt-x){break-inside:avoid}
+}

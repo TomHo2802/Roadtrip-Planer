@@ -102,6 +102,7 @@
             <div className="sp3-seg2" role="group" aria-label="Anzeige"><button type="button" data-readonly-allow aria-pressed={!only} onClick={() => setOnly(false)}>Alle</button><button type="button" data-readonly-allow data-book-only aria-pressed={only} onClick={() => setOnly(true)}>Nur offene</button></div>
             <RtIcsButton trip={trip} />
           </div>
+          <div className="rt3-cols">
           {groups.map((g) => { const L = shown.filter((it) => it.grp === g); const all = items.filter((it) => it.grp === g); if (!all.length && g === 'Hotels') return null; return (
             <section key={g} aria-label={g} className="sp3-sec">
               <h2 className="sp3-h">{g}</h2>
@@ -129,6 +130,7 @@
                 {g === 'Mietwagen' && <div className="sp3-addrow v18-edit-only"><button type="button" data-book-add="car" className="sp3-btn" onClick={newCar}>+ Mietwagen</button></div>}
               </div>
             </section>); })}
+          </div>
           <p className="sp3-hint">„Gebucht“ lässt sich je Eintrag umschalten. Ohne eigene Angabe gilt: Hotel mit Preis, Flug oder Mietwagen mit Buchungscode oder Preis sind gebucht.</p>
         </div>
       );
