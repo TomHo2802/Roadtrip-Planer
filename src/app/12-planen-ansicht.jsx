@@ -8,8 +8,8 @@
       const days = a != null && b != null && b >= a ? Math.round((b - a) / D) + 1 : 0;
       const fmt = (ms) => { const d = new Date(ms); return `${d.getUTCDate()}.`; };
       const range = days ? `${fmt(a)}–${new Date(b).getUTCDate()}. ${RT_MO[new Date(b).getUTCMonth()]} ${new Date(b).getUTCFullYear()}` : '';
-      const people = ((trip && trip.participants) || []).length;
-      const meta2 = [range, days ? `${days} ${days === 1 ? 'Tag' : 'Tage'}` : '', people ? `${people} ${people === 1 ? 'Reisende/r' : 'Reisende'}` : ''].filter(Boolean).join(' · ');
+      const people = ((trip && trip.participants) || []).length; const totKm = rtTripKm(trip);
+      const meta2 = [range, days ? `${days} ${days === 1 ? 'Tag' : 'Tage'}` : '', totKm ? `${rtDist(totKm, rtTripMiles(trip))} gesamt` : '', people ? `${people} ${people === 1 ? 'Reisende/r' : 'Reisende'}` : ''].filter(Boolean).join(' · ');
       let left = '', right = '', pct = 0;
       if (days) {
         if (t0 < a) { const n = Math.round((a - t0) / D); left = n === 1 ? 'Morgen geht es los' : `Noch ${n} Tage bis zur Abreise`; pct = 0; }
@@ -40,7 +40,7 @@
         <div data-plan-top className="no-print space-y-3">
           <RtHero trip={trip} />
           <div className="rt2-stats">
-            <div className="rt2-tile" data-stat="km"><span className="rt2-num">{km ? km.toLocaleString('de-DE') : '–'}</span><small>Kilometer</small></div>
+            <div className="rt2-tile" data-stat="km"><span className="rt2-num">{km ? km.toLocaleString('de-DE') : '–'}</span><small>Kilometer{rtTripMiles(trip) && km ? ` · ${Math.round(km * 0.621371).toLocaleString('de-DE')} mi` : ''}</small></div>
             <div className="rt2-tile" data-stat="nights"><span className="rt2-num">{S.sum}</span><small>{S.sum === 1 ? 'Nacht' : 'Nächte'}</small></div>
             <div className="rt2-tile hidden lg:flex" data-stat="routes"><span className="rt2-num">{S.rOk}/{S.rN}</span><small>Strecken</small></div>
             <button type="button" data-readonly-allow data-status-toggle aria-expanded={open} aria-controls="rt-status-body" onClick={tog} className={`rt2-tile ${S.hOk < S.hN ? 'acc' : ''}`} data-stat="hotels"><span className="rt2-num">{S.hOk}/{S.hN}</span><small>Hotels {open ? '▴' : '▾'}</small></button>
@@ -73,7 +73,7 @@
                 {!ret && (missH ? <span className="rt2-hotel m" data-foot-chip="hotel" data-miss="1">Hotel fehlt</span> : <span className="rt2-hotel" data-foot-chip="hotel">{h}</span>)}
                 <span className="rt2-chips">
                   <span className="rt2-chip">{ret ? 'Rückreise, keine Übernachtung' : `${n} ${n === 1 ? 'Nacht' : 'Nächte'}`}</span>
-                  {!same && (missR ? <span className="rt2-chip miss" data-foot-chip="way" data-miss="1">Strecke fehlt</span> : <span className="rt2-chip" data-foot-chip="way">{km ? `${Math.round(km).toLocaleString('de-DE')} km` : String(rt.distanceKm)}</span>)}
+                  {!same && (missR ? <span className="rt2-chip miss" data-foot-chip="way" data-miss="1">Strecke fehlt</span> : <span className="rt2-chip" data-foot-chip="way">{km ? rtDist(km, rtStageMiles(stage)) : String(rt.distanceKm)}</span>)}
                   {acts > 0 && <span className="rt2-chip ok" data-foot-chip="do">{acts} {acts === 1 ? 'Aktion' : 'Aktionen'}</span>}
                 </span>
               </span>
@@ -255,7 +255,7 @@
       const delAct = (i) => { const nm = acts[i] && acts[i].name; put((s) => ({ localAttractions: (s.localAttractions || []).filter((_, k) => k !== i) }), '', `„${nm || 'Aktion'}“ gelöscht`); setEdit(null); setOpenRow(null); };
 
       const tabs = [['way', isRet ? 'Rückreise' : 'Weg', stops.length ? String(stops.length) : '']].concat(isRet ? [] : [['hotel', 'Hotel', hasHotel ? '' : '!'], ['do', 'Vor Ort', acts.length ? String(acts.length) : '']]);
-      const km = spShort(rt.distanceKm), du = spShort(rt.duration);
+      const km = rtDist(rtKmVal(rt.distanceKm), rtStageMiles(stage)) || spShort(rt.distanceKm), du = spShort(rt.duration);
 
       const stopForm = (i) => { const s = i == null ? {} : stops[i]; return (
         <SpForm title={i == null ? 'Stopp hinzufügen' : 'Stopp bearbeiten'} onSave={(v) => { if (!v.name) return; saveStop(i, v); }} onCancel={() => setEdit(null)} onDelete={i == null ? null : () => delStop(i)}>
@@ -334,7 +334,7 @@
             <section aria-label="Stopps auf dem Weg" className="sp3-card list">
               {!stops.length && edit !== 'stop:new' && <p className="sp3-empty">Noch keine Stopps. Direktfahrt zum {isRet ? 'Ziel' : 'Hotel'}.</p>}
               {stops.map((s, i) => edit === 'stop:' + i ? <div key={s.id || i} className="sp3-in">{stopForm(i)}</div> : (
-                <SpRow key={s.id || i} k={'stop:' + i} open={openRow === 'stop:' + i} setOpen={setOpenRow} lead={String(i + 1)} title={s.name || `Stopp ${i + 1}`} sub={[s.time, s.duration, rtNum(s.costEur) > 0 ? formatEur(s.costEur) : ''].filter(Boolean).join(' · ')}>
+                <SpRow key={s.id || i} k={'stop:' + i} open={openRow === 'stop:' + i} setOpen={setOpenRow} lead={String(i + 1)} title={s.name || `Stopp ${i + 1}`} sub={[rtMiText(s.time, rtStageMiles(stage)), s.duration, rtNum(s.costEur) > 0 ? formatEur(s.costEur) : ''].filter(Boolean).join(' · ')}>
                   {s.notes && <p className="sp3-note">{s.notes}</p>}
                   {s.address && <p className="sp3-mute">{s.address}</p>}
                   <div className="sp3-acts">

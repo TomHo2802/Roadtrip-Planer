@@ -212,6 +212,17 @@
       return { km: '', mi: '' };
     };
 
+    // v118: Entfernungen in km und (je nach Zielland) in Meilen
+    const RT_MI_BOX = [[24, 50, -125, -66], [51, 72, -170, -129], [18.5, 22.5, -161, -154], [49.8, 60.9, -5.9, 1.9], [17, 19, -68, -64]]; // USA, Alaska, Hawaii, Großbritannien, Puerto Rico/Jungferninseln
+    const rtMilesAt = (g) => { const a = typeof parseGps === 'function' ? parseGps(g) : null; return !!a && RT_MI_BOX.some((b) => a[0] >= b[0] && a[0] <= b[1] && a[1] >= b[2] && a[1] <= b[3]); };
+    const rtStageMiles = (stage) => rtMilesAt(stage && stage.hotel && stage.hotel.gps) || (!(stage && stage.hotel && stage.hotel.gps) && rtMilesAt(((stage && stage.routeToHotel && stage.routeToHotel.stopsOnWay) || []).map((x) => x.gps).filter(Boolean).pop()));
+    const rtTripMiles = (trip) => { const st = ((trip && trip.stages) || []).filter((s) => s.hotel && s.hotel.gps); if (!st.length) return false; return st.filter(rtStageMiles).length * 2 > st.length; };
+    const rtKmVal = (x) => { const m = /(\d+(?:[.,]\d+)?)\s*km/i.exec(String(x == null ? '' : x)); return m ? parseFloat(m[1].replace(',', '.')) : (typeof x === 'number' ? x : NaN); };
+    // 277 -> "277 km" bzw. "277 km · 172 mi"
+    const rtDist = (km, mi) => { if (!Number.isFinite(km) || km <= 0) return ''; const k = km < 10 ? (Math.round(km * 10) / 10).toString().replace('.', ',') : Math.round(km).toLocaleString('de-DE'); if (!mi) return `${k} km`; const m = km * 0.621371; return `${k} km · ${m < 10 ? (Math.round(m * 10) / 10).toString().replace('.', ',') : Math.round(m).toLocaleString('de-DE')} mi`; };
+    // "Etappe 1 (14 km / 0,5 h)" -> "Etappe 1 (14 km · 9 mi / 0,5 h)"
+    const rtMiText = (t, mi) => (!mi || !t ? t : String(t).replace(/(\d+(?:[.,]\d+)?)\s*km(?!\s*·)/gi, (all, n) => { const v = parseFloat(n.replace(',', '.')); return `${n} km · ${v * 0.621371 < 10 ? (Math.round(v * 0.621371 * 10) / 10).toString().replace('.', ',') : Math.round(v * 0.621371)} mi`; }));
+
     const getCardColorClasses = (color) => rtCardTheme(color);
 
     class AppErrorBoundary extends React.Component {

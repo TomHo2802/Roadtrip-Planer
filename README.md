@@ -524,3 +524,7 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v117
 - Unterwegs: Die Kacheln Hotel, Parkplatz und Wetter sind entfernt (Funktionen bleiben an anderer Stelle). Statt dessen stehen dort Notfall und Kassenzettel. Die Kachel Kassenzettel oeffnet das Erfassungsformular der Ausgaben; die Ausgaben-Karte unten zeigt nur noch die Summen.
+
+## v118
+- Entfernungen: Gesamtstrecke der Reise (Planen-Kopf und Kachel Kilometer), Strecke je Etappe (Chips, Etappenseite, Tab Weg) und Teilstrecken im Tagesablauf (Heute) werden in km angezeigt. Liegt das Zielland in einem Meilenland (USA, Grossbritannien, Puerto Rico), steht daneben die Angabe in Meilen, z. B. "277 km · 172 mi". Das Land wird aus den Hotel-GPS-Koordinaten der Etappen erkannt (Etappen ohne GPS: keine Meilen).
+- Teilstrecken im Tagesablauf: aus den Angaben "x km / y h" der Stopps, fehlende Werte werden anteilig nach Fahrzeit geschaetzt. Neue Kachel "Strecke" in der Tagesuebersicht.

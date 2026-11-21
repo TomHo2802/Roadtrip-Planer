@@ -110,23 +110,26 @@
       const dsum = dists.reduce((a, b) => a + (b || 0), 0); const useDist = dists.every((x) => x != null) && dsum > 0;
       miss.forEach((i, j) => { legs[i] = useDist ? remain * dists[j] / dsum : remain / miss.length; });
       const legSum = legs.reduce((x, y) => x + y, 0); if (legSum > 0 && Math.abs(legSum - total) > 1) for (let i = 0; i < legs.length; i++) legs[i] = legs[i] * total / legSum;
+      // v118: Teilstrecken in km (aus "x km / y h", sonst anteilig nach Fahrzeit)
+      const kmRaw = [...stops.map((s) => { const m = String(s.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*\d/i); return m ? toNum(m[1]) : null; }), lastS && lastLegMin != null ? (() => { const m = String(lastS.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*\d/i); return m ? toNum(m[1]) : null; })() : null];
+      const legKm = (() => { if (!Number.isFinite(km) || km <= 0) return kmRaw.every((x) => x != null) ? kmRaw : kmRaw.map(() => null); const known = kmRaw.reduce((a, x) => a + (x || 0), 0); const mi2 = kmRaw.map((x, i) => (x == null ? i : -1)).filter((i) => i >= 0); if (!mi2.length) return kmRaw; const remK = Math.max(km - known, km * 0.1); const wsum = mi2.reduce((a, i) => a + legs[i], 0) || 1; return kmRaw.map((x, i) => (x != null ? x : remK * legs[i] / wsum)); })();
       const events = [{ kind: 'depart', at: t, title: `Abfahrt${prev ? ': ' + hotelName(prev) : stage.fromCity ? ': ' + stage.fromCity : ''}`, gps: A }];
       let driveSum = 0;
       stops.forEach((s, i) => {
         const dr = legs[i] * (1 + buf / 100); driveSum += dr; t += dr;
         const dwell = plan.dwell && plan.dwell[s.id] != null ? Number(plan.dwell[s.id]) : (parseDurMin(s.duration) != null ? parseDurMin(s.duration) : 45);
-        events.push({ kind: 'stop', at: t, driveMin: dr, dwell, id: s.id, title: s.name, gps: parseGps(s.gps), address: s.address, note: s.time && !/km\s*\//i.test(s.time) ? s.time : '' });
+        events.push({ kind: 'stop', at: t, driveMin: dr, driveKm: legKm[i], dwell, id: s.id, title: s.name, gps: parseGps(s.gps), address: s.address, note: s.time && !/km\s*\//i.test(s.time) ? s.time : '' });
         t += dwell;
       });
       const last = legs[stops.length] * (1 + buf / 100); driveSum += last; t += last;
-      events.push({ kind: 'arrive', at: t, driveMin: last, title: `Ankunft: ${hotelName(stage)}`, gps: H, address: stage.hotel && stage.hotel.address });
+      events.push({ kind: 'arrive', at: t, driveMin: last, driveKm: legKm[stops.length], title: `Ankunft: ${hotelName(stage)}`, gps: H, address: stage.hotel && stage.hotel.address });
       const ci = parseCheckIn(stage.hotel && stage.hotel.checkIn); const sun = H ? sunTimes(H[0], H[1], day.iso) : null; const warnings = [];
       if (ci && t < ci.from) warnings.push(`Ankunft ${fmtHM(t)} liegt ${fmtDurMin(ci.from - t)} vor dem Check-in (${fmtHM(ci.from)}). Gepäck abgeben oder einen Stopp einplanen.`);
       if (ci && ci.to && t > ci.to) warnings.push(`Ankunft ${fmtHM(t)} liegt nach dem Ende des Check-in-Fensters (${fmtHM(ci.to === 1440 ? 0 : ci.to)}). Hotel vorab informieren.`);
       if (sun && t > sun.sunset) warnings.push(`Ankunft ${fmtHM(t)} nach Sonnenuntergang (${fmtHM(sun.sunset)}), Fahrt teilweise im Dunkeln.`);
       if (driveSum > 300) warnings.push(`Reine Fahrzeit inkl. Puffer ${fmtDurMin(driveSum)}: lange Etappe, Pausen einplanen.`);
       if (t >= 1440) warnings.push('Die Ankunft liegt nach Mitternacht.');
-      return { events, warnings, sun, arrival: t, driveSum, buffer: buf, depart, ci };
+      return { events, warnings, sun, arrival: t, driveSum, totalKm: Number.isFinite(km) && km > 0 ? km : (legKm.every((x) => x != null) ? legKm.reduce((a, b) => a + b, 0) : null), miles: rtStageMiles(stage), buffer: buf, depart, ci };
     };
 
     function NavLink({ gps, address, name, label, className }) {
@@ -184,6 +187,7 @@
               <div className="rt3-sum">
                 <div><span>Abfahrt</span><b>{fmtHM(tl.events[0].at)}</b></div>
                 <div><span>Fahrzeit</span><b>{fmtDurMin(tl.driveSum)}</b></div>
+                {tl.totalKm ? <div><span>Strecke</span><b>{rtDist(tl.totalKm, tl.miles)}</b></div> : null}
                 <div><span>Ankunft</span><b>ca. {fmtHM(tl.arrival)}</b></div>
                 {tl.ci && <div><span>Check-in</span><b>ab {fmtHM(tl.ci.from)}</b></div>}
               </div>
@@ -193,7 +197,7 @@
                   return (
                     <React.Fragment key={i}>
                       {showPart && <li className="rt3-tl-part" aria-hidden="true">{part(ev.at)}</li>}
-                      {ev.kind !== 'depart' && <li className="rt3-tl-drive" aria-hidden="true"><Ic n="car" />{fmtDurMin(ev.driveMin)} Fahrt</li>}
+                      {ev.kind !== 'depart' && <li className="rt3-tl-drive" aria-hidden="true"><Ic n="car" />{fmtDurMin(ev.driveMin)} Fahrt{ev.driveKm ? ` · ${rtDist(ev.driveKm, tl.miles)}` : ''}</li>}
                       <li className={`rt3-tl-ev k-${ev.kind}${nextIdx === i ? ' next' : ''}${nextIdx > i ? ' past' : ''}`}>
                         <div className="rt3-tl-time"><b>{fmtHM(ev.at)}</b>{nextIdx === i && <i>als Nächstes</i>}</div>
                         <div className="rt3-tl-card">

@@ -19,7 +19,7 @@
     }
 
     function StageListFoot({ stage, onOpen, ret }) {
-      const rt = stage.routeToHotel || {}, h = stage.hotel || {}; const n = (stage.localAttractions || []).length; const km = spShort(rt.distanceKm), du = spShort(rt.duration);
+      const rt = stage.routeToHotel || {}, h = stage.hotel || {}; const n = (stage.localAttractions || []).length; const km = rtDist(rtKmVal(rt.distanceKm), rtStageMiles(stage)) || spShort(rt.distanceKm), du = spShort(rt.duration);
       return (
         <div data-stage-foot className="px-4 py-3 flex flex-wrap items-center gap-2 text-xs">
           <span data-foot-chip="way" className={rtChipCls('px-2.5 py-1 rounded-full bg-amber-100 text-amber-950 border border-amber-300 font-semibold', !(km || du) && !(String(stage.fromCity || '').trim().toLowerCase() === String(stage.toCity || '').trim().toLowerCase()))}>① Weg: {km || du ? [km, du].filter(Boolean).join(' · ') : 'offen'}</span>
@@ -32,7 +32,7 @@
 
     function StagePageBar({ stages, openId, tab, setTab, onBack, onOpen }) {
       const i = stages.findIndex((s) => s.id === openId); if (i < 0) return null;
-      const s = stages[i]; const rt = s.routeToHotel || {}, h = s.hotel || {}; const n = (s.localAttractions || []).length; const km = spShort(rt.distanceKm), du = spShort(rt.duration);
+      const s = stages[i]; const rt = s.routeToHotel || {}, h = s.hotel || {}; const n = (s.localAttractions || []).length; const km = rtDist(rtKmVal(rt.distanceKm), rtStageMiles(s)) || spShort(rt.distanceKm), du = spShort(rt.duration);
       const nights = Math.max(1, parseInt(s.nights, 10) || 1);
       const isRet = rtIsRet(stages, i); useEffect(() => { if (isRet && (tab === 'hotel' || tab === 'do')) setTab('way'); }, [isRet, tab]);
       const tabs = [['way', isRet ? '① Rückreise' : '① Weg', [km, du].filter(Boolean).join(' · ') || 'offen'], ...(isRet ? [] : [['hotel', '② Hotel', h.name || 'offen'], ['do', '③ Vor Ort', n ? `${n} Aktion${n === 1 ? '' : 'en'}` : 'offen']]), ['all', 'Alles', 'alle Abschnitte']];
