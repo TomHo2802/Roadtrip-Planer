@@ -28,7 +28,7 @@
     }
     function RtPlanTop({ trip, goTab, children }) {
       const S = rtPlanStats(trip), n = S.rows.length;
-      const [open, setOpen] = useState(() => { try { const v = localStorage.getItem('rt_status_open_v1'); if (v === '1') return true; if (v === '0') return false; } catch (e) {} return n > 0 && S.hOk === 0 && S.rOk === 0; });
+      const [open, setOpen] = useState(() => { try { const v = localStorage.getItem('rt_status_open_v1'); if (v === '1') return true; if (v === '0') return false; } catch (e) {} return false; });
       const [tools, setTools] = useState(false);
       useEffect(() => { const f = () => setOpen(true); window.addEventListener('rt-status', f); return () => window.removeEventListener('rt-status', f); }, []);
       const tog = () => { const v = !open; setOpen(v); try { localStorage.setItem('rt_status_open_v1', v ? '1' : '0'); } catch (e) {} };
@@ -261,7 +261,7 @@
         <SpForm title={i == null ? 'Stopp hinzufügen' : 'Stopp bearbeiten'} onSave={(v) => { if (!v.name) return; saveStop(i, v); }} onCancel={() => setEdit(null)} onDelete={i == null ? null : () => delStop(i)}>
           <SpF label="Name" name="name" value={s.name} wide />
           <SpF label="Adresse" name="address" value={s.address} place="addr" wide />
-          <SpF label="GPS" name="gps" value={s.gps} ph="GPS-Koordinaten (z. B. 25.09, -80.44)" />
+          <SpF label="GPS" name="gps" value={s.gps} ph="GPS-Koordinaten (z. B. 47.27, 11.40)" />
           <SpF label="Wann / Abschnitt" name="time" value={s.time} ph="z. B. nach 85 km" />
           <SpF label="Dauer" name="duration" value={s.duration} ph="z. B. ca. 1 Std." />
           <SpF label="Kosten €" name="costEur" value={s.costEur || ''} type="number" />
@@ -276,7 +276,7 @@
           <SpF label="Preis €" name="priceEur" value={a.priceEur || ''} type="number" />
           <SpF label="Gebucht" name="booked" value={a.booked} ph="z. B. ja, Vor Ort, Code" />
           <SpF label="Adresse" name="address" value={a.address} place="addr" wide />
-          <SpF label="GPS" name="gps" value={a.gps} ph="GPS-Koordinaten (z. B. 25.09, -80.44)" />
+          <SpF label="GPS" name="gps" value={a.gps} ph="GPS-Koordinaten (z. B. 47.27, 11.40)" />
           <SpF label="Notiz" name="notes" value={a.notes} rows={3} wide />
         </SpForm>); };
 
@@ -356,20 +356,20 @@
                 <SpForm title={hasHotel ? 'Hotel bearbeiten' : 'Hotel eintragen'} onSave={saveHotel} onCancel={() => setEdit(null)} onDelete={h ? delHotel : null} delLabel="Hotel entfernen" extra={<button type="button" className="sp3-btn" onClick={() => { setEdit(null); openEditor(stage, 'hotel'); }}>Alle Felder …</button>}>
                   <SpF label="Name" name="name" value={h && h.name} wide />
                   <SpF label="Adresse" name="address" value={h && h.address} place="addr" wide />
-                  <SpF label="GPS" name="gps" value={h && h.gps} ph="GPS-Koordinaten (z. B. 25.09, -80.44)" />
+                  <SpF label="GPS" name="gps" value={h && h.gps} ph="GPS-Koordinaten (z. B. 47.27, 11.40)" />
                   <SpF label="Preis € (gesamt)" name="priceNewEur" value={h && h.priceNewEur} type="number" />
                   <SpF label="Check-in" name="checkIn" value={h && h.checkIn} ph="z. B. 15 Uhr" />
                   <SpF label="Check-out" name="checkOut" value={h && h.checkOut} ph="z. B. 11 Uhr" />
                   <SpF label="Kostenlos stornierbar bis" name="cancelUntil" value={h && h.cancelUntil} ph="TT.MM.JJJJ" />
                   <SpF label="Bemerkungen" name="remarks" value={h && h.remarks} rows={3} wide />
-                  <p className="sp3-hint wide">Mit Preis gilt das Hotel als gebucht. Kreditkarte, Parkhaus und weitere Preise unter „Alle Felder“.</p>
+                  <p className="sp3-hint wide">Gebucht schaltest du im Hotel mit einem Tipp auf den Status um. Kreditkarte, Parkhaus und weitere Preise unter „Alle Felder“.</p>
                 </SpForm>
               </section>
             ) : hasHotel ? (
               <section aria-label="Hotel" className="sp3-card">
                 <div className="sp3-line top">
                   <span className="sp3-grow"><h2 className="sp3-h2">{h.name}</h2>{h.address && <span className="sp3-mute">{h.address}</span>}</span>
-                  {rtBooked('hotel', h) ? <span className="sp3-chip ok">gebucht</span> : <span className="sp3-chip miss">nicht gebucht</span>}
+                  {(() => { const bk = rtBooked('hotel', h, trip); const chip = bk ? <span className="sp3-chip ok">gebucht</span> : <span className="sp3-chip miss">nicht gebucht</span>; return IS_READ_ONLY_COPY ? chip : <button type="button" data-hotel-booked aria-pressed={bk} title="Antippen zum Umschalten" onClick={() => put((s) => ({ hotel: { ...(s.hotel || {}), booked: bk ? 'nein' : 'ja' } }), bk ? 'Hotel als offen markiert' : 'Hotel als gebucht markiert')} className="bg-transparent border-0 p-0 cursor-pointer">{chip}</button>; })()}
                 </div>
                 <dl className="sp3-dl">
                   {(h.checkIn || h.checkOut) && <div><dt>Check-in / -out</dt><dd>{[h.checkIn, h.checkOut].filter(Boolean).join(' / ')}</dd></div>}

@@ -6,11 +6,12 @@
     const rtHm = (t) => { const m = /(\d{1,2})[:.](\d{2})/.exec(String(t || '')); return m && Number(m[1]) < 24 ? `${m[1].padStart(2, '0')}:${m[2]}` : ''; };
     const rtEur = (n) => formatEur(Math.round((Number(n) || 0) * 100) / 100);
     // Buchungsstand: eigener Schalter „booked“ (ja/nein), sonst die bisherige Regel
-    const rtBooked = (kind, o) => {
+    const rtBooked = (kind, o, trip) => {
       if (!o) return false; const b = String(o.booked || '').toLowerCase();
       if (b === 'ja') return true; if (b === 'nein') return false;
-      if (kind === 'hotel') return rtHotelPrice(o) > 0;
-      return !!(String(o.bookingCode || '').trim() || Number(o.priceNewEur) > 0);
+      const legacy = !trip || (trip.meta && trip.meta.isDemo);
+      if (kind === 'hotel') return legacy ? rtHotelPrice(o) > 0 : !!(String(o.bookingCode || o.confirmation || '').trim());
+      return !!(String(o.bookingCode || '').trim() || (legacy && Number(o.priceNewEur) > 0));
     };
     const rtStorno = (o) => { const iso = rtDeIso(o && o.cancelUntil); if (!iso) return null; const d = rtDaysTo(iso); return { iso, d, txt: d < 0 ? `Storno-Frist am ${rtDm(iso)} vorbei` : d === 0 ? 'Storno nur noch heute' : d <= 7 ? `Storno bis ${rtDm(iso)} · noch ${d} ${d === 1 ? 'Tag' : 'Tage'}` : `Storno bis ${rtDm(iso)}`, warn: d >= 0 && d <= 7, past: d < 0 }; };
     const RT_SVG = {
@@ -79,7 +80,7 @@
       (trip.flights || []).filter(rtFlightFilled).forEach((f) => items.push({ k: 'fl:' + f.id, kind: 'flight', grp: 'Flüge', icon: 'plane', o: f, title: [f.direction, [f.airline, f.flightNumber].filter(Boolean).join(' ')].filter(Boolean).join(': ') || 'Flug', sub: [f.departureDate, rtHm(f.departureTime), [f.from, f.to].filter(Boolean).join(' → ')].filter(Boolean).join(' · '), price: Number(f.priceNewEur) || 0 }));
       (trip.rentalCars || []).filter(rtCarFilled).forEach((c) => items.push({ k: 'car:' + c.id, kind: 'car', grp: 'Mietwagen', icon: 'car', o: c, title: c.provider || 'Mietwagen', sub: [c.pickupDate && `${c.pickupDate} – ${c.dropoffDate || '?'}`, c.carClass].filter(Boolean).join(' · '), price: Number(c.priceNewEur) || 0 }));
       stages.forEach((s, i) => { if (rtIsRet(stages, i)) return; const h = s.hotel || null; const has = !!(h && String(h.name || '').trim()); items.push({ k: 'h:' + s.id, kind: 'hotel', grp: 'Hotels', icon: 'bed', o: has ? h : null, s, i, title: has ? h.name : 'Hotel fehlt noch', sub: `Etappe ${i + 1} · ${s.toCity || '?'} · ${rtSpDate(s.dateRange)}`, price: has ? rtHotelPrice(h) : 0, missing: !has }); });
-      items.forEach((it) => { it.ok = !it.missing && rtBooked(it.kind, it.o); it.st = it.o ? rtStorno(it.o) : null; });
+      items.forEach((it) => { it.ok = !it.missing && rtBooked(it.kind, it.o, trip); it.st = it.o ? rtStorno(it.o) : null; });
       const shown = only ? items.filter((it) => !it.ok) : items;
       const nOk = items.filter((it) => it.ok).length, sum = items.reduce((a, it) => a + (it.ok ? it.price : 0), 0);
       const warn = items.filter((it) => it.st && it.st.warn);
@@ -131,7 +132,7 @@
               </div>
             </section>); })}
           </div>
-          <p className="sp3-hint">„Gebucht“ lässt sich je Eintrag umschalten. Ohne eigene Angabe gilt: Hotel mit Preis, Flug oder Mietwagen mit Buchungscode oder Preis sind gebucht.</p>
+          <p className="sp3-hint">„Gebucht“ lässt sich je Eintrag umschalten. Ohne eigene Angabe gilt nur ein Eintrag mit Buchungscode als gebucht. Ein Preis allein reicht nicht.</p>
         </div>
       );
     }

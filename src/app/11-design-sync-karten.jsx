@@ -396,7 +396,7 @@
     function RtHelpHost({ hasTrip }) {
       const [open, setOpen] = useState(false);
       useEffect(() => { const h = () => setOpen(true); window.addEventListener('rt-help', h); return () => window.removeEventListener('rt-help', h); }, []);
-      useEffect(() => { if (!hasTrip || rtLsGet(RT_HELP_KEY)) return; const t = setTimeout(() => setOpen(true), 900); return () => clearTimeout(t); }, [hasTrip]);
+      useEffect(() => { if (!hasTrip || rtLsGet(RT_HELP_KEY)) return; let t = 0, tries = 0; const go = () => { if (document.querySelector('.rt-dlg') && tries++ < 120) { t = setTimeout(go, 700); return; } setOpen(true); }; t = setTimeout(go, 1200); return () => clearTimeout(t); }, [hasTrip]);
       useEffect(() => { if (!open) return; const k = (e) => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', k); return () => document.removeEventListener('keydown', k); }, [open]);
       const close = () => { rtLsSet(RT_HELP_KEY, '1'); setOpen(false); };
       if (!open) return null;

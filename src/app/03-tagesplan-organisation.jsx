@@ -92,7 +92,7 @@
     // Zeitleiste für einen Anreisetag
     const buildTimeline = (trip, day) => {
       const stage = day.stage, stages = trip.stages || [], prev = stages[day.stageIdx - 1] || null, plan = stage.plan || {};
-      const depart = plan.departTime || (day.stageIdx === 0 ? '19:00' : '09:00'); const [dh, dm] = depart.split(':').map(Number);
+      const hasFlight = (trip.flights || []).some((f) => typeof rtFlightFilled === 'function' && rtFlightFilled(f)); const depart = plan.departTime || (day.stageIdx === 0 && hasFlight ? '19:00' : '09:00'); const [dh, dm] = depart.split(':').map(Number);
       let t = dh * 60 + (dm || 0); const buf = plan.bufferPct != null ? Number(plan.bufferPct) : 20;
       const rt = stage.routeToHotel || {}, H = parseGps(stage.hotel && stage.hotel.gps), A = prev ? parseGps(prev.hotel && prev.hotel.gps) : null;
       const km = toNum(rt.distanceKm); let total = parseDurMin(rt.duration); if (total == null) total = Number.isFinite(km) ? Math.round(km / 85 * 60) : 60;
@@ -103,7 +103,10 @@
         const mm = String(lastS.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*(\d+(?:[.,]\d+)?)\s*h/i); lastLegMin = mm ? toNum(mm[2]) * 60 : null; stops = stops.slice(0, -1);
       }
       const pts = [A, ...stops.map((s) => parseGps(s.gps)), H];
-      const legsRaw = stops.map((s) => { const m = String(s.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*(\d+(?:[.,]\d+)?)\s*h/i); return m ? toNum(m[2]) * 60 : null; });
+      const cumKm = stops.map((s) => { const m = String(s.time || '').match(/nach\s*(\d+(?:[.,]\d+)?)\s*km/i); return m ? toNum(m[1]) : null; });
+      const cumOk = Number.isFinite(km) && km > 0 && cumKm.length > 0 && cumKm.every((x) => x != null) && cumKm.every((x, k) => k === 0 || x >= cumKm[k - 1]) && cumKm[cumKm.length - 1] <= km;
+      let legsRaw = stops.map((s) => { const m = String(s.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*(\d+(?:[.,]\d+)?)\s*h/i); return m ? toNum(m[2]) * 60 : null; });
+      if (cumOk) { legsRaw = cumKm.map((x, k) => (x - (k ? cumKm[k - 1] : 0)) / km * total); lastLegMin = (km - cumKm[cumKm.length - 1]) / km * total; }
       const knownSum = legsRaw.reduce((a, x) => a + (x || 0), 0) + (lastLegMin || 0); const remain = Math.max(total - knownSum, total * 0.15);
       const legs = [...legsRaw, lastLegMin]; const miss = legs.map((x, i) => (x == null ? i : -1)).filter((i) => i >= 0);
       const dist = (i) => (pts[i] && pts[i + 1] ? haversineM(pts[i], pts[i + 1]) : null); const dists = miss.map(dist);
@@ -111,7 +114,9 @@
       miss.forEach((i, j) => { legs[i] = useDist ? remain * dists[j] / dsum : remain / miss.length; });
       const legSum = legs.reduce((x, y) => x + y, 0); if (legSum > 0 && Math.abs(legSum - total) > 1) for (let i = 0; i < legs.length; i++) legs[i] = legs[i] * total / legSum;
       // v118: Teilstrecken in km (aus "x km / y h", sonst anteilig nach Fahrzeit)
-      const kmRaw = [...stops.map((s) => { const m = String(s.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*\d/i); return m ? toNum(m[1]) : null; }), lastS && lastLegMin != null ? (() => { const m = String(lastS.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*\d/i); return m ? toNum(m[1]) : null; })() : null];
+      const kmRaw = (() => { const base = [...stops.map((s) => { const m = String(s.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*\d/i); return m ? toNum(m[1]) : null; }), lastS && lastLegMin != null ? (() => { const m = String(lastS.time || '').match(/(\d+(?:[.,]\d+)?)\s*km\s*\/\s*\d/i); return m ? toNum(m[1]) : null; })() : null];
+        if (Number.isFinite(km) && km > 0 && cumKm.length && cumKm.every((x) => x != null) && cumKm.every((x, k) => k === 0 || x >= cumKm[k - 1])) return [...cumKm.map((x, k) => x - (k ? cumKm[k - 1] : 0)), Math.max(km - cumKm[cumKm.length - 1], 0)];
+        return base; })();
       const legKm = (() => { if (!Number.isFinite(km) || km <= 0) return kmRaw.every((x) => x != null) ? kmRaw : kmRaw.map(() => null); const known = kmRaw.reduce((a, x) => a + (x || 0), 0); const mi2 = kmRaw.map((x, i) => (x == null ? i : -1)).filter((i) => i >= 0); if (!mi2.length) return kmRaw; const remK = Math.max(km - known, km * 0.1); const wsum = mi2.reduce((a, i) => a + legs[i], 0) || 1; return kmRaw.map((x, i) => (x != null ? x : remK * legs[i] / wsum)); })();
       const events = [{ kind: 'depart', at: t, title: `Abfahrt${prev ? ': ' + hotelName(prev) : stage.fromCity ? ': ' + stage.fromCity : ''}`, gps: A }];
       let driveSum = 0;
@@ -185,10 +190,10 @@
                 </div>
               )}
               <div className="rt3-sum">
-                <div><span>Abfahrt</span><b>{fmtHM(tl.events[0].at)}</b></div>
+                {!hideWx && <div><span>Abfahrt</span><b>{fmtHM(tl.events[0].at)}</b></div>}
                 <div><span>Fahrzeit</span><b>{fmtDurMin(tl.driveSum)}</b></div>
                 {tl.totalKm ? <div><span>Strecke</span><b>{rtDist(tl.totalKm, tl.miles)}</b></div> : null}
-                <div><span>Ankunft</span><b>ca. {fmtHM(tl.arrival)}</b></div>
+                {!hideWx && <div><span>Ankunft</span><b>ca. {fmtHM(tl.arrival)}</b></div>}
                 {tl.ci && <div><span>Check-in</span><b>ab {fmtHM(tl.ci.from)}</b></div>}
               </div>
               <ol className="rt3-tl">
@@ -268,7 +273,7 @@
             {rows.map((r) => {
               const { d, tl, acts } = r, st = d.stage, prev = d.stageIdx > 0 ? stages[d.stageIdx - 1] : null, isOpen = open === d.iso, isToday = d.iso === todayIso;
               const [wd, dt] = ovWeekday(d.iso).replace('.', '').split(', ');
-              const title = d.kind === 'travel' ? `${prev ? hotelName(prev) : (st.fromCity || 'Start')} → ${hotelName(st)}` : d.kind === 'checkout' ? `Check-out ${hotelName(st)}` : `Aufenthalt ${hotelName(st)}`;
+              const cityOf = (x) => String((x && x.toCity) || '').trim() || hotelName(x); const title = d.kind === 'travel' ? `${prev ? cityOf(prev) : (st.fromCity || 'Start')} → ${cityOf(st)}` : d.kind === 'checkout' ? `Check-out ${cityOf(st)}` : `Aufenthalt ${cityOf(st)}`;
               const nStops = tl ? tl.events.filter((e) => e.kind === 'stop').length : 0, warn = tl ? tl.warnings.length : 0;
               const sub = [tl && tl.totalKm ? rtDist(tl.totalKm, tl.miles) : '', tl ? fmtDurMin(tl.driveSum) : '', nStops ? `${nStops} ${nStops === 1 ? 'Stopp' : 'Stopps'}` : '', acts.length ? `${acts.length} ${acts.length === 1 ? 'Aktion' : 'Aktionen'}` : ''].filter(Boolean).join(' · ');
               return (
@@ -407,7 +412,7 @@
       'Dokumente': ['Reisepass / ESTA-Bestätigung', 'Führerschein + int. Führerschein', 'Kreditkarten (min. 2)', 'Flugtickets / Buchungscodes', 'Mietwagen-Bestätigung', 'Hotelbestätigungen', 'Auslandskrankenversicherung', 'Bargeld USD'],
       'Technik / Adapter': ['Adapter Typ A/B (USA)', 'Handy + Ladekabel', 'Powerbank', 'KFZ-Ladegerät / USB-Adapter', 'Handyhalterung fürs Auto', 'Kopfhörer', 'Kamera + Akku + Karte', 'Offline-Karten / diese HTML-Datei'],
       'Strand': ['Badesachen', 'Strandtuch', 'Sonnencreme LSF 50', 'Sonnenbrille', 'Cap / Hut', 'Flip-Flops', 'Wasserfeste Handyhülle'],
-      'Auto / Roadtrip': ['Snacks und Getränke', 'Kühltasche', 'Müllbeutel', 'Feuchttücher', 'Reiseapotheke', 'Sonnenblende', 'Kleingeld für Maut (SunPass)'],
+      'Auto / Roadtrip': ['Snacks und Getränke', 'Kühltasche', 'Müllbeutel', 'Feuchttücher', 'Reiseapotheke', 'Sonnenblende', 'Kleingeld für Maut'],
       'Kleidung': ['Unterwäsche', 'Socken', 'T-Shirts', 'Kurze Hosen', 'Lange Hose', 'Leichte Jacke / Regenjacke', 'Bequeme Schuhe', 'Schlafsachen']
     };
     function PackView({ trip, onSave }) {

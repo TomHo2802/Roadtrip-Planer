@@ -1,7 +1,7 @@
 // ===== v45: Schritt-Assistent (Grundrahmen -> Etappen) =====
     const WZ_STEPS = [
-      { id: 'frame', ph: 'Grundrahmen', label: 'Reise & Zeitraum' },
-      { id: 'people', ph: 'Grundrahmen', label: 'Reisende & Start' },
+      { id: 'frame', ph: 'Rahmen', label: 'Reise & Zeitraum' },
+      { id: 'people', ph: 'Reisende', label: 'Reisende & Start' },
       { id: 'route', ph: 'Etappen', label: 'Etappen benennen' }
     ];
     const WZ_KEY = 'roadtrip_wizard_v1';
@@ -160,12 +160,12 @@
             <div className="bg-[#1F4E8C] text-white px-4 sm:px-5 pt-4 pb-3 shrink-0">
               <div className="flex items-start justify-between gap-3">
                 <div><Phase p={`${cur.ph} · Schritt ${step + 1} von ${WZ_STEPS.length}`} /><h2 className="text-xl font-bold mt-0.5">{cur.label}</h2></div>
-                <button type="button" data-wz-close onClick={closeSave} className="min-h-[40px] px-3 rounded-lg border border-white/50 text-sm font-semibold hover:bg-white/10">Später weitermachen</button>
+                <button type="button" data-wz-close onClick={closeSave} className="min-h-[40px] px-3 rounded-lg border border-white/50 text-sm font-semibold hover:bg-white/10">Später</button>
               </div>
               <div className="mt-3 flex gap-1.5" role="tablist" aria-label="Schritte">
                 {WZ_STEPS.map((s, i) => <button key={s.id} type="button" role="tab" aria-selected={i === step} data-wz-chip={s.id} onClick={() => goStep(i)} title={s.label} className={`flex-1 h-2.5 rounded-full ${i < step ? 'bg-emerald-300' : i === step ? 'bg-white' : 'bg-white/30'} ${i === 2 ? 'ml-2' : ''}`} />)}
               </div>
-              <div className="mt-1.5 flex justify-between text-[11px] text-blue-100"><span>Grundrahmen</span><span>Etappen</span></div>
+              <div className="mt-1.5 flex justify-between text-[11px] text-blue-100"><span>Rahmen</span><span>Reisende</span><span>Etappen</span></div>
             </div>
             <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1" data-wz-body>
               {cur.id === 'frame' && <>
@@ -183,7 +183,7 @@
                 <div className="space-y-2">
                   <div className="text-sm font-semibold text-slate-900">Reisende</div>
                   {names.map((x, i) => (
-                    <div key={i} className="flex gap-2"><input data-wz-name type="text" aria-label={`Name Reisende ${i + 1}`} value={x.name} onChange={(e) => setNames(names.map((y, k) => (k === i ? { ...y, name: e.target.value } : y)))} placeholder={`Reisende ${i + 1}`} className={WZ_IN.replace('mt-1 ', '')} />
+                    <div key={i} className="flex gap-2"><input data-wz-name type="text" aria-label={`Name Reisende ${i + 1}`} value={x.name} onChange={(e) => setNames(names.map((y, k) => (k === i ? { ...y, name: e.target.value } : y)))} placeholder={`Name Person ${i + 1}`} className={WZ_IN.replace('mt-1 ', '')} />
                       {!x.old && names.length > 1 && <button type="button" aria-label="Entfernen" onClick={() => setNames(names.filter((_, k) => k !== i))} className="h-11 w-11 rounded-lg border border-slate-300 text-slate-700">×</button>}</div>
                   ))}
                   {names.length < 20 && <button type="button" data-wz-addperson onClick={() => setNames([...names, { id: '', name: '', old: false }])} className="v18-btn sm">+ Person hinzufügen</button>}
@@ -195,9 +195,9 @@
                 <div className="text-sm font-bold text-slate-900 pt-2">Start und Fahren</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label className="block text-sm font-semibold text-slate-900">Start / Abflughafen<input data-place="city" data-wz-from type="text" value={d.startLocation} onChange={(e) => setF({ startLocation: e.target.value })} placeholder="z. B. München (MUC)" className={WZ_IN} /></label>
-                  <label className="block text-sm font-semibold text-slate-900">Zielregion<input data-place="city" type="text" value={d.destination} onChange={(e) => setF({ destination: e.target.value })} placeholder="z. B. Florida" className={WZ_IN} /></label>
-                  <label className="block text-sm font-semibold text-slate-900">Rückreise von (optional)<input data-place="city" type="text" value={d.endLocation} onChange={(e) => setF({ endLocation: e.target.value })} placeholder="z. B. Orlando (MCO)" className={WZ_IN} /></label>
-                  <label className="block text-sm font-semibold text-slate-900">Fahrzeug (optional)<input type="text" value={d.vehicle} onChange={(e) => setF({ vehicle: e.target.value })} placeholder="z. B. Mietwagen SUV" className={WZ_IN} /></label>
+                  <label className="block text-sm font-semibold text-slate-900">Zielregion<input data-place="city" type="text" value={d.destination} onChange={(e) => setF({ destination: e.target.value })} placeholder="z. B. Südtirol" className={WZ_IN} /></label>
+                  <label className="block text-sm font-semibold text-slate-900">Rückreise von (optional)<input data-place="city" type="text" value={d.endLocation} onChange={(e) => setF({ endLocation: e.target.value })} placeholder="z. B. Frankfurt (FRA)" className={WZ_IN} /></label>
+                  <label className="block text-sm font-semibold text-slate-900">Fahrzeug (optional)<input type="text" value={d.vehicle} onChange={(e) => setF({ vehicle: e.target.value })} placeholder="z. B. Mietwagen Kombi" className={WZ_IN} /></label>
                 </div>
                 <label className="block text-sm font-semibold text-slate-900">Maximale Fahrzeit pro Tag<select value={d.maxDrive} onChange={(e) => setF({ maxDrive: e.target.value })} className={WZ_IN}>{[2, 3, 4, 5, 6, 7, 8, 10].map((h) => <option key={h} value={h}>{h} Stunden</option>)}</select></label>
                 <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-sm text-blue-950">Flüge und Mietwagen trägst du unter „Buchungen“ ein. Der Planungsstand unter „Planen“ erinnert dich daran.</div>
@@ -225,7 +225,7 @@
                     <li key={x.id} data-wz-row className="rounded-xl border border-slate-200 bg-white p-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="h-8 w-8 shrink-0 rounded-full bg-[#1F4E8C] text-white font-bold flex items-center justify-center text-sm">{i + 1}</span>
-                        <input data-place="city" data-wz-city type="text" aria-label={`Ort der Etappe ${i + 1}`} value={x.city} onChange={(e) => upd(i, { city: e.target.value })} placeholder={i === 0 ? 'Erster Übernachtungsort, z. B. Miami' : 'Ort der Übernachtung'} className="flex-1 min-w-[140px] h-11 px-3 rounded-lg border border-slate-300 bg-white text-slate-900" />
+                        <input data-place="city" data-wz-city type="text" aria-label={`Ort der Etappe ${i + 1}`} value={x.city} onChange={(e) => upd(i, { city: e.target.value })} placeholder={i === 0 ? 'Erster Übernachtungsort, z. B. Innsbruck' : 'Ort der Übernachtung'} className="flex-1 min-w-[140px] h-11 px-3 rounded-lg border border-slate-300 bg-white text-slate-900" />
                         <div className="flex items-center gap-1" aria-label="Nächte">
                           <button type="button" aria-label="Eine Nacht weniger" data-wz-less disabled={Number(x.nights) <= 1} onClick={() => nightsLess(i)} className="h-11 w-11 rounded-lg border border-slate-300 text-lg font-bold disabled:opacity-30">−</button>
                           <span data-wz-nights className="w-20 text-center text-sm font-bold text-slate-900">{x.nights} {Number(x.nights) === 1 ? 'Nacht' : 'Nächte'}</span>
@@ -237,7 +237,7 @@
                           <button type="button" aria-label="Etappe entfernen" data-wz-rm onClick={() => rm(i)} className="h-9 w-9 rounded-lg border border-slate-300 text-slate-700">🗑</button>
                         </div>
                       </div>
-                      <div className="mt-1.5 text-xs text-slate-600">{prevCity(i)} → {x.city || 'Ort'}{dates[i] ? ` · ${wzRange(dates[i][0], dates[i][1])}` : ''}</div>
+                      <div className="mt-1.5 text-xs text-slate-600">{x.city ? <>{prevCity(i)} → {x.city}</> : 'Ort noch offen'}{dates[i] ? ` · ${wzRange(dates[i][0], dates[i][1])}` : ''}</div>
                     </li>
                   ))}
                 </ol>

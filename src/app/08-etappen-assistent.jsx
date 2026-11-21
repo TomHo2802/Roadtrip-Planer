@@ -1103,7 +1103,7 @@
               {vrows.map((r) => {
                 const { d } = r; const st = d.stage; const w = wxStore.get(st, d.iso); const rainy = ovRainy(w); const items = ovStageRain(st, d); const isOpen = open[d.iso] != null ? open[d.iso] : false;
                 const warns = r.tl ? r.tl.warnings : []; const color = OV_COLORS[d.stageIdx % OV_COLORS.length]; const isToday = d.iso === todayIso;
-                const title = d.kind === 'travel' ? `${r.prev ? hotelName(r.prev) : (st.fromCity || 'Start')} → ${hotelName(st)}` : d.kind === 'checkout' ? `Check-out ${hotelName(st)}` : `Aufenthalt ${hotelName(st)}`;
+                const cityOf = (x) => String((x && x.toCity) || '').trim() || hotelName(x); const title = d.kind === 'travel' ? `${r.prev ? cityOf(r.prev) : (st.fromCity || 'Start')} → ${cityOf(st)}` : d.kind === 'checkout' ? `Check-out ${cityOf(st)}` : `Aufenthalt ${cityOf(st)}`;
                 return (
                   <li key={d.iso} data-ov-day={d.iso} style={{ borderLeftColor: color }} className={`rounded-xl border border-slate-200 border-l-[6px] bg-white p-3 ${isToday ? 'ring-2 ring-blue-500' : ''}`}>
                     <div className="flex flex-wrap items-start gap-x-3 gap-y-1">

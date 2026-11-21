@@ -190,3 +190,6 @@ html[data-dark="1"] .rt4-top,html[data-dark="1"] .rt4-day{background:#1B2638;bor
 html[data-dark="1"] .rt4-top h2,html[data-dark="1"] .rt4-row,html[data-dark="1"] .rt4-stats b{color:#EEF1F6}
 html[data-dark="1"] .rt4-stats>div,html[data-dark="1"] .rt4-chips span{background:#223049}
 html[data-dark="1"] .rt4-note,html[data-dark="1"] .rt4-warn{background:#4A3A12;color:#FCD98B}
+
+/* v123 */
+.sp3-h{break-after:avoid}

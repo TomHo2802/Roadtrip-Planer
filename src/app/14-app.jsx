@@ -3,7 +3,7 @@ function App() {
       const tripDataRef = useRef(tripData);
       useEffect(() => { tripDataRef.current = tripData; }, [tripData]);
       // Tabs: 'stages' | 'basics' | 'cards' | 'finance' | 'navi' | 'ustools' | 'cloud'
-      const [activeTab, setActiveTab] = useState(() => { try { const n = new Date(); const iso = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; return (tripData.meta && tripData.meta.tripId === 'demo-florida-v1') ? 'stages' : (buildDays(tripData).some((d) => d.iso === iso) ? 'today' : 'stages'); } catch (e) { return 'stages'; } });
+      const [activeTab, setActiveTab] = useState(() => { try { const sv = JSON.parse(sessionStorage.getItem('rt_nav_v1') || 'null'); if (sv && typeof sv.tab === 'string' && sv.tab) return sv.tab; } catch (e) {} try { const n = new Date(); const iso = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; return (tripData.meta && tripData.meta.tripId === 'demo-florida-v1') ? 'stages' : (buildDays(tripData).some((d) => d.iso === iso) ? 'today' : 'stages'); } catch (e) { return 'stages'; } });
       useEffect(() => {
         const activeMobileTab = document.querySelector(`nav[aria-label="Hauptnavigation"] [data-mobile-tab="${activeTab}"]`);
         activeMobileTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -11,7 +11,11 @@ function App() {
       const [isReadOnly, setIsReadOnly] = useState(IS_READ_ONLY_COPY);
       useEffect(() => { document.body.classList.toggle('read-only-mode', isReadOnly); }, [isReadOnly]);
       const [expandedStages, setExpandedStages] = useState({});
-      const [openStageId, setOpenStageId] = useState(null); const [stageTab, setStageTab] = useState('way');
+      const [openStageId, setOpenStageId] = useState(() => { try { const sv = JSON.parse(sessionStorage.getItem('rt_nav_v1') || 'null'); return sv && sv.stage && (tripData.stages || []).some((x) => x.id === sv.stage) ? sv.stage : null; } catch (e) { return null; } }); const [stageTab, setStageTab] = useState('way');
+      // v123: Zurück-Taste und Neuladen: Tab und geöffnete Etappe werden im Verlauf und in der Sitzung gemerkt
+      const navRef = useRef({ init: false, pop: false, tab: null, stage: null });
+      useEffect(() => { const r = navRef.current, st = { rt: 1, tab: activeTab, stage: openStageId || null }; try { if (!r.init) { r.init = true; history.replaceState(st, ''); } else if (!r.pop && (r.tab !== activeTab || r.stage !== (openStageId || null))) history.pushState(st, ''); r.pop = false; r.tab = activeTab; r.stage = openStageId || null; sessionStorage.setItem('rt_nav_v1', JSON.stringify({ tab: activeTab, stage: openStageId || null })); } catch (e) {} }, [activeTab, openStageId]);
+      useEffect(() => { const f = (e) => { const x = e.state; if (!x || x.rt !== 1) return; const r = navRef.current; if (x.tab !== r.tab || (x.stage || null) !== r.stage) r.pop = true; setActiveTab(x.tab); setOpenStageId(x.stage || null); }; window.addEventListener('popstate', f); return () => window.removeEventListener('popstate', f); }, []);
       const openStagePage = (id, tab) => { setOpenStageId(id); setStageTab(tab || 'way'); try { window.scrollTo({ top: 0 }); } catch (e) {} };
       // Active Day Tab per multi-night stage: { 'stage-1': 1, 'stage-7': 1 } (0 = Alle Tage, 1 = Tag 1, 2 = Tag 2...)
       const [stageActiveDayTab, setStageActiveDayTab] = useState({});
@@ -123,7 +127,7 @@ function App() {
         setToastMessage(msg);
         setTimeout(() => {
           setToastMessage((prev) => (prev === msg ? null : prev));
-        }, 3200);
+        }, 2600);
       };
 
       // Gerätespeicher: Rolling-Backups (5) und sichtbare Quota-/Zugriffsfehler
@@ -926,7 +930,7 @@ Quelle: ${lt.url}` : '') }] } });
           {LINK_PLAN && !linkClosed && <LinkImportGate onClose={() => setLinkClosed(true)} />}
           {/* TOAST */}
           {toastMessage && (
-            <div className="fixed bottom-20 md:bottom-6 right-4 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
+            <div role="status" style={{ pointerEvents: 'none' }} className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-4 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
               <span className="text-emerald-400 font-bold">✓</span>
               <span className="text-sm font-medium">{toastMessage}</span>
             </div>
@@ -1400,7 +1404,7 @@ Quelle: ${lt.url}` : '') }] } });
                                         <span title="Nur im Bearbeiten-Dialog änderbar"><RtCardChip name={h.creditCard} cards={tripData.creditCards} /></span>
                                       </div>
                                       <div className="flex justify-between py-1 border-b border-slate-100">
-                                        <span className="text-slate-500">Abb. angek.:</span>
+                                        <span className="text-slate-500">Abbuchung angekündigt:</span>
                                         <span className="font-semibold text-slate-900">{h.chargeAnnounced || '—'}</span>
                                       </div>
                                       <div className="flex justify-between py-1">
@@ -2129,7 +2133,7 @@ Quelle: ${lt.url}` : '') }] } });
                   <div className="bg-rose-950 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
-                        <span>Notfallnummern & Wichtige Kontakte (Bank, ADAC, Versicherung, USA)</span>
+                        <span>Notfallnummern & Wichtige Kontakte (Bank, ADAC, Versicherung)</span>
                       </h2>
                       <p className="text-xs text-rose-200">
                         Mit 1-Klick-Anruffunktion für Android & iPhone sowie Vertrags-/Mitgliedsnummern für den Ernstfall
@@ -2283,17 +2287,23 @@ Quelle: ${lt.url}` : '') }] } });
                     <div className="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200">
                       <span className="text-[11px] font-bold uppercase text-purple-800 block">Extras & Sonstiges</span>
                       <div className="text-lg font-extrabold text-purple-950 mt-1">{formatEur(financeSummary.customExpensesCost)}</div>
-                      <span className="text-[11px] text-purple-700">ESTA, Essen, Tanken</span>
+                      <span className="text-[11px] text-purple-700">Essen, Tanken, Sonstiges</span>
                     </div>
 
                     <div className="bg-slate-900 text-white p-3.5 rounded-xl">
                       <span className="text-[11px] font-bold uppercase text-slate-300 block">Gesamtsumme</span>
                       <div className="text-lg font-extrabold text-white mt-1">{formatEur(financeSummary.totalNew)}</div>
-                      <span className="text-[11px] text-emerald-300">
+                      {(rtTripMiles(tripData) || tripData.meta?.currency === 'USD') && <span className="text-[11px] text-emerald-300">
                         ≈ {formatUsd(financeSummary.totalNew * (tripData.meta?.exchangeRate || 1.09))}
-                      </span>
+                      </span>}
                     </div>
                   </div>
+                  {Number(tripData.meta?.budget) > 0 && (() => { const bud = Number(tripData.meta.budget), rest = bud - financeSummary.totalNew, pct = Math.min(100, Math.round(financeSummary.totalNew / bud * 100)); return (
+                    <div data-budget-line className={`rounded-xl border p-3.5 ${rest < 0 ? 'bg-red-50 border-red-300' : 'bg-sky-50 border-sky-200'}`}>
+                      <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span className="font-bold text-slate-900">Budget {formatEur(bud)}</span><span className={`font-extrabold ${rest < 0 ? 'text-red-800' : 'text-sky-900'}`}>{rest < 0 ? `${formatEur(-rest)} über Budget` : `${formatEur(rest)} übrig`}</span></div>
+                      <div className="mt-2 h-2 rounded-full bg-white overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={pct} aria-label="Budget verbraucht"><div className={`h-full ${rest < 0 ? 'bg-red-600' : 'bg-sky-600'}`} style={{ width: pct + '%' }} /></div>
+                      <p className="mt-1 text-xs text-slate-700 m-0">{pct} % des Budgets sind eingeplant. Das Budget änderst du unter Planen → Reise & Zeitraum ändern.</p>
+                    </div>); })()}
                 </section>
 
                 {/* 2. TEILNEHMER-VERWALTUNG & KOSTENAUFTEILUNG PRO PERSON */}
@@ -2428,6 +2438,10 @@ Quelle: ${lt.url}` : '') }] } });
                     })}
                   </div>
 
+                  {(() => { const sx = tripData.stages || []; let n = 0; const need = (o) => { if (o && !o.paidBy) n++; };
+                    (tripData.flights || []).forEach((f) => { if (Number(f.priceNewEur) > 0) need(f); }); (tripData.rentalCars || []).forEach((c) => { if (Number(c.priceNewEur) > 0) need(c); });
+                    sx.forEach((s) => { if (s.hotel && parseFloat(s.hotel.priceNewEur) > 0) need(s.hotel); });
+                    return n > 0 && participantNames.length > 1 ? <p data-payer-hint className="text-xs text-amber-900 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 m-0">Bei {n} {n === 1 ? 'Posten' : 'Posten'} ist kein Zahler eingetragen. Die Rechnung nimmt deshalb an, dass {participantNames[0]} sie bezahlt hat. Wähle den Zahler im jeweiligen Eintrag, dann stimmt der Ausgleich.</p> : null; })()}
                   {/* Compensation / Settlement Box + Add Extra Expense */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
                     <div className="bg-emerald-50/70 rounded-xl border border-emerald-200 p-4 space-y-2">
@@ -2455,7 +2469,7 @@ Quelle: ${lt.url}` : '') }] } });
                     {/* Add Shared Expense (Tanken, Essen, ESTA, Trinkgeld) */}
                     <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2.5 text-xs">
                       <h4 className="font-bold uppercase text-slate-700">
-                        Zusätzliche Ausgabe eintragen (z.B. Tanken, Restaurant, ESTA)
+                        Zusätzliche Ausgabe eintragen (z.B. Tanken, Restaurant, Eintritt)
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <input
@@ -2675,7 +2689,7 @@ Quelle: ${lt.url}` : '') }] } });
                         />
                       </div>
                       <div className="bg-white p-3.5 rounded-xl border border-blue-200 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-600">Ergebnis in US-Meilen:</span>
+                        <span className="text-xs font-semibold text-slate-600">Ergebnis in Meilen:</span>
                         <span className="text-xl font-extrabold text-blue-700">
                           {((parseFloat(calcKmToMiInput) || 0) * 0.621371).toLocaleString('de-DE', {
                             minimumFractionDigits: 1,
@@ -2744,10 +2758,10 @@ Quelle: ${lt.url}` : '') }] } });
                                     <p data-dist-hint className="text-xs text-slate-600 pt-2">Entfernung und Fahrzeit der Etappen stehen in den Etappen und in der Übersicht.</p>
                 </section>
 
-                <FxPanel trip={tripData} onSave={saveTripData} />
+                {(rtTripMiles(tripData) || tripData.meta?.currency === 'USD') && <FxPanel trip={tripData} onSave={saveTripData} />}
                 {/* 2. WÄHRUNG, TRINKGELD, TANKSTELLEN-RECHNER & CHECKLISTE */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-4">
+                  <div hidden={!(rtTripMiles(tripData) || tripData.meta?.currency === 'USD')} className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-4">
                     <h3 className="font-bold text-slate-900 border-b pb-2">US-Rechner (Währung, Trinkgeld, Gallonen & Temperatur)</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
@@ -3491,7 +3505,7 @@ Quelle: ${lt.url}` : '') }] } });
                       </div>
 
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">Preis ALT (€)</label>
+                        <label className="block font-semibold text-slate-700 mb-1">Preis Preis ursprünglich (€)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -3506,7 +3520,7 @@ Quelle: ${lt.url}` : '') }] } });
                         placeholder="Alter Preis in €, z.B. 280" />
                       </div>
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">Preis NEU (€)</label>
+                        <label className="block font-semibold text-slate-700 mb-1">Preis Preis aktuell (€)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -3578,7 +3592,7 @@ Quelle: ${lt.url}` : '') }] } });
                       </div>
                       {/* Hotel-Zahlende bleibt als Datenfeld erhalten; hier nicht angezeigt. */}
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">Abb. angek.</label>
+                        <label className="block font-semibold text-slate-700 mb-1">Abbuchung angekündigt</label>
                         <RtDateField value={editingStageModal.hotel?.chargeAnnounced} onChange={(v) => setEditingStageModal({ ...editingStageModal, hotel: { ...editingStageModal.hotel, chargeAnnounced: v } })} />
                       </div>
                       <div>
@@ -3898,7 +3912,7 @@ Quelle: ${lt.url}` : '') }] } });
                       value={editingFlightModal.to || ''}
                       onChange={(e) => setEditingFlightModal({ ...editingFlightModal, to: e.target.value })}
                       className="w-full px-3 py-1.5 rounded-lg border border-slate-300"
-                    placeholder="Zielflughafen, z.B. MIA" />
+                    placeholder="Zielflughafen, z.B. FCO" />
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Datum</label>
@@ -3958,12 +3972,12 @@ Quelle: ${lt.url}` : '') }] } });
                     </div>
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Preis ALT (€) & Preis NEU (€)</label>
+                    <label className="font-bold text-slate-700 block mb-1">Preis Preis ursprünglich (€) & Preis Preis aktuell (€)</label>
                     <div className="flex gap-2">
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="ALT (€)"
+                        placeholder="Preis ursprünglich (€)"
                         value={editingFlightModal.priceOldEur || ''}
                         onChange={(e) =>
                           setEditingFlightModal({ ...editingFlightModal, priceOldEur: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0) })
@@ -3973,7 +3987,7 @@ Quelle: ${lt.url}` : '') }] } });
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="NEU (€)"
+                        placeholder="Preis aktuell (€)"
                         value={editingFlightModal.priceNewEur || ''}
                         onChange={(e) => {
                           const valEur = parseFloat(e.target.value) || 0;
@@ -4036,11 +4050,11 @@ Quelle: ${lt.url}` : '') }] } });
                     </div>
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Abb. angek. & Kred.K. belastet am</label>
+                    <label className="font-bold text-slate-700 block mb-1">Abbuchung angekündigt & Kred.K. belastet am</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
-                        placeholder="Abb. angek."
+                        placeholder="Abbuchung angekündigt"
                         value={editingFlightModal.chargeAnnounced || ''}
                         onChange={(e) => setEditingFlightModal({ ...editingFlightModal, chargeAnnounced: e.target.value })}
                         className="w-1/2 px-3 py-1.5 rounded-lg border border-slate-300"
@@ -4107,7 +4121,7 @@ Quelle: ${lt.url}` : '') }] } });
                       value={editingCarModal.provider || ''}
                       onChange={(e) => setEditingCarModal({ ...editingCarModal, provider: e.target.value })}
                       className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-bold"
-                    placeholder="Vermieter, z.B. Alamo" />
+                    placeholder="Vermieter, z.B. Sixt" />
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Fahrzeugklasse / Modell</label>
@@ -4116,7 +4130,7 @@ Quelle: ${lt.url}` : '') }] } });
                       value={editingCarModal.carClass || ''}
                       onChange={(e) => setEditingCarModal({ ...editingCarModal, carClass: e.target.value })}
                       className="w-full px-3 py-1.5 rounded-lg border border-slate-300"
-                    placeholder="Fahrzeugklasse, z.B. SUV" />
+                    placeholder="Fahrzeugklasse, z.B. Kombi" />
                   </div>
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Abholstation & Datum/Uhrzeit</label>
@@ -4187,19 +4201,19 @@ Quelle: ${lt.url}` : '') }] } });
                     <input
                       type={dateInputValue(editingCarModal.cancelUntil) ? 'date' : 'text'}
                       {...(dateInputValue(editingCarModal.cancelUntil) ? tripDateProps(tripData) : {})}
-                      placeholder="z.B. 23.03.2024 oder Flexibel"
+                      placeholder="TT.MM.JJJJ oder Flexibel"
                       value={dateInputValue(editingCarModal.cancelUntil) || editingCarModal.cancelUntil || ''}
                       onChange={(e) => setEditingCarModal({ ...editingCarModal, cancelUntil: e.target.value })}
                       className="w-full px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50/40 font-semibold"
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Preis ALT (€) & Preis NEU (€)</label>
+                    <label className="font-bold text-slate-700 block mb-1">Preis Preis ursprünglich (€) & Preis Preis aktuell (€)</label>
                     <div className="flex gap-2">
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="ALT (€)"
+                        placeholder="Preis ursprünglich (€)"
                         value={editingCarModal.priceOldEur || ''}
                         onChange={(e) =>
                           setEditingCarModal({ ...editingCarModal, priceOldEur: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0) })
@@ -4209,7 +4223,7 @@ Quelle: ${lt.url}` : '') }] } });
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="NEU (€)"
+                        placeholder="Preis aktuell (€)"
                         value={editingCarModal.priceNewEur || ''}
                         onChange={(e) => {
                           const valEur = parseFloat(e.target.value) || 0;
@@ -4272,11 +4286,11 @@ Quelle: ${lt.url}` : '') }] } });
                     </div>
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Abb. angek. & Kred.K. belastet am</label>
+                    <label className="font-bold text-slate-700 block mb-1">Abbuchung angekündigt & Kred.K. belastet am</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
-                        placeholder="Abb. angek."
+                        placeholder="Abbuchung angekündigt"
                         value={editingCarModal.chargeAnnounced || ''}
                         onChange={(e) => setEditingCarModal({ ...editingCarModal, chargeAnnounced: e.target.value })}
                         className="w-1/2 px-3 py-1.5 rounded-lg border border-slate-300"
@@ -4298,7 +4312,7 @@ Quelle: ${lt.url}` : '') }] } });
                       value={editingCarModal.insuranceAndToll || ''}
                       onChange={(e) => setEditingCarModal({ ...editingCarModal, insuranceAndToll: e.target.value })}
                       className="w-full px-3 py-1.5 rounded-lg border border-slate-300"
-                    placeholder="Versicherung / Maut, z.B. Vollkasko, SunPass" />
+                    placeholder="Versicherung / Maut, z.B. Vollkasko, Vignette" />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="font-bold text-slate-700 block mb-1">Hinweise / Skip the Counter</label>

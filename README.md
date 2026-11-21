@@ -548,3 +548,17 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 - Tagesplan (Planen): kompakte Ansicht. Alle Reisetage stehen untereinander als einklappbare Zeilen mit Datum, Route, Strecke (km und Meilen), Fahrzeit sowie Zahl der Stopps und Aktionen. Ein gelbes Symbol zeigt Warnungen. Kopf mit Gesamtstrecke und Gesamtfahrzeit. Der heutige Tag ist offen, es ist immer nur ein Tag offen.
 - Aufgeklappt: Warnungen, Fahrt mit Uhrzeiten und Teilstrecken, Aktionen als Chips. "Details und Bearbeiten" blendet die bisherige vollstaendige Tageskarte ein (Abfahrt, Puffer, Aufenthalt, Karten, Reihenfolge der Aktionen).
 - Die Etappen-Auswahl oben entfaellt, weil jetzt alle Tage in einer Liste stehen.
+
+## v123
+Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
+- Budget aus dem Assistenten wird im Budget-Tab angezeigt (Balken, "x € übrig" bzw. "über Budget"). Dollar-Umrechnung nur noch bei USA-Reisen oder Waehrung USD.
+- "Gebucht": Ein Preis allein gilt nicht mehr als gebucht, nur Buchungscode oder eigener Schalter (Demo-Reise behaelt die alte Regel). Im Hotel schaltet ein Tipp auf den Status um.
+- Hinweis im Budget, wenn kein Zahler eingetragen ist (die Rechnung nimmt die erste Person an).
+- Erster Reisetag startet um 09:00; 19:00 nur noch, wenn ein Hinflug eingetragen ist.
+- Stopps mit "nach 90 km" werden im Tagesablauf ausgewertet (Teilstrecken und Fahrzeiten).
+- Zurück-Taste und Neuladen: Tab und geoeffnete Etappe stehen im Browser-Verlauf und in der Sitzung. Die Zurück-Taste geht von Etappe zur Liste bzw. zum vorigen Tab.
+- Nach dem Assistenten erscheint zuerst die Rückreise-Frage, die Kurzanleitung erst danach. Hinweis-Toast verdeckt nichts mehr (oberhalb der Leiste, kuerzer, nicht klickbar).
+- Platzhalter und Texte ohne Florida-Reste (GPS-Beispiel, Vermieter, Maut, Abbuchung, Preisfelder, Zielregion, Flughafen). Der US-Rechner und der Wechselkurs erscheinen nur bei USA-Reisen.
+- Etappennamen einheitlich nach Ort (Tagesplan, Uebersicht). "Wo bin ich": Rückreise nicht mehr als "Hotel 8".
+- Planungsstand ist standardmaessig eingeklappt. Assistent: drei beschriftete Schritte, "Später" statt "Später weitermachen", Platzhalter "Name Person 1", "Ort noch offen".
+- Etappenseite am PC: Überschrift "Stopps auf dem Weg" bleibt über ihrem Inhalt. Heute: Abfahrt und Ankunft stehen nicht mehr doppelt.
