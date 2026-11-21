@@ -22,7 +22,7 @@
             <div className="rt3-hero-top"><h2>{title}</h2><span className="rt3-ver" title="Version der App">{'Version 107'.replace('Version ', 'v')}</span></div>
             {meta2 && <p className="rt3-meta">{meta2}</p>}
           </div>
-          {days > 0 && <div className="rt3-prog"><div className="rt3-prog-top"><span>{left}</span><span>{right}</span></div><div className="rt3-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={pct} aria-label="Reisefortschritt"><i style={{ width: pct + '%' }} /></div></div>}
+          {days > 0 && t0 <= b && <div className="rt3-prog"><div className="rt3-prog-top"><span>{left}</span><span>{right}</span></div><div className="rt3-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={pct} aria-label="Reisefortschritt"><i style={{ width: pct + '%' }} /></div></div>}
         </section>
       );
     }
@@ -40,7 +40,7 @@
         <div data-plan-top className="no-print space-y-3">
           <RtHero trip={trip} />
           <div className="rt2-stats">
-            <div className="rt2-tile" data-stat="km"><span className="rt2-num">{km ? km.toLocaleString('de-DE') : '–'}</span><small>Kilometer{rtTripMiles(trip) && km ? ` · ${Math.round(km * 0.621371).toLocaleString('de-DE')} mi` : ''}</small></div>
+            <div className="rt2-tile" data-stat="km"><span className="rt2-num">{km ? km.toLocaleString('de-DE') : '–'}</span><small>Kilometer{rtTripMiles(trip) && km ? <><br />{Math.round(km * 0.621371).toLocaleString('de-DE')} mi</> : null}</small></div>
             <div className="rt2-tile" data-stat="nights"><span className="rt2-num">{S.sum}</span><small>{S.sum === 1 ? 'Nacht' : 'Nächte'}</small></div>
             <div className="rt2-tile hidden lg:flex" data-stat="routes"><span className="rt2-num">{S.rOk}/{S.rN}</span><small>Strecken</small></div>
             <button type="button" data-readonly-allow data-status-toggle aria-expanded={open} aria-controls="rt-status-body" onClick={tog} className={`rt2-tile ${S.hOk < S.hN ? 'acc' : ''}`} data-stat="hotels"><span className="rt2-num">{S.hOk}/{S.hN}</span><small>Hotels {open ? '▴' : '▾'}</small></button>

@@ -962,7 +962,7 @@ Quelle: ${lt.url}` : '') }] } });
                 )}
                 {rtUiClassic() ? <>
 {/* VISUAL ROADTRIP TIMELINE BAR */}
-                <div data-ro-ok className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200 overflow-x-auto no-print">
+                <div data-ro-ok data-etappen-strip className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200 overflow-x-auto no-print">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       Etappen-Übersicht
@@ -1609,7 +1609,7 @@ Quelle: ${lt.url}` : '') }] } });
                 </div>
 
                 {/* VISUAL ROADTRIP TIMELINE BAR */}
-                <div data-ro-ok className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200 overflow-x-auto no-print">
+                <div data-ro-ok data-etappen-strip className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200 overflow-x-auto no-print">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       Etappen-Übersicht

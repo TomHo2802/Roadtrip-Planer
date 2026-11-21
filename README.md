@@ -538,3 +538,8 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v120
 - Warnungen: "Ankunft vor dem Check-in" erscheint nur noch, wenn man mehr als 2 Stunden zu frueh ankommt (vorher ab jeder Minute). Dadurch sind in Uebersicht und Tagesplan deutlich weniger Tage gelb markiert. Sonnenuntergang, Check-in-Ende, lange Fahrzeit und Ankunft nach Mitternacht warnen wie bisher.
+
+## v121
+- Planen: Der Reisekopf ist am Handy kompakter (kleinere Schrift und Abstaende). Bei beendeter Reise entfaellt der Balken "Reise beendet / Rueckblick".
+- Der Etappenstreifen "Etappen-Uebersicht" unter der Etappenliste entfaellt in der neuen Ansicht (er doppelte die Liste und war abgeschnitten). In der klassischen Ansicht bleibt er.
+- Kachel Kilometer: Meilen stehen in einer eigenen Zeile, kein Umbruch mitten in "922 mi".

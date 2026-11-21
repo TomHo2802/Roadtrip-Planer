@@ -161,3 +161,7 @@ html[data-dark="1"] .rt3-daymap-h{color:#B8C4D6}
 html:not([data-ui="classic"]) .v18-hero .v18-facts dd{color:#fff}
 html:not([data-ui="classic"]) .v18-hero .v18-facts dt{color:#C9D8EE;opacity:1}
 html:not([data-ui="classic"]) .v18-hero .v18-facts{border-top-color:rgba(255,255,255,.2)}
+
+/* v121: kompakter Kopf am Handy, Etappenstreifen unter der Liste entfaellt */
+html:not([data-ui="classic"]) [data-etappen-strip]{display:none}
+@media (max-width:1023px){html:not([data-ui="classic"]) .rt3-hero{padding:12px 14px;border-radius:20px}.rt3-hero h2{font-size:22px}.rt3-meta{font-size:12px;margin:4px 0 0}.rt3-prog{margin-top:8px}}
