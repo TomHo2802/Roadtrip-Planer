@@ -141,6 +141,17 @@
       const acts = day.dayInStage ? attractionsForDay(stage, day.dayInStage) : [];
       const updPlan = (patch) => onSave({ ...trip, stages: (trip.stages || []).map((s) => (s.id === stage.id ? { ...s, plan: { ...(s.plan || {}), ...patch } } : s)) }, '');
       const nextIdx = isToday && tl ? tl.events.findIndex((e) => e.at >= nowMin) : -1;
+      const wide = useWide(); const canOrder = !IS_READ_ONLY_COPY && acts.length > 1;
+      const routePts = tl ? tl.events.filter((e) => e.gps).map((e, i) => ({ g: e.gps, t: e.title, n: i + 1 })) : [];
+      const actPts = acts.map((a, i) => ({ g: parseGps(a.gps || ''), t: a.name || '', n: i + 1 })).filter((x) => x.g);
+      const moveAct = (i, dir) => {
+        const j = i + dir; if (j < 0 || j >= acts.length) return; const A = acts[i].id, B = acts[j].id;
+        const nc = Math.max(1, parseInt(stage.nights, 10) || 1);
+        const list = (stage.localAttractions || []).map((x, k) => ({ ...x, day: String(Math.min(nc, Math.max(1, x.day ? parseInt(x.day, 10) : (k % nc) + 1))) }));
+        const ia = list.findIndex((x) => x.id === A), ib = list.findIndex((x) => x.id === B); if (ia < 0 || ib < 0) return;
+        const t = list[ia]; list[ia] = list[ib]; list[ib] = t;
+        onSave({ ...trip, stages: (trip.stages || []).map((st) => (st.id === stage.id ? { ...st, localAttractions: list } : st)) }, 'Reihenfolge geändert');
+      };
       const h = stage.hotel || {};
       return (
         <article className={`rounded-2xl border bg-white p-4 space-y-3 ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'}`}>
@@ -209,13 +220,19 @@
               {tl.warnings.map((w, i) => <div key={i} className="text-xs rounded-lg bg-amber-50 border border-amber-300 text-amber-950 p-2"><Ic n="warn" />{w}</div>)}
             </div>
           )}
+          {tl && <RtDayMap pts={routePts} cls="route" label="Route zum Ziel" />}
           {acts.length > 0 && (
             <div className="space-y-1.5">
               <div className="text-xs font-bold text-slate-700">{day.kind === 'travel' ? 'Danach vor Ort' : 'Aktionen für diesen Tag'}</div>
-              {acts.map((a) => (
+              {wide && <RtDayMap pts={actPts} cls="acts" label="Aktionen vor Ort, Reihenfolge in der Liste" />}
+              {acts.map((a, ai) => (
                 <div key={a.id} className="rounded-lg border border-amber-200 bg-amber-50 p-2 flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0"><div className="text-sm font-bold text-slate-900 break-words">★ {a.name}</div><div className="text-[11px] text-slate-600">{[a.category, a.time, a.booked].filter(Boolean).join(' · ')}{a.priceEur ? ` · ${formatEur(a.priceEur)}` : ''}</div></div>
-                  {parseGps(a.gps) && <NavLink gps={a.gps} address={a.address} name={a.name} />}
+                  <div className="rt3-actnum" aria-hidden="true">{ai + 1}</div>
+                  <div className="min-w-0 flex-1"><div className="text-sm font-bold text-slate-900 break-words">{a.name}</div><div className="text-[11px] text-slate-600">{[a.category, a.time, a.booked].filter(Boolean).join(' · ')}{a.priceEur ? ` · ${formatEur(a.priceEur)}` : ''}</div></div>
+                  <div className="flex items-center gap-1.5">
+                    {canOrder && <span className="rt3-ord"><button type="button" aria-label={`${a.name} nach oben`} disabled={ai === 0} onClick={() => moveAct(ai, -1)}>▲</button><button type="button" aria-label={`${a.name} nach unten`} disabled={ai === acts.length - 1} onClick={() => moveAct(ai, 1)}>▼</button></span>}
+                    {parseGps(a.gps) && <NavLink gps={a.gps} address={a.address} name={a.name} />}
+                  </div>
                 </div>
               ))}
             </div>
@@ -249,31 +266,33 @@
       );
     }
 
-    function RtDayMap({ trip, day }) {
+    function RtDayMap({ pts, label, cls }) {
       const el = useRef(null), mapRef = useRef(null), grp = useRef(null);
-      const tl = day.kind === 'travel' ? buildTimeline(trip, day) : null;
-      const raw = tl ? tl.events.map((e) => ({ g: e.gps, t: e.title })) : [{ g: parseGps(day.stage.hotel && day.stage.hotel.gps), t: hotelName(day.stage) }].concat(attractionsForDay(day.stage, day.dayInStage || 1).map((a) => ({ g: parseGps(a.gps || ''), t: a.name || a.title || '' })));
-      const pts = raw.filter((x) => x.g).map((x, i) => ({ g: x.g, t: x.t, n: i + 1 }));
-      const sig = pts.map((p) => p.g.join(',')).join('|');
+      const sig = pts.map((p) => p.g.join(',') + ':' + p.n).join('|');
       useEffect(() => {
         if (!window.L || !el.current || mapRef.current) return; const L = window.L;
-        const map = L.map(el.current, { zoomControl: true, attributionControl: true, scrollWheelZoom: false });
+        const map = L.map(el.current, { zoomControl: true, attributionControl: true, scrollWheelZoom: true });
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
         mapRef.current = map; grp.current = L.layerGroup().addTo(map); map.setView([28, -82], 5);
         return () => { try { map.remove(); } catch (e) {} mapRef.current = null; };
       }, []);
       useEffect(() => {
         const L = window.L, map = mapRef.current; if (!L || !map || !grp.current) return; grp.current.clearLayers();
-        if (pts.length > 1) L.polyline(pts.map((p) => p.g), { color: '#1F4E8C', weight: 3, opacity: 0.85 }).addTo(grp.current);
-        pts.forEach((p) => L.marker(p.g, { title: p.t, icon: L.divIcon({ className: '', html: `<div class="mk2">${p.n}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(grp.current));
+        if (cls !== 'acts' && pts.length > 1) L.polyline(pts.map((p) => p.g), { color: '#1F4E8C', weight: 3, opacity: 0.85 }).addTo(grp.current);
+        pts.forEach((p) => L.marker(p.g, { title: p.t, icon: L.divIcon({ className: '', html: `<div class="mk2${cls === 'acts' ? ' act' : ''}">${p.n}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(grp.current));
         const fit = () => { if (pts.length) { try { map.invalidateSize(); map.fitBounds(L.latLngBounds(pts.map((p) => p.g)), { padding: [40, 40], maxZoom: 15, animate: false }); } catch (e) {} } };
         fit(); const t = setTimeout(fit, 120);
         let ro = null; if (window.ResizeObserver && el.current) { ro = new ResizeObserver(() => fit()); ro.observe(el.current); }
         return () => { clearTimeout(t); if (ro) ro.disconnect(); };
       }, [sig]);
       if (!pts.length) return null;
-      return <div data-day-map className="rt3-daymap"><div ref={el} className="rt3-daymap-el" role="img" aria-label="Karte der Stopps dieses Tages" /></div>;
+      return <div data-day-map className={`rt3-daymap rt3-daymap-${cls}`}><div className="rt3-daymap-h">{label}</div><div ref={el} className="rt3-daymap-el" role="img" aria-label={label} /></div>;
     }
+    const useWide = () => {
+      const q = '(min-width:1100px)'; const [w, setW] = useState(() => window.matchMedia(q).matches);
+      useEffect(() => { const m = window.matchMedia(q), f = () => setW(m.matches); m.addEventListener ? m.addEventListener('change', f) : m.addListener(f); return () => { m.removeEventListener ? m.removeEventListener('change', f) : m.removeListener(f); }; }, []);
+      return w;
+    };
 
     function TodayView({ trip, onSave, todayIso, goTab }) {
       useEffect(() => { wxStore.ensure(trip); }, [(trip.stages || []).length]);
@@ -314,7 +333,6 @@
           )}
 
           <div className="rt3-right space-y-3">
-          <RtDayMap trip={trip} day={day} />
           <details key={day.iso} data-day-sched open className="rt-sched">
             <summary className="min-h-[48px] flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 cursor-pointer">Tagesplan {isToday ? 'heute' : fmtDayShort(day.iso)}<span className="text-xs font-semibold text-slate-500">auf-/zuklappen</span></summary>
             <div className="mt-2"><DayCard trip={trip} day={day} onSave={onSave} editable={false} nowMin={isToday ? nowMin : -1} isToday={isToday} hideWx /></div>

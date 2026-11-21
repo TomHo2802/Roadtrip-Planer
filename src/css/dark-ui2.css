@@ -39,7 +39,6 @@ html[data-dark="1"]:not([data-ui="classic"]) details.stage-section>summary span.
 html[data-dark="1"]:not([data-ui="classic"]) .dk-bg{background-color:color-mix(in srgb, var(--dk,#fff) calc(var(--dka,.04) * 100%), #161E2D) !important;background-image:none !important}
 html[data-dark="1"]:not([data-ui="classic"]) .dk-fg{color:#f1f5fb !important}
 html[data-dark="1"]:not([data-ui="classic"]) [class*="bg-slate-900"],html[data-dark="1"]:not([data-ui="classic"]) [class*="bg-[#0"]{background-color:#0a1220 !important}
-html[data-dark="1"]:not([data-ui="classic"]) .leaflet-tile-pane{filter:invert(.92) hue-rotate(190deg) saturate(.6) brightness(.85)}
 .theme-seg{display:inline-flex;border:1px solid #CBD5E1;border-radius:999px;overflow:hidden;background:#fff}
 .theme-seg button{height:30px;padding:0 10px;font-size:12px !important;font-weight:600;border:0;background:transparent;color:#334155}
 .theme-seg button[aria-pressed="true"]{background:#1F4E8C;color:#fff}

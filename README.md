@@ -509,3 +509,9 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v113
 - Fix: Die Knoepfe der Rueckfragen und Hinweise (Abbrechen, Fortfahren, OK, Jetzt laden) waren im Lesemodus ausgeblendet. Dadurch kam man auf dem Handy beim Oeffnen der Demo nicht weiter. Sie sind jetzt als erlaubt markiert (data-readonly-allow).
+
+## v114
+- Karten: Die Tageskarte (Route zum Ziel) steht auch am Handy, und zwar zwischen der Route und "Danach vor Ort". Am PC gibt es zusaetzlich eine zweite Karte nur mit den Aktionen vor Ort; die Nummern entsprechen der Reihenfolge in der Liste.
+- Reihenfolge der Aktionen vor Ort per Pfeil hoch/runter in der Liste (nicht im Lesemodus). Beim ersten Aendern wird der Tag jeder Aktion explizit gespeichert, damit die Zuordnung zu den Tagen gleich bleibt.
+- Alle Karten verhalten sich gleich: Mausrad zoomt, linke Maustaste zieht die Karte.
+- Karten sind im Dunkelmodus nicht mehr abgedunkelt, sondern wie im hellen Modus.

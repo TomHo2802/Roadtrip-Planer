@@ -78,14 +78,15 @@ html:not([data-ui="classic"]) .stage-page-mode .rt2-split>.rt2-main:not(#rt-x){f
 /* Unterwegs: Schnellkacheln am PC in einer Reihe, Tagesplan-Zeilen nicht endlos breit */
 .rt3-today{display:flex;flex-direction:column;gap:16px}
 .rt3-left{display:block}.rt3-left>*+*{margin-top:12px}
-.rt3-daymap{display:none}
+.rt3-daymap{display:block;border-radius:16px;overflow:hidden;border:1px solid var(--u-line,#E3E8F0);background:var(--u-card,#fff);margin:2px 0 8px}
+.rt3-daymap-h{padding:8px 12px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--u-mute,#5A6678)}
+.rt3-daymap-el{height:240px}
 @media (min-width:1100px){
   html:not([data-ui="classic"]) .rt3-today:not(#rt-x){display:grid;grid-template-columns:minmax(360px,440px) minmax(0,1fr);grid-template-rows:auto repeat(19,max-content) 1fr;column-gap:24px;row-gap:0;align-items:start}
   html:not([data-ui="classic"]) .rt3-today>.rt3-head:not(#rt-x){grid-column:1/-1;margin-bottom:16px}
   html:not([data-ui="classic"]) .rt3-today>.rt3-left:not(#rt-x){grid-column:1;margin:0 0 16px}
   html:not([data-ui="classic"]) .rt3-today>.rt3-right:not(#rt-x){grid-column:2;grid-row:2 / span 20}
   html:not([data-ui="classic"]) .rt3-banner:not(#rt-x){display:inline-block;width:auto}
-  html:not([data-ui="classic"]) .rt3-daymap:not(#rt-x){display:block;border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.07);background:var(--u-card)}
   html:not([data-ui="classic"]) .rt3-daymap-el:not(#rt-x){height:300px}
 }
 /* Buchen am PC: Fluege/Mietwagen links, Hotels rechts */
@@ -142,3 +143,13 @@ html[data-dark="1"] .rt3-tl-time b,html[data-dark="1"] .rt3-tl-title{color:#EEF1
 html[data-dark="1"] .rt3-tl-ev::after{background:#16233A}
 html[data-dark="1"] .rt3-tl-ev.next .rt3-tl-card{background:#12301F}
 html[data-dark="1"] .rt3-chip{background:#223049;color:#DCE6F7}
+.mk2.act{background:#FFC93C;border-color:#1C1204;color:#1C1204}
+.rt3-daymap .mk2.act{background:#FFC93C;border-color:#1C1204;color:#1C1204}
+html[data-dark="1"] .rt3-daymap .mk2{background:#fff;color:#101B2D;border-color:#1F4E8C}
+html[data-dark="1"] .rt3-daymap .mk2.act{background:#FFC93C;color:#1C1204;border-color:#1C1204}
+.rt3-actnum{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:#FFC93C;color:#1C1204;font:700 13px Inter,sans-serif;display:flex;align-items:center;justify-content:center}
+.rt3-ord{display:inline-flex;gap:4px}
+.rt3-ord button{min-width:36px;min-height:36px;border-radius:10px;border:1px solid var(--u-line,#E3E8F0);background:#fff;color:#101B2D;font-size:12px;cursor:pointer}
+.rt3-ord button:disabled{opacity:.35;cursor:default}
+html[data-dark="1"] .rt3-daymap{background:#16233A;border-color:#25364f}
+html[data-dark="1"] .rt3-daymap-h{color:#B8C4D6}
