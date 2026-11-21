@@ -98,8 +98,10 @@
         const L = window.L, map = mapRef.current; if (!L || !map || !grp.current) return; grp.current.clearLayers();
         if (pts.length > 1) L.polyline(pts.map((p) => p.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
         pts.forEach((p) => L.marker(p.g, { title: p.name, icon: L.divIcon({ className: '', html: `<div class="mk2${p.miss ? ' miss' : ''}">${p.i + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).on('click', () => onOpen(p.id)).addTo(grp.current));
-        if (pts.length) { try { map.fitBounds(window.L.latLngBounds(pts.map((p) => p.g)), { padding: [24, 24], maxZoom: 9 }); } catch (e) {} }
-        setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 120);
+        const fit = () => { if (pts.length) { try { map.invalidateSize(); map.fitBounds(window.L.latLngBounds(pts.map((p) => p.g)), { padding: [24, 24], maxZoom: 9, animate: false }); } catch (e) {} } };
+        fit(); const t = setTimeout(fit, 120);
+        let ro = null; if (window.ResizeObserver && el.current) { ro = new ResizeObserver(() => fit()); ro.observe(el.current); }
+        return () => { clearTimeout(t); if (ro) ro.disconnect(); };
       }, [sig]);
       return (
         <div className="rt2-card" data-route-mini>
