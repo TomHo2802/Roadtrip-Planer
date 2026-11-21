@@ -376,6 +376,7 @@
 
     // Belege: im Bearbeiten-Modus direkt in der Reise (Ausgabe + Foto in den Dokumenten), im Modus „Nur lesen“ in einer Sammelliste auf dem Gerät
     function RtReceipts({ trip, onSave, readOnly, compact }) {
+      useEffect(() => { if (!compact) return undefined; const f = () => setForm(false); window.addEventListener('rt-new-receipt', f); return () => window.removeEventListener('rt-new-receipt', f); }, []);
       const [queue, setQueue] = useState([]); const [form, setForm] = useState(null); const [photos, setPhotos] = useState({}); const [msg, setMsg] = useState(''); const [open, setOpen] = useState(null); const [all, setAll] = useState(false);
       const latest = useRef(trip); latest.current = trip;
       const loadQ = async () => { try { const L = await rcTx('readonly', (s) => s.getAll()); setQueue((L || []).filter((x) => !x.tripId || x.tripId === (trip.meta || {}).tripId)); } catch (e) { setQueue([]); } };
@@ -423,7 +424,7 @@
       if (compact) return (
         <section data-ro-ok data-receipts="compact" aria-label="Ausgaben unterwegs" className="sp3"><div className="sp3-card">
           <div className="sp3-line"><span className="sp3-grow"><h2 className="sp3-h2">Ausgaben</h2><span className="sp3-mute">Heute {rtEur(todaySum)} · Reise bisher {rtEur(sum)} · {list.length} {list.length === 1 ? 'Beleg' : 'Belege'}</span></span></div>
-          <div className="sp3-acts">{newBtn}</div>{qInfo}{msg && <p role="status" className="sp3-mute">{msg}</p>}
+          {qInfo}{msg && <p role="status" className="sp3-mute">{msg}</p>}
         </div>{formEl}</section>
       );
       const shown = all ? list : list.slice(0, 8);

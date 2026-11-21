@@ -521,3 +521,6 @@ Wird ein Punkt auf der Karte angeklickt (Weg, Hotel, Vor Ort), scrollt die Liste
 
 ## v116
 - Unterwegs: Das blaue Feld (Naechster Termin / Tagesstart) zeigt zusaetzlich zu Titel und "Danach" jetzt Ziel und Hotel des Tages.
+
+## v117
+- Unterwegs: Die Kacheln Hotel, Parkplatz und Wetter sind entfernt (Funktionen bleiben an anderer Stelle). Statt dessen stehen dort Notfall und Kassenzettel. Die Kachel Kassenzettel oeffnet das Erfassungsformular der Ausgaben; die Ausgaben-Karte unten zeigt nur noch die Summen.

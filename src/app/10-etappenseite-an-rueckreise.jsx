@@ -523,17 +523,11 @@
     }
 
     function RtQuick({ stage, goTab }) {
-      const h = (stage && stage.hotel) || {}; const svc = rtNaviSvc();
-      const hasH = !!(parseGps(h.gps) || h.address);
-      const pk = parseGps(h.parkingGarageGps) || h.parkingGarageAddress;
       const big = 'min-h-[76px] rounded-2xl border flex flex-col items-center justify-center gap-1 text-sm font-bold text-center px-2';
-      const on = 'bg-white border-slate-300 text-slate-900'; const off = 'bg-slate-100 border-slate-200 text-slate-400 pointer-events-none';
       return (
-        <div data-quick className="grid grid-cols-2 gap-2">
-          <a data-quick-hotel href={hasH ? rtNavUrl(svc, h.gps, h.address, h.name) : undefined} target="_blank" rel="noopener noreferrer" aria-disabled={!hasH} className={`${big} ${hasH ? on : off}`}><Ic n="hotel" size={28} />Hotel</a>
-          <a data-quick-park href={pk ? rtNavUrl(svc, h.parkingGarageGps, h.parkingGarageAddress, h.parkingGarageName) : undefined} target="_blank" rel="noopener noreferrer" aria-disabled={!pk} className={`${big} ${pk ? on : off}`}><Ic n="park" size={28} />Parkplatz</a>
+        <div data-quick data-ro-ok className="grid grid-cols-2 gap-2">
           <button type="button" data-quick-emerg onClick={() => goTab('cards')} className={`${big} bg-rose-50 border-rose-200 text-rose-900`}><Ic n="sos" size={28} />Notfall</button>
-          <button type="button" data-quick-wx onClick={() => goTab('wx')} className={`${big} ${on}`}><Ic n="wx" size={28} />Wetter</button>
+          <button type="button" data-quick-receipt data-readonly-allow onClick={() => window.dispatchEvent(new Event('rt-new-receipt'))} className={`${big} bg-white border-slate-300 text-slate-900`}><RtI n="cam" s={28} />Kassenzettel</button>
         </div>
       );
     }
