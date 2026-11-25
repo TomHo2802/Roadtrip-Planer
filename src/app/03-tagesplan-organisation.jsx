@@ -287,7 +287,7 @@
                   {isOpen && (
                     <div className="rt4-body">
                       {tl && tl.warnings.map((t, i) => <div key={i} className="rt4-note"><Ic n="warn" />{t}</div>)}
-                      {d.kind === 'travel' && Array.isArray(d.stage.travelSteps) && d.stage.travelSteps.length > 0 && (d.stageIdx === 0 || rtIsRet(trip.stages || [], d.stageIdx)) && (() => { const tk = d.stageIdx === 0 && !rtIsRet(trip.stages || [], 0) ? 'out' : 'back'; return (<div data-day-travel><div className="rt4-h">{tk === 'out' ? 'Anreisetag' : 'Rückreisetag'}</div><ul className="rt4-ev">{d.stage.travelSteps.map((st) => <li key={st.id}><b>{st.time || '–'}</b><span>{rtTdLabel(tk, st)}{st.place ? ` · ${st.place}` : ''}</span></li>)}</ul></div>); })()}
+                      {(() => { const tk = d.kind !== 'travel' ? null : rtIsRet(trip.stages || [], d.stageIdx) ? 'back' : d.stageIdx === 0 ? 'out' : null; const ts = tk ? rtTdSteps(trip, tk) : []; return ts.length > 0 ? (<div data-day-travel><div className="rt4-h">{tk === 'out' ? 'Anreise' : 'Rückreise'}</div><ul className="rt4-ev">{ts.map((st) => <li key={st.id}><b>{st.time || '–'}</b><span>{rtTdLabel(tk, st)}{st.place ? ` · ${st.place}` : ''}</span>{rtTdNav(st) ? <small><a href={rtTdNav(st)} target="_blank" rel="noopener noreferrer">Navigation</a></small> : null}</li>)}</ul></div>) : null; })()}
                       {tl && (<>
                         <div className="rt4-h">Fahrt</div>
                         <ul className="rt4-ev">{tl.events.map((ev, i) => <li key={i}><b>{fmtHM(ev.at)}</b><span>{ev.title}</span>{ev.kind !== 'depart' && ev.driveKm ? <small>{rtDist(ev.driveKm, tl.miles)}</small> : <small />}</li>)}</ul>
@@ -387,11 +387,11 @@
             <RtQuick stage={stage} goTab={goTab} />
           </div>
 
-          {day.kind === 'travel' && Array.isArray(stage.travelSteps) && stage.travelSteps.length > 0 && (day.stageIdx === 0 || rtIsRet(trip.stages || [], day.stageIdx)) && (() => { const tk = day.stageIdx === 0 && !rtIsRet(trip.stages || [], 0) ? 'out' : 'back'; return (
+          {(() => { const tk = day.kind !== 'travel' ? null : rtIsRet(trip.stages || [], day.stageIdx) ? 'back' : day.stageIdx === 0 ? 'out' : null; const ts = tk ? rtTdSteps(trip, tk) : []; return ts.length > 0 ? (
             <section data-day-travel className="rt3-left rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-              <h3 className="text-sm font-bold text-slate-900">{tk === 'out' ? 'Anreisetag: Ablauf' : 'Rückreisetag: Ablauf'}</h3>
-              <ol className="space-y-1.5">{stage.travelSteps.map((st) => <li key={st.id} className="text-sm text-slate-900 flex gap-2"><b className="shrink-0 w-12 tabular-nums">{st.time || '–'}</b><span className="min-w-0"><b>{rtTdLabel(tk, st)}</b>{st.place ? ` · ${st.place}` : ''}{st.note ? <span className="block text-xs text-slate-600">{st.note}</span> : null}</span></li>)}</ol>
-            </section>); })()}
+              <h3 className="text-sm font-bold text-slate-900">{tk === 'out' ? 'Anreise: Ablauf' : 'Rückreise: Ablauf'}</h3>
+              <ol className="space-y-1.5">{ts.map((st) => <li key={st.id} className="text-sm text-slate-900 flex gap-2 items-start"><b className="shrink-0 w-12 tabular-nums">{st.time || '–'}</b><span className="min-w-0 flex-1"><b>{rtTdLabel(tk, st)}</b>{st.place ? ` · ${st.place}` : ''}{st.note ? <span className="block text-xs text-slate-600">{st.note}</span> : null}</span>{rtTdNav(st) ? <a href={rtTdNav(st)} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs font-semibold text-blue-800 underline">Navigation</a> : null}</li>)}</ol>
+            </section>) : null; })()}
 
           {(flights.length > 0 || cars.length > 0) && (
             <section className="rt3-left rounded-2xl border border-indigo-200 bg-indigo-50 p-4 space-y-2">

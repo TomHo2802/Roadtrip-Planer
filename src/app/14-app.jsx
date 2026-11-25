@@ -11,7 +11,7 @@ function App() {
       const [isReadOnly, setIsReadOnly] = useState(IS_READ_ONLY_COPY);
       useEffect(() => { document.body.classList.toggle('read-only-mode', isReadOnly); }, [isReadOnly]);
       const [expandedStages, setExpandedStages] = useState({});
-      const [openStageId, setOpenStageId] = useState(() => { try { const sv = JSON.parse(sessionStorage.getItem('rt_nav_v1') || 'null'); return sv && sv.stage && (tripData.stages || []).some((x) => x.id === sv.stage) ? sv.stage : null; } catch (e) { return null; } }); const [stageTab, setStageTab] = useState('way');
+      const [openStageId, setOpenStageId] = useState(() => { try { const sv = JSON.parse(sessionStorage.getItem('rt_nav_v1') || 'null'); return sv && sv.stage && ((tripData.stages || []).some((x) => x.id === sv.stage) || rtIsTravelId(sv.stage)) ? sv.stage : null; } catch (e) { return null; } }); const [stageTab, setStageTab] = useState('way');
       // v123: Zurück-Taste und Neuladen: Tab und geöffnete Etappe werden im Verlauf und in der Sitzung gemerkt
       const navRef = useRef({ init: false, pop: false, tab: null, stage: null });
       useEffect(() => { const r = navRef.current, st = { rt: 1, tab: activeTab, stage: openStageId || null }; try { if (!r.init) { r.init = true; history.replaceState(st, ''); } else if (!r.pop && (r.tab !== activeTab || r.stage !== (openStageId || null))) history.pushState(st, ''); r.pop = false; r.tab = activeTab; r.stage = openStageId || null; sessionStorage.setItem('rt_nav_v1', JSON.stringify({ tab: activeTab, stage: openStageId || null })); } catch (e) {} }, [activeTab, openStageId]);
@@ -73,7 +73,7 @@ function App() {
       const [wizardStep, setWizardStep] = useState(0);
       const [wizOpen, setWizOpen] = useState(false); const [wizStart, setWizStart] = useState(null);
       useEffect(() => { const f = (e) => { const d = e.detail || {}; if (d.stageId) { setOpenStageId(d.stageId); setStageTab(d.step || 'way'); } }; const g = () => setOpenStageId(null); const fo = (e) => { setActiveTab('stages'); f(e); setTimeout(() => { try { window.scrollTo(0, 0); } catch (x) {} }, 60); }; window.addEventListener('rt-assist', f); window.addEventListener('rt-stage-open', fo); window.addEventListener('rt-stage-list', g); return () => { window.removeEventListener('rt-assist', f); window.removeEventListener('rt-stage-open', fo); window.removeEventListener('rt-stage-list', g); }; }, []);
-      useEffect(() => { if (openStageId && !(tripData.stages || []).some((s) => s.id === openStageId)) setOpenStageId(null); }, [tripData]);
+      useEffect(() => { if (openStageId && !rtIsTravelId(openStageId) && !(tripData.stages || []).some((s) => s.id === openStageId)) setOpenStageId(null); }, [tripData]);
       useEffect(() => { const f = (e) => { setWizStart((e.detail && e.detail.step) || null); setWizOpen(true); }; const gS = () => { setActiveTab('stages'); window.dispatchEvent(new CustomEvent('rt-stage-list')); setTimeout(() => { const el = document.querySelector('[data-plan-status]'); if (el) { el.scrollIntoView({ block: 'start' }); const dt = el.querySelector('[data-status-list]'); if (dt && el.querySelector('[data-state="todo"]')) dt.open = true; } }, 350); }; window.addEventListener('rt-wizard', f); window.addEventListener('rt-status', gS); return () => { window.removeEventListener('rt-wizard', f); window.removeEventListener('rt-status', gS); }; }, []);
       const [gateSkipped, setGateSkipped] = useState(false);
       const [linkClosed, setLinkClosed] = useState(false);
@@ -1061,6 +1061,7 @@ Quelle: ${lt.url}` : '') }] } });
                 {/* Stages List with Vertical Timeline Connector */}
                 <div data-stage-wrap className={rtUiClassic() ? '' : 'rt2-split'}><div className={rtUiClassic() ? '' : 'rt2-main'}>
                 <div data-stage-list className={`${openStageId ? 'rt2-page ' : ''}relative space-y-8 before:hidden md:before:block before:absolute before:top-8 before:bottom-8 before:left-5 before:w-0.5 before:bg-slate-200 before:rounded-full`}>
+                  {!rtUiClassic() && (!openStageId || openStageId === 'travel-out') && <RtTravelStage kind="out" trip={tripData} open={openStageId === 'travel-out'} onOpen={(id) => openStagePage(id || 'travel-out')} onBack={() => setOpenStageId(null)} save={saveTripData} />}
                   {(tripData.stages || []).map((stage, sIdx) => {
                     if (openStageId && stage.id !== openStageId) return null;
                     const isPage = openStageId === stage.id; const isExpanded = isPage;
@@ -1583,6 +1584,7 @@ Quelle: ${lt.url}` : '') }] } });
                       </div>
                     );
                   })}
+                  {!rtUiClassic() && (!openStageId || openStageId === 'travel-back') && <RtTravelStage kind="back" trip={tripData} open={openStageId === 'travel-back'} onOpen={(id) => openStagePage(id || 'travel-back')} onBack={() => setOpenStageId(null)} save={saveTripData} />}
                 </div>
                 </div>{!openStageId && !rtUiClassic() && <aside className="rt2-mapbox" aria-label="Karte der Etappen"><RtRouteMini trip={tripData} onOpen={(id) => openStagePage(id)} /></aside>}</div>
                 {!rtUiClassic() && <>

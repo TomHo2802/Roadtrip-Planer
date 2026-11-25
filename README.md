@@ -567,3 +567,9 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 - Neu: Anreisetag und Rückreisetag als Ablauf. Auf der Etappenseite (erste Etappe und Rückreise-Etappe, Reiter „Weg“) lassen sich die Schritte einzeln eintragen, jeweils mit Uhrzeit, Ort und Notiz: Losfahren von zu Hause, Ankunft am Abflughafen, Abflug, Umstieg (Ankunft und Abflug), Landung, Mietwagen übernehmen, Weiterfahrt zum Hotel. Die Rückreise läuft in umgekehrter Reihenfolge.
 - „Mit Flug“ übernimmt vorhandene Flug- und Mietwagendaten als Vorschlag, „Nur mit dem Auto“ legt einen kurzen Ablauf an. Schritte lassen sich bearbeiten, verschieben, löschen und ergänzen.
 - Der Ablauf erscheint auch im Tagesplan (Planen und Heute).
+
+## v125
+- Anreise und Rückreise sind jetzt eigene Etappen: eine Karte ganz am Anfang (✈ Anreise) und eine ganz am Ende (⌂ Rückreise) der Etappenliste, mit eigener Seite und Vor/Zurück-Wischen zur ersten bzw. letzten Etappe. Gespeichert in `travelDays` (`out`, `back`); der Ablauf aus v124 wird weiter gelesen.
+- Jeder Schritt hat Uhrzeit, Ort, Adresse (mit Ortsvorschlag), GPS und Notiz. Pro Schritt gibt es eine Schaltfläche „Navigation“ (Google Maps Route), die auch im Nur-Lesen-Modus auf dem Handy sichtbar bleibt, ebenso im Tagesplan.
+- Neuer Schritt „Parkhaus am Abflughafen“ (Rückreise: „Parkhaus: Auto abholen“).
+- Die Etappenlisten und -Zahlen (Nächte, Hotels, Kosten) bleiben unverändert, weil die beiden Karten keine Übernachtungsetappen sind. Nur in der neuen Ansicht, die klassische Ansicht zeigt sie nicht.

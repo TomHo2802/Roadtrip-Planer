@@ -203,24 +203,29 @@
       };
     };
 
-    // ===== v124: An- und Rückreisetag als Ablauf (Haustür bis Hotel und zurück) =====
+    // ===== v125: Anreise und Rückreise als eigene Etappen mit Einzelschritten, Koordinaten und Navigation =====
     const RT_TD = {
-      out: { home: 'Losfahren von zu Hause', apt: 'Ankunft am Abflughafen', dep: 'Abflug', layA: 'Umstieg: Ankunft', layD: 'Umstieg: Abflug', land: 'Landung am Zielflughafen', car: 'Mietwagen übernehmen', hotel: 'Weiterfahrt zum Hotel', arr: 'Ankunft im Hotel', other: 'Eigener Schritt' },
-      back: { hotel: 'Abfahrt vom Hotel', car: 'Mietwagen zurückgeben', apt: 'Ankunft am Abflughafen', dep: 'Abflug', layA: 'Umstieg: Ankunft', layD: 'Umstieg: Abflug', land: 'Landung am Heimatflughafen', home: 'Ankunft zu Hause', other: 'Eigener Schritt' },
+      out: { home: 'Losfahren von zu Hause', park: 'Parkhaus am Abflughafen', apt: 'Ankunft am Abflughafen', dep: 'Abflug', layA: 'Umstieg: Ankunft', layD: 'Umstieg: Abflug', land: 'Landung am Zielflughafen', car: 'Mietwagen übernehmen', hotel: 'Weiterfahrt zum Hotel', arr: 'Ankunft im Hotel', other: 'Eigener Schritt' },
+      back: { hotel: 'Abfahrt vom Hotel', car: 'Mietwagen zurückgeben', apt: 'Ankunft am Abflughafen', dep: 'Abflug', layA: 'Umstieg: Ankunft', layD: 'Umstieg: Abflug', land: 'Landung am Heimatflughafen', park: 'Parkhaus: Auto abholen', home: 'Ankunft zu Hause', other: 'Eigener Schritt' },
     };
+    const RT_TRAVEL_ID = { out: 'travel-out', back: 'travel-back' };
+    const rtIsTravelId = (id) => id === 'travel-out' || id === 'travel-back';
     const rtTdLabel = (kind, st) => (st.title && String(st.title).trim()) || (RT_TD[kind] || {})[st.type] || 'Schritt';
     const rtTdTime = (v) => { const m = String(v || '').match(/(\d{1,2}):(\d{2})/); return m ? `${m[1].padStart(2, '0')}:${m[2]}` : ''; };
-    const rtTdTemplate = (trip, kind, mode, stage, stages, idx) => {
-      const out = kind === 'out'; const meta = trip.meta || {}; let n = 0; const mk = (type, time, place, note) => ({ id: `td-${Date.now().toString(36)}-${n++}`, type, time: time || '', place: place || '', note: note || '' });
+    const rtTdSteps = (trip, kind) => { const t = (trip.travelDays || {})[kind]; if (Array.isArray(t)) return t; const st = trip.stages || []; const s = kind === 'out' ? st[0] : st.find((x, i) => rtIsRet(st, i)); return s && Array.isArray(s.travelSteps) ? s.travelSteps : []; };
+    const rtTdNav = (st) => { const q = (st.gps && String(st.gps).trim()) || [st.place, st.address].filter(Boolean).join(' ').trim(); return q ? `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(q)}` : ''; };
+    const rtTdTemplate = (trip, kind, mode) => {
+      const out = kind === 'out'; const meta = trip.meta || {}; const stages = trip.stages || []; let n = 0;
+      const mk = (type, time, place, note, o) => ({ id: `td-${Date.now().toString(36)}-${n++}`, type, time: time || '', place: place || '', address: '', gps: '', note: note || '', ...(o || {}) });
       const isOut = (f) => /^hin/i.test(f.direction || ''), isBack = (f) => /^r(ü|ue)ck/i.test(f.direction || '');
       const fl = (trip.flights || []).filter((f) => rtFlightFilled(f) && (out ? isOut(f) : isBack(f))).slice().sort((a, b) => { const A = hlParseFlight(a), B = hlParseFlight(b); return A && B ? (Date.UTC(A.y, A.m - 1, A.d, ...A.dt) - Date.UTC(B.y, B.m - 1, B.d, ...B.dt)) : 0; });
       const car = (trip.rentalCars || []).filter(rtCarFilled).find((c) => (out ? (c.pickupLocation || c.pickupDate) : (c.dropoffLocation || c.dropoffDate)));
       const home = String(meta.startLocation || '').trim();
-      const hotelOf = (s) => String(((s || {}).hotel || {}).name || '').trim();
-      const hotelPlace = out ? hotelOf(stage) : hotelOf([...stages.slice(0, idx)].reverse().find((s) => hotelOf(s)));
+      const hs = out ? stages.find((s) => String(((s || {}).hotel || {}).name || '').trim()) : [...stages].reverse().find((s) => String(((s || {}).hotel || {}).name || '').trim());
+      const hh = (hs && hs.hotel) || {}; const hotelStep = (type) => mk(type, '', hh.name || '', '', { address: hh.address || '', gps: hh.gps || '' });
       const carStep = () => car ? mk('car', rtTdTime(out ? car.pickupTime : car.dropoffTime), [car.provider, out ? car.pickupLocation : car.dropoffLocation].filter(Boolean).join(' · '), out ? '' : (car.dropoffTime && !rtTdTime(car.dropoffTime) ? car.dropoffTime : '')) : mk('car');
-      if (mode === 'car') return out ? [mk('home', '', home), mk('arr', '', hotelPlace)] : [mk('hotel', '', hotelPlace), mk('home', '', home)];
-      const steps = []; const fn = (f) => [f.flightNumber, [String(f.from || '').split(' ')[0], String(f.to || '').split(' ')[0]].filter(Boolean).join(' → ')].filter(Boolean).join(' · ');
+      if (mode === 'car') return out ? [mk('home', '', home), hotelStep('arr')] : [hotelStep('hotel'), mk('home', '', home)];
+      const fn = (f) => [f.flightNumber, [String(f.from || '').split(' ')[0], String(f.to || '').split(' ')[0]].filter(Boolean).join(' → ')].filter(Boolean).join(' · ');
       const flightSteps = () => {
         const L = [];
         if (!fl.length) { L.push(mk('apt'), mk('dep'), mk('land')); return L; }
@@ -229,52 +234,105 @@
         const lf = fl[fl.length - 1]; L.push(mk('land', rtTdTime(lf.arrivalTime), String(lf.to || '').trim(), /\(\+\d\)/.test(lf.arrivalTime || '') ? 'Ankunft am Folgetag' : ''));
         return L;
       };
-      if (out) { steps.push(mk('home', '', home), ...flightSteps(), carStep(), mk('hotel', '', hotelPlace)); }
-      else { steps.push(mk('hotel', '', hotelPlace), carStep(), ...flightSteps(), mk('home', '', home)); }
-      return steps;
+      if (out) { const f = flightSteps(); return [mk('home', '', home), mk('park', '', fl.length ? `Parkhaus ${String(fl[0].from || '').trim()}` : ''), ...f, carStep(), hotelStep('hotel')]; }
+      const f = flightSteps(); return [hotelStep('hotel'), carStep(), ...f, mk('park', '', fl.length ? `Parkhaus ${String(fl[fl.length - 1].to || '').trim()}` : ''), mk('home', '', home)];
     };
 
-    function RtTravelDay({ kind, trip, stage, stages, idx, put, edit, setEdit, openRow, setOpenRow }) {
-      const out = kind === 'out'; const steps = Array.isArray(stage.travelSteps) ? stage.travelSteps : [];
+    function RtTravelSteps({ kind, trip, save }) {
+      const out = kind === 'out'; const steps = rtTdSteps(trip, kind);
+      const [edit, setEdit] = useState(null); const [openRow, setOpenRow] = useState(null);
       const types = Object.entries(RT_TD[kind]);
       const hasFl = (trip.flights || []).some((f) => rtFlightFilled(f) && (out ? /^hin/i.test(f.direction || '') : /^r(ü|ue)ck/i.test(f.direction || '')));
-      const setSteps = (fn, toast, undo) => put((s) => ({ travelSteps: fn(Array.isArray(s.travelSteps) ? s.travelSteps : []) }), toast, undo);
-      const init = (mode) => setSteps(() => rtTdTemplate(trip, kind, mode, stage, stages, idx), out ? 'Ablauf für den Anreisetag angelegt' : 'Ablauf für den Rückreisetag angelegt');
-      const saveStep = (i, v) => { const o = { type: v.type || 'other', time: v.time, place: v.place, note: v.note, title: v.title }; setSteps((L) => i == null ? [...L, { id: `td-${Date.now().toString(36)}`, ...o }] : L.map((x, k) => (k === i ? { ...x, ...o } : x)), 'Gespeichert'); setEdit(null); };
-      const delStep = (i) => { setSteps((L) => L.filter((_, k) => k !== i), '', `Schritt „${rtTdLabel(kind, steps[i] || {})}“ gelöscht`); setEdit(null); setOpenRow(null); };
-      const move = (i, d) => { const j = i + d; if (j < 0 || j >= steps.length) return; setSteps((L) => { const A = [...L]; const t = A[i]; A[i] = A[j]; A[j] = t; return A; }, 'Reihenfolge geändert'); };
+      const commit = (fn, toast, undo) => { const before = trip; save({ ...trip, travelDays: { ...(trip.travelDays || {}), [kind]: fn(steps) } }, toast); if (undo) rtUndo(undo, before); };
+      const init = (mode) => commit(() => rtTdTemplate(trip, kind, mode), out ? 'Ablauf für die Anreise angelegt' : 'Ablauf für die Rückreise angelegt');
+      const saveStep = (i, v) => { const o = { type: v.type || 'other', time: v.time, place: v.place, address: v.address, gps: v.gps, note: v.note, title: v.title }; commit((L) => i == null ? [...L, { id: `td-${Date.now().toString(36)}`, ...o }] : L.map((x, k) => (k === i ? { ...x, ...o } : x)), 'Gespeichert'); setEdit(null); };
+      const delStep = (i) => { commit((L) => L.filter((_, k) => k !== i), '', `Schritt „${rtTdLabel(kind, steps[i] || {})}“ gelöscht`); setEdit(null); setOpenRow(null); };
+      const move = (i, d) => { const j = i + d; if (j < 0 || j >= steps.length) return; commit((L) => { const A = [...L]; const t = A[i]; A[i] = A[j]; A[j] = t; return A; }, 'Reihenfolge geändert'); };
       const form = (i) => { const st = i == null ? { type: 'other' } : steps[i]; return (
         <SpForm title={i == null ? 'Schritt hinzufügen' : 'Schritt bearbeiten'} onSave={(v) => saveStep(i, v)} onCancel={() => setEdit(null)} onDelete={i == null ? null : () => delStep(i)}>
-          <SpF label="Schritt" name="type" value={st.type} opts={types.map(([k, l]) => [k, l])} wide />
+          <SpF label="Schritt" name="type" value={st.type} opts={types} wide />
           <SpF label="Uhrzeit" name="time" value={st.time} ph="z. B. 08:30" />
           <SpF label="Ort" name="place" value={st.place} ph={out ? 'z. B. Flughafen München' : 'z. B. Flughafen Frankfurt'} />
+          <SpF label="Adresse (für die Navigation)" name="address" value={st.address} place="addr" wide />
+          <SpF label="GPS" name="gps" value={st.gps} ph="GPS-Koordinaten (z. B. 48.35, 11.79)" wide />
           <SpF label="Bezeichnung (optional)" name="title" value={st.title || ''} ph="eigener Titel" wide />
-          <SpF label="Notiz" name="note" value={st.note} rows={2} ph="z. B. Flugnummer, Terminal, Treffpunkt" wide />
+          <SpF label="Notiz" name="note" value={st.note} rows={2} ph="z. B. Flugnummer, Terminal, Parkhaus-Ebene" wide />
         </SpForm>); };
       return (
-        <section data-travel-day={kind} aria-label={out ? 'Anreisetag' : 'Rückreisetag'} className="sp3-card list">
-          <div className="sp3-line" style={{ padding: '12px 14px 4px' }}><b className="sp3-big">{out ? 'Anreisetag' : 'Rückreisetag'}</b><span className="sp3-mute">{out ? 'Von zu Hause bis zum Hotel' : 'Vom Hotel bis nach Hause'}</span></div>
+        <section data-travel-day={kind} aria-label={out ? 'Ablauf Anreise' : 'Ablauf Rückreise'} className="sp3-card list">
           {!steps.length && edit !== 'tr:new' && <div className="sp3-empty" data-travel-empty>
-            <p>Noch kein Ablauf. Trage die einzelnen Schritte {out ? 'ab Haustür' : 'ab dem Hotel'} ein: Uhrzeit, Ort und Notiz je Schritt.</p>
+            <p>Noch kein Ablauf. Trage die einzelnen Schritte {out ? 'ab Haustür' : 'ab dem Hotel'} ein: Uhrzeit, Ort, Koordinaten für die Navigation und Notiz.</p>
             <div className="sp3-acts v18-edit-only" style={{ marginTop: 8 }}>
               <button type="button" data-travel-init="fly" className={`sp3-btn${hasFl ? ' pri' : ''}`} onClick={() => init('fly')}>Mit Flug{hasFl ? ' (Flugdaten übernehmen)' : ''}</button>
               <button type="button" data-travel-init="car" className="sp3-btn" onClick={() => init('car')}>Nur mit dem Auto</button>
             </div>
           </div>}
-          {steps.map((st, i) => edit === 'tr:' + i ? <div key={st.id || i} className="sp3-in">{form(i)}</div> : (
-            <SpRow key={st.id || i} k={'tr:' + i} open={openRow === 'tr:' + i} setOpen={setOpenRow} lead={String(i + 1)} title={rtTdLabel(kind, st)} sub={[st.time ? `${st.time} Uhr` : '', st.place].filter(Boolean).join(' · ') || 'Zeit und Ort noch offen'}>
-              {st.note && <p className="sp3-note">{st.note}</p>}
-              <div className="sp3-acts">
-                {st.place && <SpMaps gps="" address={st.place} name={st.place} />}
-                <button type="button" className="sp3-btn sm v18-edit-only" data-travel-edit onClick={() => setEdit('tr:' + i)}>Bearbeiten</button>
-                <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Schritt nach oben" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
-                <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Schritt nach unten" disabled={i === steps.length - 1} onClick={() => move(i, 1)}>↓</button>
-                <button type="button" className="sp3-btn sm del v18-edit-only" onClick={() => delStep(i)}>Löschen</button>
+          {steps.map((st, i) => { const nav = rtTdNav(st); const open = openRow === 'tr:' + i; return edit === 'tr:' + i ? <div key={st.id || i} className="sp3-in">{form(i)}</div> : (
+            <div key={st.id || i} className={`sp3-row${open ? ' open' : ''}`} data-sp-row data-travel-step>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button type="button" data-readonly-allow className="sp3-rowbtn" style={{ flex: 1, minWidth: 0 }} aria-expanded={open} onClick={() => setOpenRow(open ? null : 'tr:' + i)}>
+                  <span className="sp3-lead">{i + 1}</span>
+                  <span className="sp3-grow"><span className="sp3-rt">{rtTdLabel(kind, st)}</span><span className="sp3-mute">{[st.time ? `${st.time} Uhr` : '', st.place].filter(Boolean).join(' · ') || 'Zeit und Ort noch offen'}</span></span>
+                  <span className="sp3-chev" aria-hidden="true">›</span>
+                </button>
+                {nav && <a href={nav} target="_blank" rel="noopener noreferrer" data-travel-nav aria-label={`Navigation: ${rtTdLabel(kind, st)}`} className="sp3-btn sm" style={{ flexShrink: 0, marginRight: 10 }}>Navigation</a>}
               </div>
-            </SpRow>))}
+              {open && <div className="sp3-rowbody">
+                {st.note && <p className="sp3-note">{st.note}</p>}
+                {st.address && <p className="sp3-mute">{st.address}</p>}
+                {st.gps && <p className="sp3-mute">GPS: {st.gps}</p>}
+                <div className="sp3-acts">
+                  <button type="button" className="sp3-btn sm v18-edit-only" data-travel-edit onClick={() => setEdit('tr:' + i)}>Bearbeiten</button>
+                  <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Schritt nach oben" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
+                  <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Schritt nach unten" disabled={i === steps.length - 1} onClick={() => move(i, 1)}>↓</button>
+                  <button type="button" className="sp3-btn sm del v18-edit-only" onClick={() => delStep(i)}>Löschen</button>
+                </div>
+              </div>}
+            </div>); })}
           {edit === 'tr:new' ? <div className="sp3-in">{form(null)}</div> : steps.length > 0 && <div className="sp3-addrow v18-edit-only"><button type="button" data-travel-add className="sp3-btn" onClick={() => setEdit('tr:new')}>+ Schritt</button></div>}
         </section>
       );
+    }
+
+    function RtTravelStage({ kind, trip, open, onOpen, onBack, save }) {
+      const out = kind === 'out'; const stages = trip.stages || []; const steps = rtTdSteps(trip, kind); const meta = trip.meta || {};
+      const iso = out ? meta.startDate : meta.endDate; const day = /^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? fmtDayShort(iso) : '';
+      const title = out ? 'Anreise' : 'Rückreise'; const sub = out ? 'Von zu Hause bis zum Hotel' : 'Vom Hotel bis nach Hause';
+      const withNav = steps.filter((x) => rtTdNav(x)).length; const timed = steps.filter((x) => x.time).length;
+      const id = RT_TRAVEL_ID[kind]; const near = out ? stages[0] : stages[stages.length - 1];
+      if (!open) return (
+        <div id={`stage-card-${id}`} data-stage-row2={id} data-travel-row={kind} className="rt2-row">
+          <span className="rt2-rail" aria-hidden="true"><span className="rt2-badge">{out ? '✈' : '⌂'}</span></span>
+          <div className="rt2-body">
+            <button type="button" data-readonly-allow data-stage-open onClick={() => onOpen(id)} className="rt2-open" aria-label={`${title} öffnen`}>
+              <span className="rt2-top"><span className="rt2-name">{title}</span><span className="rt2-date">{day}</span></span>
+              <span className="rt2-sub"><span className="rt2-chips">
+                <span className="rt2-chip">{sub}</span>
+                {steps.length ? <span className="rt2-chip ok">{steps.length} {steps.length === 1 ? 'Schritt' : 'Schritte'}{withNav ? ` · ${withNav} mit Navigation` : ''}</span> : <span className="rt2-chip miss" data-miss="1">Ablauf fehlt</span>}
+              </span></span>
+            </button>
+          </div>
+        </div>);
+      const prev = out ? null : near, next = out ? near : null;
+      const go = (s) => { if (s) { onOpen(s.id); try { window.scrollTo({ top: 0, behavior: 'auto' }); } catch (e) {} } };
+      const sw = spSwipe(() => go(prev), () => go(next));
+      return (
+        <div data-sp3-page data-travel-page={kind} id={`stage-card-${id}`} className="sp3" {...sw}>
+          <header data-stage-pagebar className="sp3-head no-print">
+            <div className="sp3-top">
+              <button type="button" data-readonly-allow data-stage-back onClick={onBack} className="sp3-back"><span aria-hidden="true">‹</span> Alle Etappen</button>
+              <div className="sp3-navb">
+                <button type="button" data-readonly-allow data-stage-prev disabled={!prev} onClick={() => go(prev)} aria-label="Vorige Etappe" className="sp3-round">‹</button>
+                <button type="button" data-readonly-allow data-stage-next disabled={!next} onClick={() => go(next)} aria-label="Nächste Etappe" className="sp3-round">›</button>
+              </div>
+            </div>
+            <div className="sp3-title">
+              <span className="sp3-num" aria-hidden="true">{out ? '✈' : '⌂'}</span>
+              <div className="sp3-tt"><h1>{title}</h1><span className="sp3-sub">{[day, sub].filter(Boolean).join(' · ')}{steps.length ? ` · ${timed} von ${steps.length} mit Uhrzeit` : ''}</span></div>
+            </div>
+          </header>
+          <div className="sp3-body"><RtTravelSteps kind={kind} trip={trip} save={save} /></div>
+        </div>);
     }
 
     function RtStagePage({ trip, stage, idx, tab, setTab, onBack, onOpen, save, openEditor, onDelete, onUp, onDown, assist, wayTools }) {
@@ -290,7 +348,7 @@
       useEffect(() => { setEdit(null); setOpenRow(null); }, [tabNow]);
       const hasHotel = !!(h && String(h.name || '').trim());
       const miss = !isRet && !hasHotel;
-      const prev = idx > 0 ? stages[idx - 1] : null, next = idx < n - 1 ? stages[idx + 1] : null;
+      const prev = idx > 0 ? stages[idx - 1] : { id: 'travel-out' }, next = idx < n - 1 ? stages[idx + 1] : { id: 'travel-back' };
       const go = (s) => { if (s) { onOpen(s.id); try { window.scrollTo({ top: 0, behavior: 'auto' }); } catch (e) {} } };
       const sw = spSwipe(() => go(prev), () => go(next));
       const put = (patch, toast, undoText) => { const before = trip; const st = stages.map((s) => (s.id === stage.id ? { ...s, ...patch(s) } : s)); save({ ...trip, stages: st }, toast); if (undoText) rtUndo(undoText, before); };
@@ -387,7 +445,6 @@
           </header>
 
           {tabNow === 'way' && <div data-sp-tab="way" className="sp3-body">
-            {(idx === 0 || isRet) && <RtTravelDay kind={isRet ? 'back' : 'out'} trip={trip} stage={stage} stages={stages} idx={idx} put={put} edit={edit} setEdit={setEdit} openRow={openRow} setOpenRow={setOpenRow} />}
             <section aria-label="Strecke" className="sp3-card">
               {edit === 'route' ? (
                 <SpForm title="Strecke" onSave={saveRoute} onCancel={() => setEdit(null)}>
