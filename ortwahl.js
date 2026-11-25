@@ -84,7 +84,7 @@
       var drawSel = function () {
         var s = $('[data-rto-sel]');
         if (!sel) { s.innerHTML = '<small>Noch kein Ort gewählt. Tippe einen Namen ein, klicke in die Karte oder suche im Umkreis.</small>'; okBtn.disabled = true; }
-        else { var d = near ? hav(near, sel.gps) : null; s.innerHTML = '<b data-rto-selname>' + esc(sel.busy ? 'Ort wird gesucht …' : (sel.value || 'Punkt ohne Namen')) + '</b><br><small>' + (sel.kind ? esc(sel.kind) + ' · ' : '') + sel.gps[0].toFixed(4) + ', ' + sel.gps[1].toFixed(4) + (d != null ? ' · etwa ' + Math.round(d * 1.3) + ' km Fahrstrecke von ' + esc(opts.nearLabel || 'dort') + (opts.radiusKm && d * 1.3 > opts.radiusKm * 1.6 ? ' · außerhalb des Suchbereichs' : '') : '') + '</small>'; okBtn.disabled = !!sel.busy || !sel.value; }
+        else { var d = near ? hav(near, sel.gps) : null; s.innerHTML = '<b data-rto-selname>' + esc(sel.busy ? 'Ort wird gesucht …' : (sel.value || 'Punkt ohne Namen')) + '</b><br><small>' + (sel.kind ? esc(sel.kind) + ' · ' : '') + sel.gps[0].toFixed(4) + ', ' + sel.gps[1].toFixed(4) + (d != null ? ' · etwa ' + Math.round(d * 1.3) + ' km Fahrstrecke von ' + esc(opts.nearLabel || 'dort') + (opts.radiusKm && d * 1.3 > opts.radiusKm * 1.6 ? ' · außerhalb des Suchbereichs' : '') : '') + '</small>'; okBtn.disabled = !!sel.busy || (!sel.value && !opts.allowUnnamed); }
         var rf = $('[data-rto-ref]'); if (rf) rf.textContent = refName();
         Array.prototype.forEach.call(list.children, function (li) { var it = items[+li.getAttribute('data-i')]; li.setAttribute('aria-selected', String(!!(sel && it && it.gps[0] === sel.gps[0] && it.gps[1] === sel.gps[1]))); });
       };
@@ -117,7 +117,7 @@
       back.addEventListener('mousedown', function (e) { if (e.target === back) close(null); });
       back.addEventListener('click', function (e) {
         var t = e.target; if (t.closest('[data-rto-x],[data-rto-cancel]')) return close(null);
-        if (t.closest('[data-rto-ok]')) { if (sel && sel.value && !sel.busy) close({ value: sel.value, name: sel.name || sel.value, sub: sel.sub || '', gps: sel.gps, kind: sel.kind || '', cc: sel.cc || '' }); return; }
+        if (t.closest('[data-rto-ok]')) { if (sel && (sel.value || opts.allowUnnamed) && !sel.busy) close({ value: sel.value || '', name: sel.name || sel.value || '', sub: sel.sub || '', gps: sel.gps, kind: sel.kind || '', cc: sel.cc || '' }); return; }
         if (t.closest('[data-rto-go]')) return doSearch(); if (t.closest('[data-rto-around]')) return doAround();
         var li = t.closest('li[data-i]'); if (li) choose(items[+li.getAttribute('data-i')], true);
       });

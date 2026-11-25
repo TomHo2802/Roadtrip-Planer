@@ -573,3 +573,8 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 - Jeder Schritt hat Uhrzeit, Ort, Adresse (mit Ortsvorschlag), GPS und Notiz. Pro Schritt gibt es eine Schaltfläche „Navigation“ (Google Maps Route), die auch im Nur-Lesen-Modus auf dem Handy sichtbar bleibt, ebenso im Tagesplan.
 - Neuer Schritt „Parkhaus am Abflughafen“ (Rückreise: „Parkhaus: Auto abholen“).
 - Die Etappenlisten und -Zahlen (Nächte, Hotels, Kosten) bleiben unverändert, weil die beiden Karten keine Übernachtungsetappen sind. Nur in der neuen Ansicht, die klassische Ansicht zeigt sie nicht.
+
+## v126
+- Anreise/Rückreise-Schritte: Button „Punkt auf der Karte wählen“ unter dem GPS-Feld. Die Karte öffnet sich, der Punkt wird durch Tippen gesetzt (oder per Suche) und mit „Übernehmen“ als GPS-Wert eingetragen, auch ohne Ortsnamen (z. B. offline). Leere Adress- und Ortsfelder werden mit dem gefundenen Namen gefüllt.
+- Das Feld „Ort“ schlägt jetzt wie die anderen Planungsfelder Orte vor und setzt dabei GPS automatisch.
+- `ortwahl.js`: neue Option `allowUnnamed`.

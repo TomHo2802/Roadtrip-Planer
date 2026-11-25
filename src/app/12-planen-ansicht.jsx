@@ -252,9 +252,17 @@
         <SpForm title={i == null ? 'Schritt hinzufügen' : 'Schritt bearbeiten'} onSave={(v) => saveStep(i, v)} onCancel={() => setEdit(null)} onDelete={i == null ? null : () => delStep(i)}>
           <SpF label="Schritt" name="type" value={st.type} opts={types} wide />
           <SpF label="Uhrzeit" name="time" value={st.time} ph="z. B. 08:30" />
-          <SpF label="Ort" name="place" value={st.place} ph={out ? 'z. B. Flughafen München' : 'z. B. Flughafen Frankfurt'} />
+          <SpF label="Ort" name="place" value={st.place} place="addr" ph={out ? 'z. B. Flughafen München' : 'z. B. Flughafen Frankfurt'} wide />
           <SpF label="Adresse (für die Navigation)" name="address" value={st.address} place="addr" wide />
           <SpF label="GPS" name="gps" value={st.gps} ph="GPS-Koordinaten (z. B. 48.35, 11.79)" wide />
+          <div className="sp3-f wide"><button type="button" data-travel-map className="sp3-btn" onClick={async (e) => {
+            const f = e.currentTarget.closest('form'); if (!f) return; const gi = f.querySelector('[name=gps]'), ai = f.querySelector('[name=address]'), pi = f.querySelector('[name=place]');
+            if (!window.RtOrt) { window.rtNotice('Die Kartenwahl konnte nicht geladen werden. Bitte die Seite neu laden.'); return; }
+            let center = null; try { const l = JSON.parse(localStorage.getItem('rt_place_last_v1') || 'null'); if (Array.isArray(l)) center = l; } catch (x) {}
+            const res = await window.RtOrt.pick({ mode: 'addr', title: 'Punkt auf der Karte wählen', allowUnnamed: true, gps: parseGps(gi.value || ''), center, value: (ai.value || pi.value || '').trim() });
+            if (!res || !res.gps) return; gi.value = `${res.gps[0].toFixed(5)}, ${res.gps[1].toFixed(5)}`; if (!ai.value.trim() && res.value) ai.value = res.value; if (!pi.value.trim() && res.name) pi.value = res.name;
+            try { localStorage.setItem('rt_place_last_v1', JSON.stringify(res.gps)); } catch (x) {}
+          }}>Punkt auf der Karte wählen</button></div>
           <SpF label="Bezeichnung (optional)" name="title" value={st.title || ''} ph="eigener Titel" wide />
           <SpF label="Notiz" name="note" value={st.note} rows={2} ph="z. B. Flugnummer, Terminal, Parkhaus-Ebene" wide />
         </SpForm>); };
