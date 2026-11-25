@@ -562,3 +562,8 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 - Etappennamen einheitlich nach Ort (Tagesplan, Uebersicht). "Wo bin ich": Rückreise nicht mehr als "Hotel 8".
 - Planungsstand ist standardmaessig eingeklappt. Assistent: drei beschriftete Schritte, "Später" statt "Später weitermachen", Platzhalter "Name Person 1", "Ort noch offen".
 - Etappenseite am PC: Überschrift "Stopps auf dem Weg" bleibt über ihrem Inhalt. Heute: Abfahrt und Ankunft stehen nicht mehr doppelt.
+
+## v124
+- Neu: Anreisetag und Rückreisetag als Ablauf. Auf der Etappenseite (erste Etappe und Rückreise-Etappe, Reiter „Weg“) lassen sich die Schritte einzeln eintragen, jeweils mit Uhrzeit, Ort und Notiz: Losfahren von zu Hause, Ankunft am Abflughafen, Abflug, Umstieg (Ankunft und Abflug), Landung, Mietwagen übernehmen, Weiterfahrt zum Hotel. Die Rückreise läuft in umgekehrter Reihenfolge.
+- „Mit Flug“ übernimmt vorhandene Flug- und Mietwagendaten als Vorschlag, „Nur mit dem Auto“ legt einen kurzen Ablauf an. Schritte lassen sich bearbeiten, verschieben, löschen und ergänzen.
+- Der Ablauf erscheint auch im Tagesplan (Planen und Heute).
