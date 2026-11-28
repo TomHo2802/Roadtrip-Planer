@@ -89,7 +89,7 @@
       let from = 0, to = steps.length - 1;
       if (kind === 'out') { const li = steps.map((x) => x.type).lastIndexOf('land'); if (fly) from = li >= 0 ? li : steps.findIndex((x) => x.type === 'dep') + 1; }
       else if (fly) { const di = steps.findIndex((x) => x.type === 'dep'); to = di >= 0 ? di : steps.findIndex((x) => x.type === 'apt'); if (to < 0) to = steps.length - 1; }
-      const pts = steps.slice(from, to + 1).filter((x) => x.type !== 'home' && x.type !== 'park' && G(x)).map((x) => ({ g: G(x), label: rtTdLabel(kind, x), ok: !!String(x.time || '').trim() }));
+      const pts = steps.map((x, i) => ({ x, i })).slice(from, to + 1).filter(({ x }) => x.type !== 'home' && x.type !== 'park' && G(x)).map(({ x, i }) => ({ g: G(x), label: rtTdLabel(kind, x), ok: !!String(x.time || '').trim(), row: 'tr:' + i }));
       let ref = null;
       if (fly) { const cand = kind === 'out' ? steps.slice(0, from).reverse().find((x) => G(x) && (x.type === 'apt' || x.type === 'dep' || x.type === 'layD' || x.type === 'layA')) : steps.slice(to + 1).find((x) => G(x) && (x.type === 'layA' || x.type === 'land' || x.type === 'park' || x.type === 'home')); ref = cand ? G(cand) : null; }
       return { pts, ref, anchor: pts.length ? pts[kind === 'out' ? 0 : pts.length - 1].g : null };
@@ -99,10 +99,11 @@
       const pts = ((trip && trip.stages) || []).map((s, i) => { const g = parseGps((s.hotel || {}).gps || '') || parseGps(s.toGps || ''); const r = S.rows[i]; const why = r ? [!r.named ? 'Ziel' : '', r.hotelNeed && !r.hotel ? 'Hotel' : '', r.routeNeed && !r.route ? 'Strecke' : ''].filter(Boolean) : []; return g ? { g, i, id: s.id, name: s.toCity, miss: !!(r && r.open > 0), why } : null; }).filter(Boolean);
       const extra = []; let noGps = 0;
       ((trip && trip.stages) || []).forEach((s) => {
-        (s.localAttractions || []).forEach((a) => { const g = parseGps(a.gps || ''); if (!g) { noGps++; return; } const why = [!String(a.name || '').trim() ? 'Name' : '', !String(a.time || '').trim() ? 'Uhrzeit' : ''].filter(Boolean); extra.push({ g, kind: 'act', id: s.id, name: a.name || 'Aktion', ok: !why.length, why }); });
-        ((s.routeToHotel || {}).stopsOnWay || []).forEach((a) => { const g = parseGps(a.gps || ''); if (!g) { noGps++; return; } const why = [!String(a.name || '').trim() ? 'Name' : '', !String(a.time || '').trim() ? 'Zeitpunkt' : ''].filter(Boolean); extra.push({ g, kind: 'stop', id: s.id, name: a.name || 'Stopp', ok: !why.length, why }); });
+        (s.localAttractions || []).forEach((a, ai) => { const g = parseGps(a.gps || ''); if (!g) { noGps++; return; } const why = [!String(a.name || '').trim() ? 'Name' : '', !String(a.time || '').trim() ? 'Uhrzeit' : ''].filter(Boolean); extra.push({ g, kind: 'act', row: 'act:' + ai, tab: 'do', id: s.id, name: a.name || 'Aktion', ok: !why.length, why }); });
+        ((s.routeToHotel || {}).stopsOnWay || []).forEach((a, ai) => { const g = parseGps(a.gps || ''); if (!g) { noGps++; return; } const why = [!String(a.name || '').trim() ? 'Name' : '', !String(a.time || '').trim() ? 'Zeitpunkt' : ''].filter(Boolean); extra.push({ g, kind: 'stop', row: 'stop:' + ai, tab: 'way', id: s.id, name: a.name || 'Stopp', ok: !why.length, why }); });
       });
       const TR = ['out', 'back'].map((k) => ({ k, ...rtTravelMapPts(trip, k) })).map((t) => ({ ...t, pts: t.pts.filter((q) => !pts.some((p) => haversineM(p.g, q.g) < 150)) }));
+      const jump = (id, step, row) => { window.__rtFocusRow = row ? { stageId: id, row } : null; window.dispatchEvent(new CustomEvent('rt-stage-open', { detail: { stageId: id, step } })); };
       const sig = pts.map((p) => `${p.i}:${p.g.join(',')}:${p.miss ? 1 : 0}`).join('|') + '@' + extra.map((e) => `${e.kind}${e.g.join(',')}${e.ok ? 1 : 0}`).join('|') + '#' + TR.map((t) => `${t.k}:${t.pts.map((q) => q.g.join(',') + (q.ok ? 1 : 0)).join(';')}:${(t.ref || []).join(',')}`).join('|');
       useEffect(() => {
         if (!window.L || !el.current || mapRef.current) return; const L = window.L;
@@ -116,10 +117,10 @@
         if (pts.length > 1) L.polyline(pts.map((p) => p.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
         TR.forEach((t) => {
           if (t.pts.length > 1) L.polyline(t.pts.map((q) => q.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
-          t.pts.forEach((q) => L.marker(q.g, { title: q.ok ? q.label : `${q.label} (Uhrzeit fehlt)`, zIndexOffset: -100, icon: L.divIcon({ className: '', html: `<div class="mk2 tr ${q.ok ? 'ok' : 'bad'}" data-map-travel="${t.k}">${t.k === 'out' ? '✈' : '⌂'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] }) }).on('click', () => onOpen(RT_TRAVEL_ID[t.k])).addTo(grp.current));
+          t.pts.forEach((q) => L.marker(q.g, { title: q.ok ? q.label : `${q.label} (Uhrzeit fehlt)`, zIndexOffset: -100, icon: L.divIcon({ className: '', html: `<div class="mk2 tr ${q.ok ? 'ok' : 'bad'}" data-map-travel="${t.k}">${t.k === 'out' ? '✈' : '⌂'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] }) }).on('click', () => jump(RT_TRAVEL_ID[t.k], 'way', q.row)).addTo(grp.current));
         });
-        extra.forEach((e) => L.marker(e.g, { title: e.ok ? e.name : `${e.name} (fehlt: ${e.why.join(', ')})`, zIndexOffset: -50, icon: L.divIcon({ className: '', html: `<div class="mk2 sm ${e.kind} ${e.ok ? 'ok' : 'bad'}" data-map-${e.kind}>${e.kind === 'act' ? '★' : ''}</div>`, iconSize: [18, 18], iconAnchor: [9, 9] }) }).on('click', () => onOpen(e.id)).addTo(grp.current));
-        pts.forEach((p) => L.marker(p.g, { title: p.miss ? `${p.name} (fehlt: ${p.why.join(', ')})` : p.name, zIndexOffset: 100, icon: L.divIcon({ className: '', html: `<div class="mk2 ${p.miss ? 'bad' : 'ok'}" data-map-stage="${p.i + 1}">${p.i + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).on('click', () => onOpen(p.id)).addTo(grp.current));
+        extra.forEach((e) => L.marker(e.g, { title: e.ok ? e.name : `${e.name} (fehlt: ${e.why.join(', ')})`, zIndexOffset: -50, icon: L.divIcon({ className: '', html: `<div class="mk2 sm ${e.kind} ${e.ok ? 'ok' : 'bad'}" data-map-${e.kind}>${e.kind === 'act' ? '★' : ''}</div>`, iconSize: [18, 18], iconAnchor: [9, 9] }) }).on('click', () => jump(e.id, e.tab, e.row)).addTo(grp.current));
+        pts.forEach((p) => L.marker(p.g, { title: p.miss ? `${p.name} (fehlt: ${p.why.join(', ')})` : p.name, zIndexOffset: 100, icon: L.divIcon({ className: '', html: `<div class="mk2 ${p.miss ? 'bad' : 'ok'}" data-map-stage="${p.i + 1}">${p.i + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).on('click', () => jump(p.id, p.why && p.why.includes('Hotel') ? 'hotel' : p.why && p.why.includes('Strecke') ? 'way' : 'hotel', null)).addTo(grp.current));
         const drawHint = () => { if (!hint.current) return; hint.current.clearLayers(); TR.forEach((t) => { if (!t.ref || !t.anchor) return; const a = map.latLngToContainerPoint(t.anchor), r = map.latLngToContainerPoint(t.ref); const dx = r.x - a.x, dy = r.y - a.y, len = Math.hypot(dx, dy); if (len < 40) return; const f = Math.min(1, 90 / len); const end = map.containerPointToLatLng(L.point(a.x + dx * f, a.y + dy * f)); L.polyline([t.anchor, end], { color: '#64748B', weight: 3, opacity: 0.9, dashArray: '2 8', lineCap: 'round', interactive: false }).addTo(hint.current); }); };
         const allG = [...pts.map((p) => p.g), ...extra.map((e) => e.g), ...TR.flatMap((t) => t.pts.map((q) => q.g))];
         const fit = () => { if (allG.length) { try { map.invalidateSize(); map.fitBounds(window.L.latLngBounds(allG), { padding: [24, 24], maxZoom: 9, animate: false }); } catch (e) {} } drawHint(); };
@@ -309,6 +310,7 @@
     function RtTravelSteps({ kind, trip, save }) {
       const out = kind === 'out'; const steps = rtTdSteps(trip, kind);
       const [edit, setEdit] = useState(null); const [openRow, setOpenRow] = useState(null);
+      useEffect(() => { const f = window.__rtFocusRow; if (!f || f.stageId !== RT_TRAVEL_ID[kind]) return; window.__rtFocusRow = null; setOpenRow(f.row); setTimeout(() => { try { const el = document.querySelector(`[data-row-key="${f.row}"]`); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (x) {} }, 200); }, []);
       const types = Object.entries(RT_TD[kind]);
       const hasFl = (trip.flights || []).some((f) => rtFlightFilled(f) && (out ? /^hin/i.test(f.direction || '') : /^r(ü|ue)ck/i.test(f.direction || '')));
       const commit = (fn, toast, undo) => { const before = trip; save({ ...trip, travelDays: { ...(trip.travelDays || {}), [kind]: fn(steps) } }, toast); if (undo) rtUndo(undo, before); };
@@ -345,7 +347,7 @@
             </div>
           </div>}
           {dnd.order.map((i, pos) => { const st = steps[i]; const nav = rtTdNav(st); const open = openRow === 'tr:' + i && dnd.dragging == null; return edit === 'tr:' + i ? <div key={st.id || i} className="sp3-in">{form(i)}</div> : (
-            <div key={st.id || i} ref={dnd.setRef(i)} className={`sp3-row${open ? ' open' : ''}${steps.length > 1 && !IS_READ_ONLY_COPY && edit === null ? ' rt-sortable' : ''}${dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row data-travel-step data-step-id={st.id}>
+            <div key={st.id || i} ref={dnd.setRef(i)} className={`sp3-row${open ? ' open' : ''}${steps.length > 1 && !IS_READ_ONLY_COPY && edit === null ? ' rt-sortable' : ''}${dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row data-travel-step data-row-key={'tr:' + i} data-step-id={st.id}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onPointerDown={(e) => dnd.onPointerDown(i, e)} onContextMenu={(e) => { if (dnd.dragging != null) e.preventDefault(); }}>
                 <button type="button" data-readonly-allow data-dnd-ok className="sp3-rowbtn" style={{ flex: 1, minWidth: 0 }} aria-expanded={open} onKeyDown={(e) => dnd.keyMove(i, e)} onClick={() => { if (dnd.wasDrag()) return; setOpenRow(open ? null : 'tr:' + i); }}>
                   {steps.length > 1 && !IS_READ_ONLY_COPY && edit === null && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}<span className="sp3-lead">{pos + 1}</span>
@@ -421,6 +423,7 @@
       const [day, setDay] = useState(0);
       useEffect(() => { setEdit(null); setOpenRow(null); setDay(0); }, [stage.id]);
       useEffect(() => { setEdit(null); setOpenRow(null); }, [tabNow]);
+      useEffect(() => { const f = window.__rtFocusRow; if (!f || f.stageId !== stage.id) return; window.__rtFocusRow = null; setOpenRow(f.row); setTimeout(() => { try { const el = document.querySelector(`[data-row-key="${f.row}"]`); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (x) {} }, 200); }, [stage.id, tabNow]);
       const hasHotel = !!(h && String(h.name || '').trim());
       const miss = !isRet && !hasHotel;
       const prev = idx > 0 ? stages[idx - 1] : { id: 'travel-out' }, next = idx < n - 1 ? stages[idx + 1] : { id: 'travel-back' };
@@ -632,7 +635,7 @@
     function SpRow({ k, open, setOpen, lead, title, sub, children, dnd, i }) {
       const can = !!(dnd && dnd.can), isOpen = open && !(dnd && dnd.dragging != null);
       return (
-        <div ref={dnd ? dnd.setRef(i) : undefined} className={`sp3-row${isOpen ? ' open' : ''}${can ? ' rt-sortable' : ''}${can && dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row>
+        <div ref={dnd ? dnd.setRef(i) : undefined} data-row-key={k} className={`sp3-row${isOpen ? ' open' : ''}${can ? ' rt-sortable' : ''}${can && dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row>
           <button type="button" data-readonly-allow data-dnd-ok className="sp3-rowbtn" aria-expanded={isOpen} onPointerDown={can ? (e) => dnd.onPointerDown(i, e) : undefined} onKeyDown={can ? (e) => dnd.keyMove(i, e) : undefined} onContextMenu={can ? (e) => { if (dnd.dragging != null) e.preventDefault(); } : undefined} onClick={() => { if (dnd && dnd.wasDrag()) return; setOpen(open ? null : k); }}>
             {can && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}
             <span className="sp3-lead">{lead}</span>

@@ -598,3 +598,6 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 
 ## v132
 - Etappenkarte (Planen) entwickelt sich mit den Eingaben: Etappenpunkte sind grün, wenn Ziel, Hotel und Strecke vollständig sind, sonst rot (Hinweis im Tooltip, was fehlt). Mit eingetragenem Hotel liegt der Punkt an den Hotel-Koordinaten. Aktionen vor Ort (★) und Stopps unterwegs (kleiner Punkt) mit GPS werden eingezeichnet: grün mit Name und Uhrzeit, sonst rot. Anreise-/Rückreisepunkte sind grün mit Uhrzeit, sonst rot. Legende unter der Karte, Hinweis auf Einträge ohne Koordinaten.
+
+## v133
+- Etappenkarte: Ein Klick auf ein Symbol springt direkt zum Eintrag: Aktion (★) → Etappe, Reiter „Aktionen“, Eintrag aufgeklappt; Stopp → Reiter „Weg“, Stopp aufgeklappt; Etappenpunkt → Reiter „Hotel“ (bei fehlender Strecke „Weg“); ✈/⌂ → Anreise bzw. Rückreise mit aufgeklapptem Schritt. Die Seite scrollt zum Eintrag.
