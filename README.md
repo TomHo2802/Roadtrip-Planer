@@ -592,3 +592,6 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 
 ## v130
 - Etappenkarte (Planen): Die Punkte von Anreise und Rückreise erscheinen mit Anreise-Symbol (✈) bzw. Rückreise-Symbol (⌂) statt einer Nummer, verbunden durch die Fahrstrecke. Bei der Anreise ab der Landung (Mietwagen, Weiterfahrt zum Hotel), bei der Rückreise bis zum Abflug (Hotel, Mietwagenrückgabe, Flughafen). Der Flug selbst wird nur als gepunktete Linie in Richtung des Abflug- bzw. Zielflughafens angedeutet. Ein Klick auf den Punkt öffnet die Anreise bzw. Rückreise. Voraussetzung: der Schritt hat GPS-Koordinaten.
+
+## v131
+- Anreise: Der Schritt „Weiterfahrt zum Hotel“ (bzw. „Ankunft im Hotel“) übernimmt automatisch Name, Adresse und GPS des Hotels der 1. Etappe, Rückreise: „Abfahrt vom Hotel“ das Hotel der letzten Etappe mit Hotel. Änderungen am Hotel wirken sofort; wird der Schritt von Hand mit anderen Werten gespeichert, bleibt er unabhängig. Das gilt auch für Navigation, Karte und Tagesplan.

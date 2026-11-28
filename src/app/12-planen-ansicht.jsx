@@ -230,7 +230,11 @@
     const rtIsTravelId = (id) => id === 'travel-out' || id === 'travel-back';
     const rtTdLabel = (kind, st) => (st.title && String(st.title).trim()) || (RT_TD[kind] || {})[st.type] || 'Schritt';
     const rtTdTime = (v) => { const m = String(v || '').match(/(\d{1,2}):(\d{2})/); return m ? `${m[1].padStart(2, '0')}:${m[2]}` : ''; };
-    const rtTdSteps = (trip, kind) => { const t = (trip.travelDays || {})[kind]; if (Array.isArray(t)) return t; const st = trip.stages || []; const s = kind === 'out' ? st[0] : st.find((x, i) => rtIsRet(st, i)); return s && Array.isArray(s.travelSteps) ? s.travelSteps : []; };
+    // Hotel-Schritte übernehmen live das Hotel: Anreise = Hotel der 1. Etappe, Rückreise = Hotel der letzten Etappe mit Hotel (außer der Schritt wurde von Hand geändert)
+    const rtTdHotel = (trip, kind) => { const st = trip.stages || []; const has = (x) => String(((x || {}).hotel || {}).name || '').trim(); const s0 = kind === 'out' ? (has(st[0]) ? st[0] : st.find(has)) : [...st].reverse().find(has); return s0 ? s0.hotel : null; };
+    const rtTdLinked = (kind, st) => (kind === 'out' ? (st.type === 'hotel' || st.type === 'arr') : st.type === 'hotel') && !st.manual;
+    const rtTdRaw = (trip, kind) => { const t = (trip.travelDays || {})[kind]; if (Array.isArray(t)) return t; const st = trip.stages || []; const s = kind === 'out' ? st[0] : st.find((x, i) => rtIsRet(st, i)); return s && Array.isArray(s.travelSteps) ? s.travelSteps : []; };
+    const rtTdSteps = (trip, kind) => { const raw = rtTdRaw(trip, kind); const h = rtTdHotel(trip, kind); if (!h) return raw; return raw.map((x) => (rtTdLinked(kind, x) ? { ...x, place: h.name || x.place || '', address: h.address || x.address || '', gps: h.gps || x.gps || '' } : x)); };
     const rtTdNav = (st) => { const q = (st.gps && String(st.gps).trim()) || [st.place, st.address].filter(Boolean).join(' ').trim(); return q ? `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(q)}` : ''; };
     const rtTdTemplate = (trip, kind, mode) => {
       const out = kind === 'out'; const meta = trip.meta || {}; const stages = trip.stages || []; let n = 0;
@@ -239,8 +243,7 @@
       const fl = (trip.flights || []).filter((f) => rtFlightFilled(f) && (out ? isOut(f) : isBack(f))).slice().sort((a, b) => { const A = hlParseFlight(a), B = hlParseFlight(b); return A && B ? (Date.UTC(A.y, A.m - 1, A.d, ...A.dt) - Date.UTC(B.y, B.m - 1, B.d, ...B.dt)) : 0; });
       const car = (trip.rentalCars || []).filter(rtCarFilled).find((c) => (out ? (c.pickupLocation || c.pickupDate) : (c.dropoffLocation || c.dropoffDate)));
       const home = String(meta.startLocation || '').trim();
-      const hs = out ? stages.find((s) => String(((s || {}).hotel || {}).name || '').trim()) : [...stages].reverse().find((s) => String(((s || {}).hotel || {}).name || '').trim());
-      const hh = (hs && hs.hotel) || {}; const hotelStep = (type) => mk(type, '', hh.name || '', '', { address: hh.address || '', gps: hh.gps || '' });
+      const hh = rtTdHotel(trip, kind) || {}; const hotelStep = (type) => mk(type, '', hh.name || '', '', { address: hh.address || '', gps: hh.gps || '' });
       const carStep = () => car ? mk('car', rtTdTime(out ? car.pickupTime : car.dropoffTime), [car.provider, out ? car.pickupLocation : car.dropoffLocation].filter(Boolean).join(' · '), out ? '' : (car.dropoffTime && !rtTdTime(car.dropoffTime) ? car.dropoffTime : '')) : mk('car');
       if (mode === 'car') return out ? [mk('home', '', home), hotelStep('arr')] : [hotelStep('hotel'), mk('home', '', home)];
       const fn = (f) => [f.flightNumber, [String(f.from || '').split(' ')[0], String(f.to || '').split(' ')[0]].filter(Boolean).join(' → ')].filter(Boolean).join(' · ');
@@ -302,7 +305,7 @@
       const hasFl = (trip.flights || []).some((f) => rtFlightFilled(f) && (out ? /^hin/i.test(f.direction || '') : /^r(ü|ue)ck/i.test(f.direction || '')));
       const commit = (fn, toast, undo) => { const before = trip; save({ ...trip, travelDays: { ...(trip.travelDays || {}), [kind]: fn(steps) } }, toast); if (undo) rtUndo(undo, before); };
       const init = (mode) => commit(() => rtTdTemplate(trip, kind, mode), out ? 'Ablauf für die Anreise angelegt' : 'Ablauf für die Rückreise angelegt');
-      const saveStep = (i, v) => { const o = { type: v.type || 'other', time: v.time, place: v.place, address: v.address, gps: v.gps, note: v.note, title: v.title }; commit((L) => i == null ? [...L, { id: `td-${Date.now().toString(36)}`, ...o }] : L.map((x, k) => (k === i ? { ...x, ...o } : x)), 'Gespeichert'); setEdit(null); };
+      const saveStep = (i, v) => { const o = { type: v.type || 'other', time: v.time, place: v.place, address: v.address, gps: v.gps, note: v.note, title: v.title }; { const hh = rtTdHotel(trip, kind); const link = (kind === 'out' ? (o.type === 'hotel' || o.type === 'arr') : o.type === 'hotel'); o.manual = !(link && hh && (o.place || '') === (hh.name || '') && (o.address || '') === (hh.address || '') && (o.gps || '') === (hh.gps || '')) && link; } commit((L) => i == null ? [...L, { id: `td-${Date.now().toString(36)}`, ...o }] : L.map((x, k) => (k === i ? { ...x, ...o } : x)), 'Gespeichert'); setEdit(null); };
       const delStep = (i) => { commit((L) => L.filter((_, k) => k !== i), '', `Schritt „${rtTdLabel(kind, steps[i] || {})}“ gelöscht`); setEdit(null); setOpenRow(null); };
       const reorder = (from, to) => commit((L) => { const A = [...L]; const [m] = A.splice(from, 1); A.splice(to, 0, m); return A; }, 'Reihenfolge geändert');
       const dnd = rtUseDragSort(steps.length, reorder, !IS_READ_ONLY_COPY && edit === null);
