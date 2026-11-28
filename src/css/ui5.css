@@ -195,7 +195,7 @@ html[data-dark="1"] .rt4-note,html[data-dark="1"] .rt4-warn{background:#4A3A12;c
 .sp3-h{break-after:avoid}
 
 /* v127: Ziehen zum Sortieren */
-html:not([data-ui="classic"]) .rt-sortable > div:first-child .sp3-rowbtn{cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html:not([data-ui="classic"]) .rt-sortable .sp3-rowbtn{cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 html:not([data-ui="classic"]) .rt-dragging{position:relative;z-index:40;background:var(--u-surface,#fff);border-radius:14px;box-shadow:0 10px 28px rgba(15,23,42,.28);outline:2px solid var(--u-accent,#1F4E8C);will-change:transform}
 html:not([data-ui="classic"]) .rt-dragging *{cursor:grabbing!important}
 html.rt-drag-on,html.rt-drag-on *{user-select:none!important;-webkit-user-select:none!important;cursor:grabbing!important}
@@ -203,3 +203,13 @@ html[data-dark="1"]:not([data-ui="classic"]) .rt-dragging{background:#1e293b;box
 .rt-grip{flex:0 0 auto;width:12px;height:20px;margin-right:2px;margin-left:-4px;opacity:.55;background-image:radial-gradient(circle,currentColor 1.5px,transparent 1.8px);background-size:6px 6px;background-position:0 1px;color:var(--u-muted,#64748b)}
 .rt-sortable:hover .rt-grip,.rt-dragging .rt-grip{opacity:1}
 html[data-dark="1"] .rt-grip{color:#94a3b8}
+
+/* v129: Sortieren auch bei einfachen Zeilen (Aktionen, Assistent, Kartenplanung, Etappenliste) */
+.rt-sortable{touch-action:pan-y;-webkit-touch-callout:none}
+html:not([data-ui="classic"]) .rt-sortable:not(.sp3-row){cursor:grab;user-select:none;-webkit-user-select:none}
+html:not([data-ui="classic"]) .rt-sortable:not(.sp3-row) a,html:not([data-ui="classic"]) .rt-sortable:not(.sp3-row) input,html:not([data-ui="classic"]) .rt-sortable:not(.sp3-row) button{cursor:auto}
+html:not([data-ui="classic"]) .rt-sortable .rt2-open{cursor:grab}
+html:not([data-ui="classic"]) .rt-sortable.rt2-row .rt2-open{user-select:none;-webkit-user-select:none;touch-action:pan-y}
+html:not([data-ui="classic"]) .rt-dragging:not(.sp3-row){background:var(--u-surface,#fff)}
+.rt-dragging{position:relative;z-index:60}
+li.rt-dragging{list-style:none}

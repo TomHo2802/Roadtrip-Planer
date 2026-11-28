@@ -721,6 +721,7 @@
         mk.openPopup();
       };
       const move = (i, d) => setSel((s) => { const j = i + d; if (j < 0 || j >= s.length) return s; const n = [...s]; [n[i], n[j]] = [n[j], n[i]]; return n; });
+      const dndSel = rtUseDragSort(selPoints.length, (from, to) => setSel(() => { const ks = selPoints.map((p) => p.key); const [m] = ks.splice(from, 1); ks.splice(to, 0, m); return ks; }), !IS_READ_ONLY_COPY);
       const gmapsRouteUrl = () => {
         const c = selPoints.map((p) => `${p.gps[0]},${p.gps[1]}`);
         if (c.length < 2) return '#';
@@ -787,20 +788,19 @@
               {sel.length < 2 && <p className="text-sm text-slate-600">Wähle mindestens zwei Punkte (Marker auf der Karte oder in der Ortsliste unten antippen). Die Reihenfolge ist A, B, C … und lässt sich hier ändern.</p>}
               {selPoints.length > 0 && (
                 <ol className="space-y-1.5">
-                  {selPoints.map((p, i) => (
+                  {dndSel.order.map((oi, i) => { const p = selPoints[oi]; return (
                     <li key={p.key}>
-                      <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+                      <div ref={dndSel.setRef(oi)} onPointerDown={(e) => dndSel.onPointerDown(oi, e)} onContextMenu={(e) => { if (dndSel.dragging != null) e.preventDefault(); }} className={`flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5${dndSel.can ? ' rt-sortable' : ''}${dndSel.can && dndSel.dragging === oi ? ' rt-dragging' : ''}`}>
+                        {dndSel.can && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}
                         <span className="w-6 h-6 rounded-full bg-red-600 text-white text-xs font-extrabold flex items-center justify-center shrink-0">{letter(i)}</span>
                         <span className="min-w-0 flex-1 text-sm font-semibold truncate">{typeIcon(p.type)}{p.name}<span className="text-xs font-normal text-slate-500"> · Etappe {p.stageIdx + 1}</span></span>
-                        <button type="button" aria-label="Nach oben" disabled={i === 0} onClick={() => move(i, -1)} className="w-9 h-9 rounded border border-slate-300 disabled:opacity-30">↑</button>
-                        <button type="button" aria-label="Nach unten" disabled={i === selPoints.length - 1} onClick={() => move(i, 1)} className="w-9 h-9 rounded border border-slate-300 disabled:opacity-30">↓</button>
                         <button type="button" aria-label="Entfernen" onClick={() => toggleSel(p.key)} className="w-9 h-9 rounded border border-rose-300 text-rose-700">✕</button>
                       </div>
                       {route && route.legs && route.legs[i] && i < selPoints.length - 1 && selPoints.length > 1 && (
                         <div className="ml-3 pl-5 border-l-2 border-red-300 py-1 text-xs text-slate-600">↓ {fmtKm(route.legs[i].dist)}{route.legs[i].dur != null ? ` · ${fmtDur(route.legs[i].dur)}` : ''}</div>
                       )}
                     </li>
-                  ))}
+                  ); })}
                 </ol>
               )}
               {route && sel.length >= 2 && (

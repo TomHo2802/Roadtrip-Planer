@@ -585,3 +585,7 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 
 ## v128
 - Sortierbare Einträge zeigen links einen Griff (sechs Punkte), damit das Ziehen erkennbar ist. Zunächst bei den Anreise-/Rückreise-Schritten.
+
+## v129
+- Sortieren per Ziehen (Maustaste halten und ziehen, Touch: kurz halten) mit Griff-Symbol jetzt auch bei: Etappenliste (Daten und Startorte werden wie bisher neu verkettet), Stopps unterwegs, Aktionen vor Ort im Tagesplan, Etappen im Planungsassistenten und der Punktliste der Kartenplanung. Die ↑↓-Buttons dort entfallen (Tastatur: Alt + Pfeil bei Stopps und Etappen). Die klassische Ansicht behält ihre Pfeile.
+- `rtUseDragSort` erkennt einen scrollbaren Container (z. B. Dialoge) und scrollt beim Ziehen am Rand automatisch.

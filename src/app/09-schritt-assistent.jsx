@@ -120,6 +120,7 @@
         setTimeout(() => { window.dispatchEvent(new CustomEvent('rt-assist', { detail: { stageId, step: which } })); const el = document.getElementById('stage-card-' + stageId); if (el) el.scrollIntoView({ block: 'start' }); }, 450);
       };
 
+      const dndW = rtUseDragSort(sd.length, (from, to) => { const c = [...sd]; const [m] = c.splice(from, 1); c.splice(to, 0, m); setSd(c); }, true);
       if (min) return <button type="button" data-wz-pill onClick={() => setMin(false)} className="fixed bottom-20 md:bottom-6 right-4 z-[65] min-h-[48px] px-5 rounded-full bg-[#1F4E8C] text-white font-bold shadow-xl border-2 border-white"><Ic n="compass" />Zurück zum Schritt-Assistenten</button>;
 
       const thr = Number(d.maxDrive) || 5; const prevCity = (i) => (i > 0 ? (sd[i - 1].city || 'Ziel') : (d.startLocation || meta.startLocation || 'Start'));
@@ -221,9 +222,10 @@
                   </div>
                 )}
                 <ol className="space-y-2">
-                  {sd.map((x, i) => (
-                    <li key={x.id} data-wz-row className="rounded-xl border border-slate-200 bg-white p-3">
+                  {dndW.order.map((oi, i) => { const x = sd[oi]; return (
+                    <li key={x.id} data-wz-row ref={dndW.setRef(oi)} onPointerDown={(e) => dndW.onPointerDown(oi, e)} onContextMenu={(e) => { if (dndW.dragging != null) e.preventDefault(); }} className={`rounded-xl border border-slate-200 bg-white p-3${dndW.can ? ' rt-sortable' : ''}${dndW.can && dndW.dragging === oi ? ' rt-dragging' : ''}`}>
                       <div className="flex flex-wrap items-center gap-2">
+                        {dndW.can && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}
                         <span className="h-8 w-8 shrink-0 rounded-full bg-[#1F4E8C] text-white font-bold flex items-center justify-center text-sm">{i + 1}</span>
                         <input data-place="city" data-wz-city type="text" aria-label={`Ort der Etappe ${i + 1}`} value={x.city} onChange={(e) => upd(i, { city: e.target.value })} placeholder={i === 0 ? 'Erster Übernachtungsort, z. B. Innsbruck' : 'Ort der Übernachtung'} className="flex-1 min-w-[140px] h-11 px-3 rounded-lg border border-slate-300 bg-white text-slate-900" />
                         <div className="flex items-center gap-1" aria-label="Nächte">
@@ -232,14 +234,12 @@
                           <button type="button" aria-label="Eine Nacht mehr" data-wz-more onClick={() => nightsMore(i)} className="h-11 w-11 rounded-lg border border-slate-300 text-lg font-bold">+</button>
                         </div>
                         <div className="flex gap-1">
-                          <button type="button" aria-label="Nach oben" disabled={i === 0} onClick={() => move(i, -1)} className="h-9 w-9 rounded-lg border border-slate-300 disabled:opacity-30">↑</button>
-                          <button type="button" aria-label="Nach unten" disabled={i === sd.length - 1} onClick={() => move(i, 1)} className="h-9 w-9 rounded-lg border border-slate-300 disabled:opacity-30">↓</button>
                           <button type="button" aria-label="Etappe entfernen" data-wz-rm onClick={() => rm(i)} className="h-9 w-9 rounded-lg border border-slate-300 text-slate-700">🗑</button>
                         </div>
                       </div>
                       <div className="mt-1.5 text-xs text-slate-600">{x.city ? <>{prevCity(i)} → {x.city}</> : 'Ort noch offen'}{dates[i] ? ` · ${wzRange(dates[i][0], dates[i][1])}` : ''}</div>
                     </li>
-                  ))}
+                  ); })}
                 </ol>
               </>}
               {cur.id === 'details' && (stg && dd && dd.id === stg.id ? <>

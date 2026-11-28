@@ -152,14 +152,16 @@
       const wide = useWide(); const canOrder = !IS_READ_ONLY_COPY && acts.length > 1;
       const routePts = tl ? tl.events.filter((e) => e.gps).map((e, i) => ({ g: e.gps, t: e.title, n: i + 1 })) : [];
       const actPts = acts.map((a, i) => ({ g: parseGps(a.gps || ''), t: a.name || '', n: i + 1 })).filter((x) => x.g);
-      const moveAct = (i, dir) => {
-        const j = i + dir; if (j < 0 || j >= acts.length) return; const A = acts[i].id, B = acts[j].id;
+      const moveAct = (i, dir) => { const j = i + dir; if (j < 0 || j >= acts.length) return; reorderAct(i, j); };
+      const reorderAct = (from, to) => {
+        if (from === to || !acts[from] || !acts[to]) return; const ids = acts.map((a) => a.id); const [mv] = ids.splice(from, 1); ids.splice(to, 0, mv);
         const nc = Math.max(1, parseInt(stage.nights, 10) || 1);
         const list = (stage.localAttractions || []).map((x, k) => ({ ...x, day: String(Math.min(nc, Math.max(1, x.day ? parseInt(x.day, 10) : (k % nc) + 1))) }));
-        const ia = list.findIndex((x) => x.id === A), ib = list.findIndex((x) => x.id === B); if (ia < 0 || ib < 0) return;
-        const t = list[ia]; list[ia] = list[ib]; list[ib] = t;
+        const slots = acts.map((a) => list.findIndex((x) => x.id === a.id)); if (slots.some((x) => x < 0)) return; const orig = slots.map((x) => list[x]);
+        ids.forEach((id, k) => { list[slots[k]] = orig.find((x) => x.id === id); });
         onSave({ ...trip, stages: (trip.stages || []).map((st) => (st.id === stage.id ? { ...st, localAttractions: list } : st)) }, 'Reihenfolge geändert');
       };
+      const dndActs = rtUseDragSort(acts.length, reorderAct, canOrder);
       const h = stage.hotel || {};
       return (
         <article className={`rounded-2xl border bg-white p-4 space-y-3 ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'}`}>
@@ -235,16 +237,16 @@
             <div className="space-y-1.5">
               <div className="text-xs font-bold text-slate-700">{day.kind === 'travel' ? 'Danach vor Ort' : 'Aktionen für diesen Tag'}</div>
               {wide && <RtDayMap pts={actPts} cls="acts" label="Aktionen vor Ort, Reihenfolge in der Liste" />}
-              {acts.map((a, ai) => (
-                <div key={a.id} className="rounded-lg border border-amber-200 bg-amber-50 p-2 flex flex-wrap items-start justify-between gap-2">
+              {dndActs.order.map((oi, ai) => { const a = acts[oi]; return (
+                <div key={a.id} ref={dndActs.setRef(oi)} onPointerDown={(e) => dndActs.onPointerDown(oi, e)} onContextMenu={(e) => { if (dndActs.dragging != null) e.preventDefault(); }} className={`rounded-lg border border-amber-200 bg-amber-50 p-2 flex flex-wrap items-start justify-between gap-2${dndActs.can ? ' rt-sortable' : ''}${dndActs.can && dndActs.dragging === oi ? ' rt-dragging' : ''}`}>
+                  {dndActs.can && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}
                   <div className="rt3-actnum" aria-hidden="true">{ai + 1}</div>
                   <div className="min-w-0 flex-1"><div className="text-sm font-bold text-slate-900 break-words">{a.name}</div><div className="text-[11px] text-slate-600">{[a.category, a.time, a.booked].filter(Boolean).join(' · ')}{a.priceEur ? ` · ${formatEur(a.priceEur)}` : ''}</div></div>
                   <div className="flex items-center gap-1.5">
-                    {canOrder && <span className="rt3-ord"><button type="button" aria-label={`${a.name} nach oben`} disabled={ai === 0} onClick={() => moveAct(ai, -1)}>▲</button><button type="button" aria-label={`${a.name} nach unten`} disabled={ai === acts.length - 1} onClick={() => moveAct(ai, 1)}>▼</button></span>}
                     {parseGps(a.gps) && <NavLink gps={a.gps} address={a.address} name={a.name} />}
                   </div>
                 </div>
-              ))}
+              ); })}
             </div>
           )}
           {day.kind === 'stay' && acts.length === 0 && <div className="text-xs text-slate-500">Für diesen Tag sind noch keine Aktionen eingetragen. Vorschläge findest du im Tab „Karte“.</div>}

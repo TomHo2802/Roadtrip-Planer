@@ -58,17 +58,17 @@
     const rtTripKm = (trip) => Math.round(((trip && trip.stages) || []).reduce((a, s) => a + rtKmOf((s.routeToHotel || {}).distanceKm), 0));
     const RT_WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'], RT_MO = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
     const rtShortDate = (dr) => { const m = /(\d{1,2})\.(\d{1,2})\.(\d{4})?/.exec(String(dr || '')); if (!m) return ''; const y = m[3] || ((String(dr).match(/(\d{4})/) || [])[1]); if (!y) return `${+m[1]}. ${RT_MO[+m[2] - 1] || ''}`; const d = new Date(+y, +m[2] - 1, +m[1]); return `${RT_WD[d.getDay()]} ${+m[1]}. ${RT_MO[+m[2] - 1] || ''}`; };
-    function RtStageRow({ stage, idx, count, today, onOpen, onBasics, onUp, onDown, onDelete }) {
+    function RtStageRow({ stage, idx, count, today, onOpen, onBasics, onUp, onDown, onDelete, dnd, oi }) {
       const n = Math.max(0, parseInt(stage.nights, 10) || 0), h = (stage.hotel || {}).name, rt = stage.routeToHotel || {}, km = rtKmOf(rt.distanceKm);
       const ret = idx === count - 1 && count > 1 && n === 0, same = String(stage.fromCity || '').trim().toLowerCase() === String(stage.toCity || '').trim().toLowerCase();
       const missH = n > 0 && !String(h || '').trim(), missR = !same && !String(rt.distanceKm || '').trim(), acts = (stage.localAttractions || []).length;
       const to = String(stage.toCity || '').trim() || `Ziel Etappe ${idx + 1}`;
       return (
-        <div id={`stage-card-${stage.id}`} data-stage-row2={stage.id} className={`rt2-row ${missH || missR ? 'miss' : ''} ${today ? 'today today-stage' : ''}`}>
+        <div id={`stage-card-${stage.id}`} data-stage-row2={stage.id} ref={dnd ? dnd.setRef(oi) : undefined} className={`rt2-row ${missH || missR ? 'miss' : ''} ${today ? 'today today-stage' : ''}${dnd && dnd.can ? ' rt-sortable' : ''}${dnd && dnd.can && dnd.dragging === oi ? ' rt-dragging' : ''}`}>
           <span className="rt2-rail" aria-hidden="true"><span className="rt2-badge">{idx + 1}</span></span>
           <div className="rt2-body">
-            <button type="button" data-readonly-allow data-stage-open onClick={onOpen} className="rt2-open" aria-label={`Etappe ${idx + 1}: ${stage.fromCity || 'Start'} nach ${to} öffnen`}>
-              <span className="rt2-top"><span className="rt2-name">{to}{today && <span className="rt2-tag">Heute</span>}</span><span className="rt2-date">{rtShortDate(stage.dateRange)}{stage.fromCity && !same ? ` · ab ${String(stage.fromCity).split(',')[0]}` : ''}</span></span>
+            <button type="button" data-readonly-allow data-dnd-ok data-stage-open onClick={() => { if (dnd && dnd.wasDrag()) return; onOpen(); }} onPointerDown={dnd && dnd.can ? (e) => dnd.onPointerDown(oi, e) : undefined} onKeyDown={dnd && dnd.can ? (e) => dnd.keyMove(oi, e) : undefined} onContextMenu={dnd && dnd.can ? (e) => { if (dnd.dragging != null) e.preventDefault(); } : undefined} className="rt2-open" aria-label={`Etappe ${idx + 1}: ${stage.fromCity || 'Start'} nach ${to} öffnen`}>
+              <span className="rt2-top"><span className="rt2-name">{dnd && dnd.can && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} />}{to}{today && <span className="rt2-tag">Heute</span>}</span><span className="rt2-date">{rtShortDate(stage.dateRange)}{stage.fromCity && !same ? ` · ab ${String(stage.fromCity).split(',')[0]}` : ''}</span></span>
               <span className="rt2-sub">
                 {!ret && (missH ? <span className="rt2-hotel m" data-foot-chip="hotel" data-miss="1">Hotel fehlt</span> : <span className="rt2-hotel" data-foot-chip="hotel">{h}</span>)}
                 <span className="rt2-chips">
@@ -239,11 +239,13 @@
     };
 
     // ===== v127: Einträge per Ziehen sortieren (Maus: Taste halten und ziehen, Touch: kurz halten, dann ziehen; Tastatur: Alt + Pfeil) =====
+    function rtScrollParent(el) { for (let a = el && el.parentElement; a && a !== document.body; a = a.parentElement) { const o = getComputedStyle(a).overflowY; if ((o === 'auto' || o === 'scroll') && a.scrollHeight > a.clientHeight + 2) return a; } return window; }
     function rtUseDragSort(n, onDrop, enabled) {
       const [st, setSt] = useState(null);
       const rows = useRef([]); const g = useRef(null); const sup = useRef(false); const cb = useRef(onDrop); cb.current = onDrop;
       const place = () => { const c = g.current; if (!c || !c.active) return; const el = rows.current[c.from]; if (!el) return; el.style.transform = ''; const top = el.getBoundingClientRect().top; el.style.transform = `translateY(${Math.round(c.cy - c.grab - top)}px)`; };
-      const calcTo = () => { const c = g.current; const pageY = c.cy + window.scrollY; const center = pageY - c.grab + c.h / 2; let to = 0; c.centers.forEach((m, k) => { if (k !== c.from && m < center) to++; }); return to; };
+      const sOff = (c) => (c.sp === window ? window.scrollY : c.sp.scrollTop);
+      const calcTo = () => { const c = g.current; const pageY = c.cy + sOff(c); const center = pageY - c.grab + c.h / 2; let to = 0; c.centers.forEach((m, k) => { if (k !== c.from && m < center) to++; }); return to; };
       const update = () => { const c = g.current; if (!c || !c.active) return; const to = calcTo(); if (to !== c.to) { c.to = to; setSt({ from: c.from, to }); } place(); };
       const end = (apply) => {
         const c = g.current; if (!c) return; window.removeEventListener('pointermove', c.mv); window.removeEventListener('pointerup', c.up); window.removeEventListener('pointercancel', c.cn); window.removeEventListener('touchmove', c.tm); clearTimeout(c.timer); cancelAnimationFrame(c.raf);
@@ -251,14 +253,14 @@
         const was = c.active; g.current = null; if (was) { sup.current = true; setSt(null); if (apply && c.to !== c.from) cb.current(c.from, c.to); }
       };
       const start = (i, e) => {
-        if (!enabled || n < 2 || (e.pointerType === 'mouse' && e.button !== 0) || (e.target.closest && e.target.closest('a,input,select,textarea'))) return;
+        if (!enabled || n < 2 || (e.pointerType === 'mouse' && e.button !== 0) || (() => { const b = e.target.closest && e.target.closest('a,input,select,textarea,button,label'); return b && !b.hasAttribute('data-dnd-ok'); })()) return;
         sup.current = false; if (g.current) end(false);
         const c = { from: i, to: i, sx: e.clientX, sy: e.clientY, cy: e.clientY, type: e.pointerType, active: false, centers: [], grab: 0, h: 0, raf: 0, timer: 0 };
         const activate = () => {
-          const el = rows.current[i]; if (!el) return; c.active = true; c.centers = rows.current.map((r) => { if (!r) return 0; const b = r.getBoundingClientRect(); return b.top + window.scrollY + b.height / 2; });
+          const el = rows.current[i]; if (!el) return; c.active = true; c.sp = rtScrollParent(el); c.centers = rows.current.map((r) => { if (!r) return 0; const b = r.getBoundingClientRect(); return b.top + sOff(c) + b.height / 2; });
           const b = el.getBoundingClientRect(); c.grab = c.sy - b.top; c.h = b.height; document.documentElement.classList.add('rt-drag-on'); setSt({ from: i, to: i });
           try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
-          const loop = () => { if (!g.current || !g.current.active) return; const y = c.cy, H = window.innerHeight; if (y < 80) window.scrollBy(0, -Math.ceil((80 - y) / 5)); else if (y > H - 80) window.scrollBy(0, Math.ceil((y - (H - 80)) / 5)); update(); c.raf = requestAnimationFrame(loop); };
+          const loop = () => { if (!g.current || !g.current.active) return; const y = c.cy; let T = 0, H = window.innerHeight; if (c.sp !== window) { const r = c.sp.getBoundingClientRect(); T = Math.max(0, r.top); H = Math.min(H, r.bottom); } let dy = 0; if (y < T + 70) dy = -Math.ceil((T + 70 - y) / 5); else if (y > H - 70) dy = Math.ceil((y - (H - 70)) / 5); if (dy) { if (c.sp === window) window.scrollBy(0, dy); else c.sp.scrollTop += dy; } update(); c.raf = requestAnimationFrame(loop); };
           c.raf = requestAnimationFrame(loop); update();
         };
         c.mv = (ev) => { if (ev.pointerId !== e.pointerId) return; c.cy = ev.clientY; if (!c.active) { const d = Math.hypot(ev.clientX - c.sx, ev.clientY - c.sy); if (c.type === 'mouse' || c.type === 'pen') { if (d > 5) activate(); } else if (d > 9) end(false); } else { ev.preventDefault(); update(); } };
@@ -272,7 +274,7 @@
       useEffect(() => () => { if (g.current) end(false); }, []);
       React.useLayoutEffect(() => { place(); });
       const order = (() => { const idx = Array.from({ length: n }, (_, k) => k); if (!st) return idx; const rest = idx.filter((k) => k !== st.from); rest.splice(st.to, 0, st.from); return rest; })();
-      return { order, dragging: st ? st.from : null, setRef: (i) => (el) => { rows.current[i] = el; }, onPointerDown: start, wasDrag: () => { const v = sup.current; sup.current = false; return v; }, keyMove: (i, e) => { if (!enabled || !e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return; e.preventDefault(); const to = i + (e.key === 'ArrowUp' ? -1 : 1); if (to >= 0 && to < n) cb.current(i, to); } };
+      return { order, can: !!enabled && n > 1, dragging: st ? st.from : null, setRef: (i) => (el) => { rows.current[i] = el; }, onPointerDown: start, wasDrag: () => { const v = sup.current; sup.current = false; return v; }, keyMove: (i, e) => { if (!enabled || !e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return; e.preventDefault(); const to = i + (e.key === 'ArrowUp' ? -1 : 1); if (to >= 0 && to < n) cb.current(i, to); } };
     }
 
     function RtTravelSteps({ kind, trip, save }) {
@@ -316,7 +318,7 @@
           {dnd.order.map((i, pos) => { const st = steps[i]; const nav = rtTdNav(st); const open = openRow === 'tr:' + i && dnd.dragging == null; return edit === 'tr:' + i ? <div key={st.id || i} className="sp3-in">{form(i)}</div> : (
             <div key={st.id || i} ref={dnd.setRef(i)} className={`sp3-row${open ? ' open' : ''}${steps.length > 1 && !IS_READ_ONLY_COPY && edit === null ? ' rt-sortable' : ''}${dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row data-travel-step data-step-id={st.id}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onPointerDown={(e) => dnd.onPointerDown(i, e)} onContextMenu={(e) => { if (dnd.dragging != null) e.preventDefault(); }}>
-                <button type="button" data-readonly-allow className="sp3-rowbtn" style={{ flex: 1, minWidth: 0 }} aria-expanded={open} onKeyDown={(e) => dnd.keyMove(i, e)} onClick={() => { if (dnd.wasDrag()) return; setOpenRow(open ? null : 'tr:' + i); }}>
+                <button type="button" data-readonly-allow data-dnd-ok className="sp3-rowbtn" style={{ flex: 1, minWidth: 0 }} aria-expanded={open} onKeyDown={(e) => dnd.keyMove(i, e)} onClick={() => { if (dnd.wasDrag()) return; setOpenRow(open ? null : 'tr:' + i); }}>
                   {steps.length > 1 && !IS_READ_ONLY_COPY && edit === null && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}<span className="sp3-lead">{pos + 1}</span>
                   <span className="sp3-grow"><span className="sp3-rt">{rtTdLabel(kind, st)}</span><span className="sp3-mute">{[st.time ? `${st.time} Uhr` : '', st.place].filter(Boolean).join(' · ') || 'Zeit und Ort noch offen'}</span></span>
                   <span className="sp3-chev" aria-hidden="true">›</span>
@@ -417,7 +419,9 @@
       // --- Stopps
       const saveStop = (i, v) => { put((s) => { const L = [...((s.routeToHotel || {}).stopsOnWay || [])]; const o = { ...(i == null ? { id: `stop-${Date.now()}` } : L[i]), name: v.name, time: v.time, duration: v.duration, address: v.address, gps: v.gps, notes: v.notes, costEur: rtNum(v.costEur) }; if (i == null) L.push(o); else L[i] = o; return { routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: L } }; }, i == null ? `Stopp „${v.name}“ hinzugefügt` : 'Stopp gespeichert'); setEdit(null); };
       const delStop = (i) => { const nm = stops[i] && stops[i].name; put((s) => ({ routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: ((s.routeToHotel || {}).stopsOnWay || []).filter((_, k) => k !== i) } }), '', `Stopp „${nm || 'ohne Namen'}“ gelöscht`); setEdit(null); setOpenRow(null); };
-      const moveStop = (i, d) => { const j = i + d; if (j < 0 || j >= stops.length) return; put((s) => { const L = [...((s.routeToHotel || {}).stopsOnWay || [])]; const t = L[i]; L[i] = L[j]; L[j] = t; return { routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: L } }; }, 'Reihenfolge geändert'); setOpenRow('stop:' + j); };
+      const reorderStop = (from, to) => { put((s) => { const L = [...((s.routeToHotel || {}).stopsOnWay || [])]; const [m] = L.splice(from, 1); L.splice(to, 0, m); return { routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: L } }; }, 'Reihenfolge geändert'); };
+      const dndStops = rtUseDragSort(stops.length, reorderStop, !IS_READ_ONLY_COPY && edit === null);
+      const moveStop_unused = (i, d) => { const j = i + d; if (j < 0 || j >= stops.length) return; put((s) => { const L = [...((s.routeToHotel || {}).stopsOnWay || [])]; const t = L[i]; L[i] = L[j]; L[j] = t; return { routeToHotel: { ...(s.routeToHotel || {}), stopsOnWay: L } }; }, 'Reihenfolge geändert'); setOpenRow('stop:' + j); };
       // --- Hotel
       const hotelBase = () => ({ name: '', rating: '', address: '', gps: '', checkIn: '', checkOut: '', breakfast: '', parking: '', cancelUntil: '', priceOldEur: '', priceNewEur: '', priceUsd: '', prepaid: '', creditCard: '', paidBy: '', splitAmong: [], parkingGarageName: '', parkingGarageAddress: '', parkingGarageGps: '', remarks: '', chargeAnnounced: '', cardCharged: '' });
       const saveHotel = (v) => { put((s) => ({ hotel: { ...hotelBase(), ...(s.hotel || {}), name: v.name, address: v.address, gps: v.gps, checkIn: v.checkIn, checkOut: v.checkOut, priceNewEur: v.priceNewEur === '' ? '' : rtNum(v.priceNewEur), cancelUntil: v.cancelUntil, remarks: v.remarks } }), `Hotel „${v.name || 'ohne Namen'}“ gespeichert`); setEdit(null); };
@@ -509,19 +513,17 @@
             <h2 className="sp3-h">Stopps auf dem Weg</h2>
             <section aria-label="Stopps auf dem Weg" className="sp3-card list">
               {!stops.length && edit !== 'stop:new' && <p className="sp3-empty">Noch keine Stopps. Direktfahrt zum {isRet ? 'Ziel' : 'Hotel'}.</p>}
-              {stops.map((s, i) => edit === 'stop:' + i ? <div key={s.id || i} className="sp3-in">{stopForm(i)}</div> : (
-                <SpRow key={s.id || i} k={'stop:' + i} open={openRow === 'stop:' + i} setOpen={setOpenRow} lead={String(i + 1)} title={s.name || `Stopp ${i + 1}`} sub={[rtMiText(s.time, rtStageMiles(stage)), s.duration, rtNum(s.costEur) > 0 ? formatEur(s.costEur) : ''].filter(Boolean).join(' · ')}>
+              {dndStops.order.map((i, pos) => { const s = stops[i]; return edit === 'stop:' + i ? <div key={s.id || i} className="sp3-in">{stopForm(i)}</div> : (
+                <SpRow key={s.id || i} dnd={dndStops} i={i} k={'stop:' + i} open={openRow === 'stop:' + i} setOpen={setOpenRow} lead={String(pos + 1)} title={s.name || `Stopp ${i + 1}`} sub={[rtMiText(s.time, rtStageMiles(stage)), s.duration, rtNum(s.costEur) > 0 ? formatEur(s.costEur) : ''].filter(Boolean).join(' · ')}>
                   {s.notes && <p className="sp3-note">{s.notes}</p>}
                   {s.address && <p className="sp3-mute">{s.address}</p>}
                   <div className="sp3-acts">
                     <SpMaps gps={s.gps} address={s.address} name={s.name} />
                     <button type="button" className="sp3-btn sm v18-edit-only" data-sp-edit onClick={() => setEdit('stop:' + i)}>Bearbeiten</button>
-                    <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Stopp nach oben" disabled={i === 0} onClick={() => moveStop(i, -1)}>↑</button>
-                    <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Stopp nach unten" disabled={i === stops.length - 1} onClick={() => moveStop(i, 1)}>↓</button>
                     <button type="button" className="sp3-btn sm del v18-edit-only" data-sp-del-row onClick={() => delStop(i)}>Löschen</button>
                   </div>
-                </SpRow>))}
-              {edit === 'stop:new' ? <div className="sp3-in">{stopForm(null)}</div> : <div className="sp3-addrow v18-edit-only"><button type="button" data-sp-add-stop className="sp3-btn" onClick={() => setEdit('stop:new')}>+ Stopp</button></div>}
+                </SpRow>); })}
+              {edit === 'stop:new' ? <div className="sp3-in">{stopForm(null)}</div> : <div className="sp3-addrow v18-edit-only"><button type="button" data-sp-add-stop className="sp3-btn" onClick={() => setEdit('stop:new')}>+ Stopp</button>{stops.length > 1 && <span className="sp3-mute" style={{ marginLeft: 10 }}>Zum Sortieren einen Stopp gedrückt halten und ziehen.</span>}</div>}
             </section>
             {assist('way')}
           </div>}
@@ -598,15 +600,17 @@
         </div>
       );
     }
-    function SpRow({ k, open, setOpen, lead, title, sub, children }) {
+    function SpRow({ k, open, setOpen, lead, title, sub, children, dnd, i }) {
+      const can = !!(dnd && dnd.can), isOpen = open && !(dnd && dnd.dragging != null);
       return (
-        <div className={`sp3-row${open ? ' open' : ''}`} data-sp-row>
-          <button type="button" data-readonly-allow className="sp3-rowbtn" aria-expanded={open} onClick={() => setOpen(open ? null : k)}>
+        <div ref={dnd ? dnd.setRef(i) : undefined} className={`sp3-row${isOpen ? ' open' : ''}${can ? ' rt-sortable' : ''}${can && dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row>
+          <button type="button" data-readonly-allow data-dnd-ok className="sp3-rowbtn" aria-expanded={isOpen} onPointerDown={can ? (e) => dnd.onPointerDown(i, e) : undefined} onKeyDown={can ? (e) => dnd.keyMove(i, e) : undefined} onContextMenu={can ? (e) => { if (dnd.dragging != null) e.preventDefault(); } : undefined} onClick={() => { if (dnd && dnd.wasDrag()) return; setOpen(open ? null : k); }}>
+            {can && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}
             <span className="sp3-lead">{lead}</span>
             <span className="sp3-grow"><span className="sp3-rt">{title}</span>{sub && <span className="sp3-mute">{sub}</span>}</span>
             <span className="sp3-chev" aria-hidden="true">›</span>
           </button>
-          {open && <div className="sp3-rowbody">{children}</div>}
+          {isOpen && <div className="sp3-rowbody">{children}</div>}
         </div>
       );
     }

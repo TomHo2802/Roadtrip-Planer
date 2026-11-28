@@ -877,6 +877,12 @@ Quelle: ${lt.url}` : '') }] } });
         { const lo = Math.min(index, targetIndex); const first = ((tripData.stages || [])[0] || {}).fromCity; saveTripData({ ...tripData, stages: rtRechain(stages, tripData.meta, first, [lo, lo + 1, lo + 2]) }, 'Reihenfolge geändert. Daten und Startorte angepasst, Strecken bitte neu ermitteln.'); }
       };
 
+      const moveStageTo = (from, to) => {
+        const old = tripData.stages || []; const stages = [...old]; if (from === to || from < 0 || to < 0 || from >= stages.length || to >= stages.length) return;
+        const [m] = stages.splice(from, 1); stages.splice(to, 0, m); const lo = Math.min(from, to), hi = Math.max(from, to); const idxs = []; for (let k = lo; k <= Math.min(stages.length - 1, hi + 2); k++) idxs.push(k);
+        saveTripData({ ...tripData, stages: rtRechain(stages, tripData.meta, (old[0] || {}).fromCity, idxs) }, 'Reihenfolge geändert. Daten und Startorte angepasst, Strecken bitte neu ermitteln.');
+      };
+      const stageDnd = rtUseDragSort((tripData.stages || []).length, moveStageTo, !IS_READ_ONLY_COPY && !rtUiClassic() && !openStageId);
       const rtDelStage = (stage, sIdx) => { const before = tripData; confirmDeleteEntity({ type: 'stage', id: stage.id }); rtUndo(`Etappe ${sIdx + 1} (${stage.toCity || 'ohne Ziel'}) gelöscht`, before); };
       const confirmDeleteEntity = async (direct) => {
         const dcm = direct && direct.type ? direct : deleteConfirmModal; if (!dcm) return;
@@ -1062,10 +1068,10 @@ Quelle: ${lt.url}` : '') }] } });
                 <div data-stage-wrap className={rtUiClassic() ? '' : 'rt2-split'}><div className={rtUiClassic() ? '' : 'rt2-main'}>
                 <div data-stage-list className={`${openStageId ? 'rt2-page ' : ''}relative space-y-8 before:hidden md:before:block before:absolute before:top-8 before:bottom-8 before:left-5 before:w-0.5 before:bg-slate-200 before:rounded-full`}>
                   {!rtUiClassic() && (!openStageId || openStageId === 'travel-out') && <RtTravelStage kind="out" trip={tripData} open={openStageId === 'travel-out'} onOpen={(id) => openStagePage(id || 'travel-out')} onBack={() => setOpenStageId(null)} save={saveTripData} />}
-                  {(tripData.stages || []).map((stage, sIdx) => {
+                  {stageDnd.order.map((oi, pos) => { const stage = (tripData.stages || [])[oi]; const sIdx = rtUiClassic() || openStageId ? oi : pos; const dndOi = oi;
                     if (openStageId && stage.id !== openStageId) return null;
                     const isPage = openStageId === stage.id; const isExpanded = isPage;
-                    if (!isPage && !rtUiClassic()) return <RtStageRow key={stage.id} stage={stage} idx={sIdx} count={(tripData.stages || []).length} today={todayStages.some((item) => item.id === stage.id)} onOpen={() => openStagePage(stage.id)} onBasics={() => openStageEditor(stage, 'basics')} onUp={() => handleMoveStage(sIdx, -1)} onDown={() => handleMoveStage(sIdx, 1)} onDelete={() => rtDelStage(stage, sIdx)} />;
+                    if (!isPage && !rtUiClassic()) return <RtStageRow key={stage.id} dnd={stageDnd} oi={dndOi} stage={stage} idx={sIdx} count={(tripData.stages || []).length} today={todayStages.some((item) => item.id === stage.id)} onOpen={() => openStagePage(stage.id)} onBasics={() => openStageEditor(stage, 'basics')} onUp={() => handleMoveStage(sIdx, -1)} onDown={() => handleMoveStage(sIdx, 1)} onDelete={() => rtDelStage(stage, sIdx)} />;
                     if (isPage && !rtUiClassic()) return <RtStagePage key={stage.id} trip={tripData} stage={stage} idx={sIdx} tab={stageTab} setTab={setStageTab} onBack={() => setOpenStageId(null)} onOpen={(id) => openStagePage(id, stageTab)} save={saveTripData} openEditor={openStageEditor} onDelete={() => rtDelStage(stage, sIdx)} onUp={() => handleMoveStage(sIdx, -1)} onDown={() => handleMoveStage(sIdx, 1)} assist={(k) => <StageSectionAssist kind={k} trip={tripData} stage={stage} index={sIdx} onAddStop={handleAddWayStop} onSetHotel={handleSetStageHotel} onAddLocal={handleAddLocalFromAssistant} />} wayTools={<>{sIdx === 0 && rtHasLeg(tripData, 'out') && <HomeLegCard kind="out" trip={tripData} stage={stage} onSave={saveTripData} />}{sIdx === (tripData.stages || []).length - 1 && rtHasLeg(tripData, 'back') && <HomeLegCard kind="back" trip={tripData} stage={stage} onSave={saveTripData} />}<RouteCalcBar trip={tripData} stage={stage} index={sIdx} onSave={saveTripData} /></>} />;
                     const h = stage.hotel || {};
                     const priceSaved = (parseFloat(h.priceOldEur) || 0) - (parseFloat(h.priceNewEur) || 0);
