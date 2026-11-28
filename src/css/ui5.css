@@ -200,3 +200,6 @@ html:not([data-ui="classic"]) .rt-dragging{position:relative;z-index:40;backgrou
 html:not([data-ui="classic"]) .rt-dragging *{cursor:grabbing!important}
 html.rt-drag-on,html.rt-drag-on *{user-select:none!important;-webkit-user-select:none!important;cursor:grabbing!important}
 html[data-dark="1"]:not([data-ui="classic"]) .rt-dragging{background:#1e293b;box-shadow:0 10px 28px rgba(0,0,0,.6)}
+.rt-grip{flex:0 0 auto;width:12px;height:20px;margin-right:2px;margin-left:-4px;opacity:.55;background-image:radial-gradient(circle,currentColor 1.5px,transparent 1.8px);background-size:6px 6px;background-position:0 1px;color:var(--u-muted,#64748b)}
+.rt-sortable:hover .rt-grip,.rt-dragging .rt-grip{opacity:1}
+html[data-dark="1"] .rt-grip{color:#94a3b8}

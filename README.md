@@ -582,3 +582,6 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 ## v127
 - Anreise/Rückreise-Schritte lassen sich per Ziehen sortieren: Maustaste auf den Eintrag halten und ziehen (Touch: kurz halten, dann ziehen), loslassen übernimmt die Reihenfolge. Ein einfacher Klick klappt den Eintrag weiter auf. Die Pfeil-Buttons entfallen, per Tastatur geht Alt + Pfeil hoch/runter. Gilt auch für neu hinzugefügte Schritte, nicht im Nur-Lesen-Modus.
 - Allgemeiner Baustein `rtUseDragSort` (12-planen-ansicht.jsx), den weitere Listen später mitnutzen können.
+
+## v128
+- Sortierbare Einträge zeigen links einen Griff (sechs Punkte), damit das Ziehen erkennbar ist. Zunächst bei den Anreise-/Rückreise-Schritten.

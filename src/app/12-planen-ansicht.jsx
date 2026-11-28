@@ -317,7 +317,7 @@
             <div key={st.id || i} ref={dnd.setRef(i)} className={`sp3-row${open ? ' open' : ''}${steps.length > 1 && !IS_READ_ONLY_COPY && edit === null ? ' rt-sortable' : ''}${dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row data-travel-step data-step-id={st.id}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onPointerDown={(e) => dnd.onPointerDown(i, e)} onContextMenu={(e) => { if (dnd.dragging != null) e.preventDefault(); }}>
                 <button type="button" data-readonly-allow className="sp3-rowbtn" style={{ flex: 1, minWidth: 0 }} aria-expanded={open} onKeyDown={(e) => dnd.keyMove(i, e)} onClick={() => { if (dnd.wasDrag()) return; setOpenRow(open ? null : 'tr:' + i); }}>
-                  <span className="sp3-lead">{pos + 1}</span>
+                  {steps.length > 1 && !IS_READ_ONLY_COPY && edit === null && <span className="rt-grip" data-rt-grip aria-hidden="true" title="Gedrückt halten und ziehen zum Sortieren" />}<span className="sp3-lead">{pos + 1}</span>
                   <span className="sp3-grow"><span className="sp3-rt">{rtTdLabel(kind, st)}</span><span className="sp3-mute">{[st.time ? `${st.time} Uhr` : '', st.place].filter(Boolean).join(' · ') || 'Zeit und Ort noch offen'}</span></span>
                   <span className="sp3-chev" aria-hidden="true">›</span>
                 </button>
