@@ -604,3 +604,6 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 
 ## v134
 - Etappenkarte: Spezielle Symbole auf den Punkten: Flugzeug für Flughäfen (Ankunft, Abflug, Umstieg, Landung), Auto für die Mietwagenstation, Hotelbett für Hotels. Etappenpunkte mit Hotel zeigen das Hotel-Symbol mit der Etappennummer als kleines Schild, Etappen ohne Hotel weiter die Nummer. Farben (grün/rot) und Klick-Sprung bleiben. Legende angepasst.
+
+## v135
+- Etappenkarte: Die Linien zwischen den Hotels, über die Stopps unterwegs und bei An-/Rückreise (Landung → Mietwagen → Hotel) folgen jetzt dem Straßenverlauf (OSRM, gleiche Quelle wie die Streckenberechnung). Die Geometrie wird je Teilstück im Gerät zwischengespeichert (`rt_roadgeo_v1`, max. 40 Teilstücke), daher offline weiter sichtbar. Solange sie fehlt oder ohne Netz, bleibt eine gestrichelte Luftlinie. Die Karte springt beim Nachladen nicht neu.

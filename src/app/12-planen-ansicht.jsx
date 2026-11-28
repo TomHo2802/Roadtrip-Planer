@@ -103,8 +103,22 @@
       if (fly) { const cand = kind === 'out' ? steps.slice(0, from).reverse().find((x) => G(x) && (x.type === 'apt' || x.type === 'dep' || x.type === 'layD' || x.type === 'layA')) : steps.slice(to + 1).find((x) => G(x) && (x.type === 'layA' || x.type === 'land' || x.type === 'park' || x.type === 'home')); ref = cand ? G(cand) : null; }
       return { pts, ref, anchor: pts.length ? pts[kind === 'out' ? 0 : pts.length - 1].g : null };
     };
+    // v135: Straßenverlauf der Etappenlinien (OSRM), lokal zwischengespeichert; ohne Netz bleibt die Luftlinie
+    const RT_ROAD_LS = 'rt_roadgeo_v1';
+    const rtRoadKey = (w) => w.map((g) => `${g[0].toFixed(4)},${g[1].toFixed(4)}`).join(';');
+    const rtRoadLoad = () => { if (!window.__rtRoad) { let a = []; try { a = JSON.parse(localStorage.getItem(RT_ROAD_LS) || '[]'); } catch (e) {} window.__rtRoad = Array.isArray(a) ? a : []; } return window.__rtRoad; };
+    const rtRoadGet = (key) => { const e = rtRoadLoad().find((x) => x[0] === key); return e ? e[1] : null; };
+    const rtRoadPut = (key, coords) => { const L = rtRoadLoad().filter((x) => x[0] !== key); L.push([key, coords]); while (L.length > 40 || JSON.stringify(L).length > 900000) { if (L.length <= 1) break; L.shift(); } window.__rtRoad = L; try { localStorage.setItem(RT_ROAD_LS, JSON.stringify(L)); } catch (e) { try { localStorage.removeItem(RT_ROAD_LS); } catch (x) {} } };
+    const rtRoadFetch = async (w) => {
+      const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000);
+      try {
+        const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${w.map((g) => `${g[1]},${g[0]}`).join(';')}?overview=full&geometries=geojson`, { signal: ctl.signal }); const j = await r.json();
+        if (j && j.code === 'Ok' && j.routes && j.routes[0]) { const out = []; j.routes[0].geometry.coordinates.forEach(([x, y]) => { const pt = [+y.toFixed(4), +x.toFixed(4)]; const l = out[out.length - 1]; if (!l || Math.abs(l[0] - pt[0]) + Math.abs(l[1] - pt[1]) >= 0.0006) out.push(pt); }); const lastG = j.routes[0].geometry.coordinates.slice(-1)[0]; if (lastG) out.push([+lastG[1].toFixed(4), +lastG[0].toFixed(4)]); return out.length > 1 ? out : null; }
+      } catch (e) {} finally { clearTimeout(tm); }
+      return null;
+    };
     function RtRouteMini({ trip, onOpen }) {
-      const el = useRef(null), mapRef = useRef(null), grp = useRef(null), hint = useRef(null), S = rtPlanStats(trip);
+      const el = useRef(null), mapRef = useRef(null), grp = useRef(null), hint = useRef(null), fitSig = useRef(null), S = rtPlanStats(trip);
       const pts = ((trip && trip.stages) || []).map((s, i) => { const g = parseGps((s.hotel || {}).gps || '') || parseGps(s.toGps || ''); const r = S.rows[i]; const why = r ? [!r.named ? 'Ziel' : '', r.hotelNeed && !r.hotel ? 'Hotel' : '', r.routeNeed && !r.route ? 'Strecke' : ''].filter(Boolean) : []; return g ? { g, i, id: s.id, name: s.toCity, miss: !!(r && r.open > 0), why, hot: !!(r && r.hotel) } : null; }).filter(Boolean);
       const extra = []; let noGps = 0;
       ((trip && trip.stages) || []).forEach((s) => {
@@ -112,6 +126,14 @@
         ((s.routeToHotel || {}).stopsOnWay || []).forEach((a, ai) => { const g = parseGps(a.gps || ''); if (!g) { noGps++; return; } const why = [!String(a.name || '').trim() ? 'Name' : '', !String(a.time || '').trim() ? 'Zeitpunkt' : ''].filter(Boolean); extra.push({ g, kind: 'stop', row: 'stop:' + ai, tab: 'way', id: s.id, name: a.name || 'Stopp', ok: !why.length, why }); });
       });
       const TR = ['out', 'back'].map((k) => ({ k, ...rtTravelMapPts(trip, k) })).map((t) => ({ ...t, pts: t.pts.filter((q) => !pts.some((p) => haversineM(p.g, q.g) < 150)) }));
+      const [geoV, setGeoV] = useState(0);
+      const legs = []; { let prev = null; ((trip && trip.stages) || []).forEach((s, i) => { const p = pts.find((q) => q.i === i); if (!p) return; const via = ((s.routeToHotel || {}).stopsOnWay || []).map((a) => parseGps(a.gps || '')).filter(Boolean); if (prev) legs.push({ w: [prev, ...via, p.g] }); prev = p.g; }); TR.forEach((t) => { if (t.pts.length > 1) legs.push({ w: t.pts.map((q) => q.g) }); }); legs.forEach((l) => { l.key = rtRoadKey(l.w); }); }
+      const legSig = legs.map((l) => l.key).join('|');
+      useEffect(() => {
+        let dead = false; const todo = legs.filter((l) => !rtRoadGet(l.key) && !(window.__rtRoadFail || {})[l.key]); if (!todo.length || !navigator.onLine) return;
+        (async () => { for (const l of todo) { if (dead) return; const c = await rtRoadFetch(l.w); if (dead) return; if (c) { rtRoadPut(l.key, c); setGeoV((v) => v + 1); } else { (window.__rtRoadFail = window.__rtRoadFail || {})[l.key] = 1; } await new Promise((r) => setTimeout(r, 350)); } })();
+        return () => { dead = true; };
+      }, [legSig]);
       const jump = (id, step, row) => { window.__rtFocusRow = row ? { stageId: id, row } : null; window.dispatchEvent(new CustomEvent('rt-stage-open', { detail: { stageId: id, step } })); };
       const sig = pts.map((p) => `${p.i}:${p.g.join(',')}:${p.miss ? 1 : 0}`).join('|') + '@' + extra.map((e) => `${e.kind}${e.g.join(',')}${e.ok ? 1 : 0}`).join('|') + '#' + TR.map((t) => `${t.k}:${t.pts.map((q) => q.g.join(',') + (q.ok ? 1 : 0)).join(';')}:${(t.ref || []).join(',')}`).join('|');
       useEffect(() => {
@@ -123,9 +145,9 @@
       }, []);
       useEffect(() => {
         const L = window.L, map = mapRef.current; if (!L || !map || !grp.current) return; grp.current.clearLayers();
-        if (pts.length > 1) L.polyline(pts.map((p) => p.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6';
+        legs.forEach((l) => { const road = rtRoadGet(l.key); if (road) { L.polyline(road, { color: '#fff', weight: 7, opacity: 0.9, interactive: false }).addTo(grp.current); L.polyline(road, { color: accent, weight: 4, opacity: 0.95, interactive: false, data: 'road' }).addTo(grp.current); } else L.polyline(l.w, { color: accent, weight: 3, opacity: 0.6, dashArray: '6 7', interactive: false }).addTo(grp.current); });
         TR.forEach((t) => {
-          if (t.pts.length > 1) L.polyline(t.pts.map((q) => q.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
           t.pts.forEach((q) => L.marker(q.g, { title: q.ok ? q.label : `${q.label} (Uhrzeit fehlt)`, zIndexOffset: -100, icon: L.divIcon({ className: '', html: `<div class="mk2 tr ${q.ok ? 'ok' : 'bad'}" data-map-travel="${t.k}" data-map-ico="${rtIcoOf(q.type)}">${rtIcoSvg(rtIcoOf(q.type), 16)}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }) }).on('click', () => jump(RT_TRAVEL_ID[t.k], 'way', q.row)).addTo(grp.current));
         });
         extra.forEach((e) => L.marker(e.g, { title: e.ok ? e.name : `${e.name} (fehlt: ${e.why.join(', ')})`, zIndexOffset: -50, icon: L.divIcon({ className: '', html: `<div class="mk2 sm ${e.kind} ${e.ok ? 'ok' : 'bad'}" data-map-${e.kind}>${e.kind === 'act' ? '★' : ''}</div>`, iconSize: [18, 18], iconAnchor: [9, 9] }) }).on('click', () => jump(e.id, e.tab, e.row)).addTo(grp.current));
@@ -133,10 +155,10 @@
         const drawHint = () => { if (!hint.current) return; hint.current.clearLayers(); TR.forEach((t) => { if (!t.ref || !t.anchor) return; const a = map.latLngToContainerPoint(t.anchor), r = map.latLngToContainerPoint(t.ref); const dx = r.x - a.x, dy = r.y - a.y, len = Math.hypot(dx, dy); if (len < 40) return; const f = Math.min(1, 90 / len); const end = map.containerPointToLatLng(L.point(a.x + dx * f, a.y + dy * f)); L.polyline([t.anchor, end], { color: '#64748B', weight: 3, opacity: 0.9, dashArray: '2 8', lineCap: 'round', interactive: false }).addTo(hint.current); }); };
         const allG = [...pts.map((p) => p.g), ...extra.map((e) => e.g), ...TR.flatMap((t) => t.pts.map((q) => q.g))];
         const fit = () => { if (allG.length) { try { map.invalidateSize(); map.fitBounds(window.L.latLngBounds(allG), { padding: [24, 24], maxZoom: 9, animate: false }); } catch (e) {} } drawHint(); };
-        map.on('zoomend', drawHint); fit(); const t = setTimeout(fit, 120);
+        map.on('zoomend', drawHint); let t = 0; if (fitSig.current !== sig) { fitSig.current = sig; fit(); t = setTimeout(fit, 120); } else drawHint();
         let ro = null; if (window.ResizeObserver && el.current) { ro = new ResizeObserver(() => fit()); ro.observe(el.current); }
         return () => { clearTimeout(t); map.off('zoomend', drawHint); if (hint.current) hint.current.clearLayers(); if (ro) ro.disconnect(); };
-      }, [sig]);
+      }, [sig, geoV]);
       return (
         <div className="rt2-card" data-route-mini>
           <div ref={el} className="rt2-map" role="img" aria-label="Karte der Etappen. Ein Klick auf einen Punkt öffnet die Etappe." />
