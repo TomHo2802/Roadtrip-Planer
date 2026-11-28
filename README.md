@@ -589,3 +589,6 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 ## v129
 - Sortieren per Ziehen (Maustaste halten und ziehen, Touch: kurz halten) mit Griff-Symbol jetzt auch bei: Etappenliste (Daten und Startorte werden wie bisher neu verkettet), Stopps unterwegs, Aktionen vor Ort im Tagesplan, Etappen im Planungsassistenten und der Punktliste der Kartenplanung. Die ↑↓-Buttons dort entfallen (Tastatur: Alt + Pfeil bei Stopps und Etappen). Die klassische Ansicht behält ihre Pfeile.
 - `rtUseDragSort` erkennt einen scrollbaren Container (z. B. Dialoge) und scrollt beim Ziehen am Rand automatisch.
+
+## v130
+- Etappenkarte (Planen): Die Punkte von Anreise und Rückreise erscheinen mit Anreise-Symbol (✈) bzw. Rückreise-Symbol (⌂) statt einer Nummer, verbunden durch die Fahrstrecke. Bei der Anreise ab der Landung (Mietwagen, Weiterfahrt zum Hotel), bei der Rückreise bis zum Abflug (Hotel, Mietwagenrückgabe, Flughafen). Der Flug selbst wird nur als gepunktete Linie in Richtung des Abflug- bzw. Zielflughafens angedeutet. Ein Klick auf den Punkt öffnet die Anreise bzw. Rückreise. Voraussetzung: der Schritt hat GPS-Koordinaten.

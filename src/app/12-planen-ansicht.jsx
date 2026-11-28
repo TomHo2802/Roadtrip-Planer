@@ -83,25 +83,43 @@
         </div>
       );
     }
+    // v130: Punkte von Anreise/Rückreise für die Karte: nach der Landung bzw. bis zum Abflug, der Flug wird nur angedeutet
+    const rtTravelMapPts = (trip, kind) => {
+      const steps = rtTdSteps(trip, kind); const G = (st) => parseGps(st.gps || ''); const fly = steps.some((x) => x.type === 'dep' || x.type === 'land');
+      let from = 0, to = steps.length - 1;
+      if (kind === 'out') { const li = steps.map((x) => x.type).lastIndexOf('land'); if (fly) from = li >= 0 ? li : steps.findIndex((x) => x.type === 'dep') + 1; }
+      else if (fly) { const di = steps.findIndex((x) => x.type === 'dep'); to = di >= 0 ? di : steps.findIndex((x) => x.type === 'apt'); if (to < 0) to = steps.length - 1; }
+      const pts = steps.slice(from, to + 1).filter((x) => x.type !== 'home' && x.type !== 'park' && G(x)).map((x) => ({ g: G(x), label: rtTdLabel(kind, x) }));
+      let ref = null;
+      if (fly) { const cand = kind === 'out' ? steps.slice(0, from).reverse().find((x) => G(x) && (x.type === 'apt' || x.type === 'dep' || x.type === 'layD' || x.type === 'layA')) : steps.slice(to + 1).find((x) => G(x) && (x.type === 'layA' || x.type === 'land' || x.type === 'park' || x.type === 'home')); ref = cand ? G(cand) : null; }
+      return { pts, ref, anchor: pts.length ? pts[kind === 'out' ? 0 : pts.length - 1].g : null };
+    };
     function RtRouteMini({ trip, onOpen }) {
-      const el = useRef(null), mapRef = useRef(null), grp = useRef(null), S = rtPlanStats(trip);
+      const el = useRef(null), mapRef = useRef(null), grp = useRef(null), hint = useRef(null), S = rtPlanStats(trip);
       const pts = ((trip && trip.stages) || []).map((s, i) => { const g = parseGps(s.toGps || '') || parseGps((s.hotel || {}).gps || ''); return g ? { g, i, id: s.id, name: s.toCity, miss: S.rows[i] && S.rows[i].open > 0 } : null; }).filter(Boolean);
-      const sig = pts.map((p) => `${p.i}:${p.g.join(',')}:${p.miss ? 1 : 0}`).join('|');
+      const TR = ['out', 'back'].map((k) => ({ k, ...rtTravelMapPts(trip, k) })).map((t) => ({ ...t, pts: t.pts.filter((q) => !pts.some((p) => haversineM(p.g, q.g) < 150)) }));
+      const sig = pts.map((p) => `${p.i}:${p.g.join(',')}:${p.miss ? 1 : 0}`).join('|') + '#' + TR.map((t) => `${t.k}:${t.pts.map((q) => q.g.join(',')).join(';')}:${(t.ref || []).join(',')}`).join('|');
       useEffect(() => {
         if (!window.L || !el.current || mapRef.current) return; const L = window.L;
         const map = L.map(el.current, { zoomControl: true, attributionControl: true, scrollWheelZoom: true });
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
-        mapRef.current = map; grp.current = L.layerGroup().addTo(map); map.setView([28, -82], 5);
+        mapRef.current = map; grp.current = L.layerGroup().addTo(map); hint.current = L.layerGroup().addTo(map); map.setView([28, -82], 5);
         return () => { try { map.remove(); } catch (e) {} mapRef.current = null; };
       }, []);
       useEffect(() => {
         const L = window.L, map = mapRef.current; if (!L || !map || !grp.current) return; grp.current.clearLayers();
         if (pts.length > 1) L.polyline(pts.map((p) => p.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
+        TR.forEach((t) => {
+          if (t.pts.length > 1) L.polyline(t.pts.map((q) => q.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
+          t.pts.forEach((q) => L.marker(q.g, { title: q.label, zIndexOffset: -100, icon: L.divIcon({ className: '', html: `<div class="mk2 tr" data-map-travel="${t.k}">${t.k === 'out' ? '✈' : '⌂'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] }) }).on('click', () => onOpen(RT_TRAVEL_ID[t.k])).addTo(grp.current));
+        });
         pts.forEach((p) => L.marker(p.g, { title: p.name, icon: L.divIcon({ className: '', html: `<div class="mk2${p.miss ? ' miss' : ''}">${p.i + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).on('click', () => onOpen(p.id)).addTo(grp.current));
-        const fit = () => { if (pts.length) { try { map.invalidateSize(); map.fitBounds(window.L.latLngBounds(pts.map((p) => p.g)), { padding: [24, 24], maxZoom: 9, animate: false }); } catch (e) {} } };
-        fit(); const t = setTimeout(fit, 120);
+        const drawHint = () => { if (!hint.current) return; hint.current.clearLayers(); TR.forEach((t) => { if (!t.ref || !t.anchor) return; const a = map.latLngToContainerPoint(t.anchor), r = map.latLngToContainerPoint(t.ref); const dx = r.x - a.x, dy = r.y - a.y, len = Math.hypot(dx, dy); if (len < 40) return; const f = Math.min(1, 90 / len); const end = map.containerPointToLatLng(L.point(a.x + dx * f, a.y + dy * f)); L.polyline([t.anchor, end], { color: '#64748B', weight: 3, opacity: 0.9, dashArray: '2 8', lineCap: 'round', interactive: false }).addTo(hint.current); }); };
+        const allG = [...pts.map((p) => p.g), ...TR.flatMap((t) => t.pts.map((q) => q.g))];
+        const fit = () => { if (allG.length) { try { map.invalidateSize(); map.fitBounds(window.L.latLngBounds(allG), { padding: [24, 24], maxZoom: 9, animate: false }); } catch (e) {} } drawHint(); };
+        map.on('zoomend', drawHint); fit(); const t = setTimeout(fit, 120);
         let ro = null; if (window.ResizeObserver && el.current) { ro = new ResizeObserver(() => fit()); ro.observe(el.current); }
-        return () => { clearTimeout(t); if (ro) ro.disconnect(); };
+        return () => { clearTimeout(t); map.off('zoomend', drawHint); if (hint.current) hint.current.clearLayers(); if (ro) ro.disconnect(); };
       }, [sig]);
       return (
         <div className="rt2-card" data-route-mini>

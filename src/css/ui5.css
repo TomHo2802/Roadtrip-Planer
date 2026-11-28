@@ -213,3 +213,6 @@ html:not([data-ui="classic"]) .rt-sortable.rt2-row .rt2-open{user-select:none;-w
 html:not([data-ui="classic"]) .rt-dragging:not(.sp3-row){background:var(--u-surface,#fff)}
 .rt-dragging{position:relative;z-index:60}
 li.rt-dragging{list-style:none}
+
+/* v130: Anreise/Rückreise-Punkte in der Etappenkarte */
+.rt2-map .mk2.tr{width:24px;height:24px;border-radius:8px;background:var(--u-acc);border:2px solid #fff;color:#fff;font:700 13px/1 Inter,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.35)}
