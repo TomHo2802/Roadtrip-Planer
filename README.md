@@ -601,3 +601,6 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 
 ## v133
 - Etappenkarte: Ein Klick auf ein Symbol springt direkt zum Eintrag: Aktion (★) → Etappe, Reiter „Aktionen“, Eintrag aufgeklappt; Stopp → Reiter „Weg“, Stopp aufgeklappt; Etappenpunkt → Reiter „Hotel“ (bei fehlender Strecke „Weg“); ✈/⌂ → Anreise bzw. Rückreise mit aufgeklapptem Schritt. Die Seite scrollt zum Eintrag.
+
+## v134
+- Etappenkarte: Spezielle Symbole auf den Punkten: Flugzeug für Flughäfen (Ankunft, Abflug, Umstieg, Landung), Auto für die Mietwagenstation, Hotelbett für Hotels. Etappenpunkte mit Hotel zeigen das Hotel-Symbol mit der Etappennummer als kleines Schild, Etappen ohne Hotel weiter die Nummer. Farben (grün/rot) und Klick-Sprung bleiben. Legende angepasst.

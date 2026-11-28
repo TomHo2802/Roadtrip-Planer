@@ -225,3 +225,8 @@ li.rt-dragging{list-style:none}
 .rt2-map .mk2.sm.stop{width:12px;height:12px;margin:3px}
 .rt-ld{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;border:2px solid #fff;box-shadow:0 0 0 1px #94a3b8}
 .rt-ld.ok{background:#1E8E4E}.rt-ld.bad{background:#D32F2F}
+
+/* v134: Symbole auf den Kartenpunkten */
+.rt2-map .mk2.tr{display:flex;align-items:center;justify-content:center}
+.rt2-map .mk2.hot{width:30px;height:30px;border-radius:50%;position:relative;border-width:2px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.rt2-map .mk2.hot b{position:absolute;top:-6px;right:-6px;min-width:15px;height:15px;border-radius:8px;background:#fff;color:#0F172A;font:700 10px/15px Inter,sans-serif;text-align:center;border:1px solid #64748b;padding:0 2px}

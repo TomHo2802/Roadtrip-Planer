@@ -84,19 +84,28 @@
       );
     }
     // v130: Punkte von Anreise/Rückreise für die Karte: nach der Landung bzw. bis zum Abflug, der Flug wird nur angedeutet
+    const RT_ICO = {
+      plane: 'M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z',
+      car: 'M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-8l-2.08-5.99zM6.5 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm11 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM5 11l1.5-4.5h11L19 11H5z',
+      hotel: 'M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z',
+      pin: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z',
+    };
+    const rtIcoSvg = (name, size, color) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true" style="display:block;fill:${color || '#fff'}"><path d="${RT_ICO[name] || RT_ICO.pin}"/></svg>`;
+    const rtIcoOf = (type) => (type === 'apt' || type === 'dep' || type === 'layA' || type === 'layD' || type === 'land') ? 'plane' : type === 'car' ? 'car' : (type === 'hotel' || type === 'arr') ? 'hotel' : 'pin';
+    const RtIco = ({ n, size = 14 }) => <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" style={{ display: 'inline-block', verticalAlign: '-2px', fill: 'currentColor' }}><path d={RT_ICO[n] || RT_ICO.pin} /></svg>;
     const rtTravelMapPts = (trip, kind) => {
       const steps = rtTdSteps(trip, kind); const G = (st) => parseGps(st.gps || ''); const fly = steps.some((x) => x.type === 'dep' || x.type === 'land');
       let from = 0, to = steps.length - 1;
       if (kind === 'out') { const li = steps.map((x) => x.type).lastIndexOf('land'); if (fly) from = li >= 0 ? li : steps.findIndex((x) => x.type === 'dep') + 1; }
       else if (fly) { const di = steps.findIndex((x) => x.type === 'dep'); to = di >= 0 ? di : steps.findIndex((x) => x.type === 'apt'); if (to < 0) to = steps.length - 1; }
-      const pts = steps.map((x, i) => ({ x, i })).slice(from, to + 1).filter(({ x }) => x.type !== 'home' && x.type !== 'park' && G(x)).map(({ x, i }) => ({ g: G(x), label: rtTdLabel(kind, x), ok: !!String(x.time || '').trim(), row: 'tr:' + i }));
+      const pts = steps.map((x, i) => ({ x, i })).slice(from, to + 1).filter(({ x }) => x.type !== 'home' && x.type !== 'park' && G(x)).map(({ x, i }) => ({ g: G(x), label: rtTdLabel(kind, x), type: x.type, ok: !!String(x.time || '').trim(), row: 'tr:' + i }));
       let ref = null;
       if (fly) { const cand = kind === 'out' ? steps.slice(0, from).reverse().find((x) => G(x) && (x.type === 'apt' || x.type === 'dep' || x.type === 'layD' || x.type === 'layA')) : steps.slice(to + 1).find((x) => G(x) && (x.type === 'layA' || x.type === 'land' || x.type === 'park' || x.type === 'home')); ref = cand ? G(cand) : null; }
       return { pts, ref, anchor: pts.length ? pts[kind === 'out' ? 0 : pts.length - 1].g : null };
     };
     function RtRouteMini({ trip, onOpen }) {
       const el = useRef(null), mapRef = useRef(null), grp = useRef(null), hint = useRef(null), S = rtPlanStats(trip);
-      const pts = ((trip && trip.stages) || []).map((s, i) => { const g = parseGps((s.hotel || {}).gps || '') || parseGps(s.toGps || ''); const r = S.rows[i]; const why = r ? [!r.named ? 'Ziel' : '', r.hotelNeed && !r.hotel ? 'Hotel' : '', r.routeNeed && !r.route ? 'Strecke' : ''].filter(Boolean) : []; return g ? { g, i, id: s.id, name: s.toCity, miss: !!(r && r.open > 0), why } : null; }).filter(Boolean);
+      const pts = ((trip && trip.stages) || []).map((s, i) => { const g = parseGps((s.hotel || {}).gps || '') || parseGps(s.toGps || ''); const r = S.rows[i]; const why = r ? [!r.named ? 'Ziel' : '', r.hotelNeed && !r.hotel ? 'Hotel' : '', r.routeNeed && !r.route ? 'Strecke' : ''].filter(Boolean) : []; return g ? { g, i, id: s.id, name: s.toCity, miss: !!(r && r.open > 0), why, hot: !!(r && r.hotel) } : null; }).filter(Boolean);
       const extra = []; let noGps = 0;
       ((trip && trip.stages) || []).forEach((s) => {
         (s.localAttractions || []).forEach((a, ai) => { const g = parseGps(a.gps || ''); if (!g) { noGps++; return; } const why = [!String(a.name || '').trim() ? 'Name' : '', !String(a.time || '').trim() ? 'Uhrzeit' : ''].filter(Boolean); extra.push({ g, kind: 'act', row: 'act:' + ai, tab: 'do', id: s.id, name: a.name || 'Aktion', ok: !why.length, why }); });
@@ -117,10 +126,10 @@
         if (pts.length > 1) L.polyline(pts.map((p) => p.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
         TR.forEach((t) => {
           if (t.pts.length > 1) L.polyline(t.pts.map((q) => q.g), { color: getComputedStyle(document.documentElement).getPropertyValue('--u-acc').trim() || '#2457D6', weight: 3, opacity: 0.85 }).addTo(grp.current);
-          t.pts.forEach((q) => L.marker(q.g, { title: q.ok ? q.label : `${q.label} (Uhrzeit fehlt)`, zIndexOffset: -100, icon: L.divIcon({ className: '', html: `<div class="mk2 tr ${q.ok ? 'ok' : 'bad'}" data-map-travel="${t.k}">${t.k === 'out' ? '✈' : '⌂'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] }) }).on('click', () => jump(RT_TRAVEL_ID[t.k], 'way', q.row)).addTo(grp.current));
+          t.pts.forEach((q) => L.marker(q.g, { title: q.ok ? q.label : `${q.label} (Uhrzeit fehlt)`, zIndexOffset: -100, icon: L.divIcon({ className: '', html: `<div class="mk2 tr ${q.ok ? 'ok' : 'bad'}" data-map-travel="${t.k}" data-map-ico="${rtIcoOf(q.type)}">${rtIcoSvg(rtIcoOf(q.type), 16)}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }) }).on('click', () => jump(RT_TRAVEL_ID[t.k], 'way', q.row)).addTo(grp.current));
         });
         extra.forEach((e) => L.marker(e.g, { title: e.ok ? e.name : `${e.name} (fehlt: ${e.why.join(', ')})`, zIndexOffset: -50, icon: L.divIcon({ className: '', html: `<div class="mk2 sm ${e.kind} ${e.ok ? 'ok' : 'bad'}" data-map-${e.kind}>${e.kind === 'act' ? '★' : ''}</div>`, iconSize: [18, 18], iconAnchor: [9, 9] }) }).on('click', () => jump(e.id, e.tab, e.row)).addTo(grp.current));
-        pts.forEach((p) => L.marker(p.g, { title: p.miss ? `${p.name} (fehlt: ${p.why.join(', ')})` : p.name, zIndexOffset: 100, icon: L.divIcon({ className: '', html: `<div class="mk2 ${p.miss ? 'bad' : 'ok'}" data-map-stage="${p.i + 1}">${p.i + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) }).on('click', () => jump(p.id, p.why && p.why.includes('Hotel') ? 'hotel' : p.why && p.why.includes('Strecke') ? 'way' : 'hotel', null)).addTo(grp.current));
+        pts.forEach((p) => L.marker(p.g, { title: p.miss ? `${p.name} (fehlt: ${p.why.join(', ')})` : p.name, zIndexOffset: 100, icon: L.divIcon({ className: '', html: p.hot ? `<div class="mk2 hot ${p.miss ? 'bad' : 'ok'}" data-map-stage="${p.i + 1}" data-map-ico="hotel">${rtIcoSvg('hotel', 17)}<b>${p.i + 1}</b></div>` : `<div class="mk2 ${p.miss ? 'bad' : 'ok'}" data-map-stage="${p.i + 1}">${p.i + 1}</div>`, iconSize: p.hot ? [30, 30] : [22, 22], iconAnchor: p.hot ? [15, 15] : [11, 11] }) }).on('click', () => jump(p.id, p.why && p.why.includes('Hotel') ? 'hotel' : p.why && p.why.includes('Strecke') ? 'way' : 'hotel', null)).addTo(grp.current));
         const drawHint = () => { if (!hint.current) return; hint.current.clearLayers(); TR.forEach((t) => { if (!t.ref || !t.anchor) return; const a = map.latLngToContainerPoint(t.anchor), r = map.latLngToContainerPoint(t.ref); const dx = r.x - a.x, dy = r.y - a.y, len = Math.hypot(dx, dy); if (len < 40) return; const f = Math.min(1, 90 / len); const end = map.containerPointToLatLng(L.point(a.x + dx * f, a.y + dy * f)); L.polyline([t.anchor, end], { color: '#64748B', weight: 3, opacity: 0.9, dashArray: '2 8', lineCap: 'round', interactive: false }).addTo(hint.current); }); };
         const allG = [...pts.map((p) => p.g), ...extra.map((e) => e.g), ...TR.flatMap((t) => t.pts.map((q) => q.g))];
         const fit = () => { if (allG.length) { try { map.invalidateSize(); map.fitBounds(window.L.latLngBounds(allG), { padding: [24, 24], maxZoom: 9, animate: false }); } catch (e) {} } drawHint(); };
@@ -131,7 +140,7 @@
       return (
         <div className="rt2-card" data-route-mini>
           <div ref={el} className="rt2-map" role="img" aria-label="Karte der Etappen. Ein Klick auf einen Punkt öffnet die Etappe." />
-          <p data-map-legend className="text-xs text-slate-700 m-0 flex flex-wrap gap-x-3 gap-y-1 items-center"><span><i className="rt-ld ok" /> vollständig</span><span><i className="rt-ld bad" /> es fehlt etwas</span><span>Zahl: Etappe</span><span>★ Aktion vor Ort</span><span>kleiner Punkt: Stopp</span><span>✈ ⌂ An-/Rückreise</span></p>
+          <p data-map-legend className="text-xs text-slate-700 m-0 flex flex-wrap gap-x-3 gap-y-1 items-center"><span><i className="rt-ld ok" /> vollständig</span><span><i className="rt-ld bad" /> es fehlt etwas</span><span>Zahl: Etappe (ohne Hotel)</span><span><RtIco n="hotel" /> Hotel</span><span><RtIco n="plane" /> Flughafen</span><span><RtIco n="car" /> Mietwagen</span><span>★ Aktion</span><span>kleiner Punkt: Stopp</span></p>
           {noGps > 0 && <p className="text-xs text-slate-600 m-0" data-map-nogps>{noGps === 1 ? '1 Aktion oder Stopp hat' : `${noGps} Aktionen oder Stopps haben`} noch keine Koordinaten und fehlt auf der Karte.</p>}
           {pts.length < ((trip && trip.stages) || []).length && <p className="text-xs text-slate-600 m-0">{((trip && trip.stages) || []).length - pts.length === 1 ? '1 Etappe hat' : `${((trip && trip.stages) || []).length - pts.length} Etappen haben`} noch keine Koordinaten und {((trip && trip.stages) || []).length - pts.length === 1 ? 'fehlt' : 'fehlen'} auf der Karte.</p>}
           <button type="button" data-readonly-allow onClick={() => { const b = document.querySelector('[data-route-edit]'); if (b) b.click(); }} className="v18-btn v18-edit-only justify-center">Route auf der Karte bearbeiten</button>
