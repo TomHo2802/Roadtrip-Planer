@@ -578,3 +578,7 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 - Anreise/Rückreise-Schritte: Button „Punkt auf der Karte wählen“ unter dem GPS-Feld. Die Karte öffnet sich, der Punkt wird durch Tippen gesetzt (oder per Suche) und mit „Übernehmen“ als GPS-Wert eingetragen, auch ohne Ortsnamen (z. B. offline). Leere Adress- und Ortsfelder werden mit dem gefundenen Namen gefüllt.
 - Das Feld „Ort“ schlägt jetzt wie die anderen Planungsfelder Orte vor und setzt dabei GPS automatisch.
 - `ortwahl.js`: neue Option `allowUnnamed`.
+
+## v127
+- Anreise/Rückreise-Schritte lassen sich per Ziehen sortieren: Maustaste auf den Eintrag halten und ziehen (Touch: kurz halten, dann ziehen), loslassen übernimmt die Reihenfolge. Ein einfacher Klick klappt den Eintrag weiter auf. Die Pfeil-Buttons entfallen, per Tastatur geht Alt + Pfeil hoch/runter. Gilt auch für neu hinzugefügte Schritte, nicht im Nur-Lesen-Modus.
+- Allgemeiner Baustein `rtUseDragSort` (12-planen-ansicht.jsx), den weitere Listen später mitnutzen können.

@@ -238,6 +238,43 @@
       const f = flightSteps(); return [hotelStep('hotel'), carStep(), ...f, mk('park', '', fl.length ? `Parkhaus ${String(fl[fl.length - 1].to || '').trim()}` : ''), mk('home', '', home)];
     };
 
+    // ===== v127: Einträge per Ziehen sortieren (Maus: Taste halten und ziehen, Touch: kurz halten, dann ziehen; Tastatur: Alt + Pfeil) =====
+    function rtUseDragSort(n, onDrop, enabled) {
+      const [st, setSt] = useState(null);
+      const rows = useRef([]); const g = useRef(null); const sup = useRef(false); const cb = useRef(onDrop); cb.current = onDrop;
+      const place = () => { const c = g.current; if (!c || !c.active) return; const el = rows.current[c.from]; if (!el) return; el.style.transform = ''; const top = el.getBoundingClientRect().top; el.style.transform = `translateY(${Math.round(c.cy - c.grab - top)}px)`; };
+      const calcTo = () => { const c = g.current; const pageY = c.cy + window.scrollY; const center = pageY - c.grab + c.h / 2; let to = 0; c.centers.forEach((m, k) => { if (k !== c.from && m < center) to++; }); return to; };
+      const update = () => { const c = g.current; if (!c || !c.active) return; const to = calcTo(); if (to !== c.to) { c.to = to; setSt({ from: c.from, to }); } place(); };
+      const end = (apply) => {
+        const c = g.current; if (!c) return; window.removeEventListener('pointermove', c.mv); window.removeEventListener('pointerup', c.up); window.removeEventListener('pointercancel', c.cn); window.removeEventListener('touchmove', c.tm); clearTimeout(c.timer); cancelAnimationFrame(c.raf);
+        document.documentElement.classList.remove('rt-drag-on'); const el = rows.current[c.from]; if (el) el.style.transform = '';
+        const was = c.active; g.current = null; if (was) { sup.current = true; setSt(null); if (apply && c.to !== c.from) cb.current(c.from, c.to); }
+      };
+      const start = (i, e) => {
+        if (!enabled || n < 2 || (e.pointerType === 'mouse' && e.button !== 0) || (e.target.closest && e.target.closest('a,input,select,textarea'))) return;
+        sup.current = false; if (g.current) end(false);
+        const c = { from: i, to: i, sx: e.clientX, sy: e.clientY, cy: e.clientY, type: e.pointerType, active: false, centers: [], grab: 0, h: 0, raf: 0, timer: 0 };
+        const activate = () => {
+          const el = rows.current[i]; if (!el) return; c.active = true; c.centers = rows.current.map((r) => { if (!r) return 0; const b = r.getBoundingClientRect(); return b.top + window.scrollY + b.height / 2; });
+          const b = el.getBoundingClientRect(); c.grab = c.sy - b.top; c.h = b.height; document.documentElement.classList.add('rt-drag-on'); setSt({ from: i, to: i });
+          try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
+          const loop = () => { if (!g.current || !g.current.active) return; const y = c.cy, H = window.innerHeight; if (y < 80) window.scrollBy(0, -Math.ceil((80 - y) / 5)); else if (y > H - 80) window.scrollBy(0, Math.ceil((y - (H - 80)) / 5)); update(); c.raf = requestAnimationFrame(loop); };
+          c.raf = requestAnimationFrame(loop); update();
+        };
+        c.mv = (ev) => { if (ev.pointerId !== e.pointerId) return; c.cy = ev.clientY; if (!c.active) { const d = Math.hypot(ev.clientX - c.sx, ev.clientY - c.sy); if (c.type === 'mouse' || c.type === 'pen') { if (d > 5) activate(); } else if (d > 9) end(false); } else { ev.preventDefault(); update(); } };
+        c.up = (ev) => { if (ev.pointerId === e.pointerId) end(true); };
+        c.cn = (ev) => { if (ev.pointerId === e.pointerId) end(false); };
+        c.tm = (ev) => { if (c.active && ev.cancelable) ev.preventDefault(); };
+        window.addEventListener('pointermove', c.mv); window.addEventListener('pointerup', c.up); window.addEventListener('pointercancel', c.cn); window.addEventListener('touchmove', c.tm, { passive: false });
+        if (c.type !== 'mouse' && c.type !== 'pen') c.timer = setTimeout(activate, 380);
+        g.current = c;
+      };
+      useEffect(() => () => { if (g.current) end(false); }, []);
+      React.useLayoutEffect(() => { place(); });
+      const order = (() => { const idx = Array.from({ length: n }, (_, k) => k); if (!st) return idx; const rest = idx.filter((k) => k !== st.from); rest.splice(st.to, 0, st.from); return rest; })();
+      return { order, dragging: st ? st.from : null, setRef: (i) => (el) => { rows.current[i] = el; }, onPointerDown: start, wasDrag: () => { const v = sup.current; sup.current = false; return v; }, keyMove: (i, e) => { if (!enabled || !e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return; e.preventDefault(); const to = i + (e.key === 'ArrowUp' ? -1 : 1); if (to >= 0 && to < n) cb.current(i, to); } };
+    }
+
     function RtTravelSteps({ kind, trip, save }) {
       const out = kind === 'out'; const steps = rtTdSteps(trip, kind);
       const [edit, setEdit] = useState(null); const [openRow, setOpenRow] = useState(null);
@@ -247,7 +284,8 @@
       const init = (mode) => commit(() => rtTdTemplate(trip, kind, mode), out ? 'Ablauf für die Anreise angelegt' : 'Ablauf für die Rückreise angelegt');
       const saveStep = (i, v) => { const o = { type: v.type || 'other', time: v.time, place: v.place, address: v.address, gps: v.gps, note: v.note, title: v.title }; commit((L) => i == null ? [...L, { id: `td-${Date.now().toString(36)}`, ...o }] : L.map((x, k) => (k === i ? { ...x, ...o } : x)), 'Gespeichert'); setEdit(null); };
       const delStep = (i) => { commit((L) => L.filter((_, k) => k !== i), '', `Schritt „${rtTdLabel(kind, steps[i] || {})}“ gelöscht`); setEdit(null); setOpenRow(null); };
-      const move = (i, d) => { const j = i + d; if (j < 0 || j >= steps.length) return; commit((L) => { const A = [...L]; const t = A[i]; A[i] = A[j]; A[j] = t; return A; }, 'Reihenfolge geändert'); };
+      const reorder = (from, to) => commit((L) => { const A = [...L]; const [m] = A.splice(from, 1); A.splice(to, 0, m); return A; }, 'Reihenfolge geändert');
+      const dnd = rtUseDragSort(steps.length, reorder, !IS_READ_ONLY_COPY && edit === null);
       const form = (i) => { const st = i == null ? { type: 'other' } : steps[i]; return (
         <SpForm title={i == null ? 'Schritt hinzufügen' : 'Schritt bearbeiten'} onSave={(v) => saveStep(i, v)} onCancel={() => setEdit(null)} onDelete={i == null ? null : () => delStep(i)}>
           <SpF label="Schritt" name="type" value={st.type} opts={types} wide />
@@ -275,11 +313,11 @@
               <button type="button" data-travel-init="car" className="sp3-btn" onClick={() => init('car')}>Nur mit dem Auto</button>
             </div>
           </div>}
-          {steps.map((st, i) => { const nav = rtTdNav(st); const open = openRow === 'tr:' + i; return edit === 'tr:' + i ? <div key={st.id || i} className="sp3-in">{form(i)}</div> : (
-            <div key={st.id || i} className={`sp3-row${open ? ' open' : ''}`} data-sp-row data-travel-step>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button type="button" data-readonly-allow className="sp3-rowbtn" style={{ flex: 1, minWidth: 0 }} aria-expanded={open} onClick={() => setOpenRow(open ? null : 'tr:' + i)}>
-                  <span className="sp3-lead">{i + 1}</span>
+          {dnd.order.map((i, pos) => { const st = steps[i]; const nav = rtTdNav(st); const open = openRow === 'tr:' + i && dnd.dragging == null; return edit === 'tr:' + i ? <div key={st.id || i} className="sp3-in">{form(i)}</div> : (
+            <div key={st.id || i} ref={dnd.setRef(i)} className={`sp3-row${open ? ' open' : ''}${steps.length > 1 && !IS_READ_ONLY_COPY && edit === null ? ' rt-sortable' : ''}${dnd.dragging === i ? ' rt-dragging' : ''}`} data-sp-row data-travel-step data-step-id={st.id}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onPointerDown={(e) => dnd.onPointerDown(i, e)} onContextMenu={(e) => { if (dnd.dragging != null) e.preventDefault(); }}>
+                <button type="button" data-readonly-allow className="sp3-rowbtn" style={{ flex: 1, minWidth: 0 }} aria-expanded={open} onKeyDown={(e) => dnd.keyMove(i, e)} onClick={() => { if (dnd.wasDrag()) return; setOpenRow(open ? null : 'tr:' + i); }}>
+                  <span className="sp3-lead">{pos + 1}</span>
                   <span className="sp3-grow"><span className="sp3-rt">{rtTdLabel(kind, st)}</span><span className="sp3-mute">{[st.time ? `${st.time} Uhr` : '', st.place].filter(Boolean).join(' · ') || 'Zeit und Ort noch offen'}</span></span>
                   <span className="sp3-chev" aria-hidden="true">›</span>
                 </button>
@@ -291,13 +329,11 @@
                 {st.gps && <p className="sp3-mute">GPS: {st.gps}</p>}
                 <div className="sp3-acts">
                   <button type="button" className="sp3-btn sm v18-edit-only" data-travel-edit onClick={() => setEdit('tr:' + i)}>Bearbeiten</button>
-                  <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Schritt nach oben" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
-                  <button type="button" className="sp3-btn sm v18-edit-only" aria-label="Schritt nach unten" disabled={i === steps.length - 1} onClick={() => move(i, 1)}>↓</button>
                   <button type="button" className="sp3-btn sm del v18-edit-only" onClick={() => delStep(i)}>Löschen</button>
                 </div>
               </div>}
             </div>); })}
-          {edit === 'tr:new' ? <div className="sp3-in">{form(null)}</div> : steps.length > 0 && <div className="sp3-addrow v18-edit-only"><button type="button" data-travel-add className="sp3-btn" onClick={() => setEdit('tr:new')}>+ Schritt</button></div>}
+          {edit === 'tr:new' ? <div className="sp3-in">{form(null)}</div> : steps.length > 0 && <div className="sp3-addrow v18-edit-only"><button type="button" data-travel-add className="sp3-btn" onClick={() => setEdit('tr:new')}>+ Schritt</button>{steps.length > 1 && <span className="sp3-mute" data-travel-dnd-hint style={{ marginLeft: 10 }}>Zum Sortieren einen Schritt gedrückt halten und ziehen.</span>}</div>}
         </section>
       );
     }
