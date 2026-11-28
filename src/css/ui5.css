@@ -216,3 +216,12 @@ li.rt-dragging{list-style:none}
 
 /* v130: Anreise/Rückreise-Punkte in der Etappenkarte */
 .rt2-map .mk2.tr{width:24px;height:24px;border-radius:8px;background:var(--u-acc);border:2px solid #fff;color:#fff;font:700 13px/1 Inter,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+
+/* v132: Karte entwickelt sich mit den Eingaben: grün = vollständig, rot = es fehlt etwas */
+.rt2-map .mk2.ok,.rt2-map .mk2.tr.ok{background:#1E8E4E;border-color:#fff;color:#fff}
+.rt2-map .mk2.bad,.rt2-map .mk2.tr.bad{background:#D32F2F;border-color:#fff;color:#fff}
+.rt2-map .mk2.miss{background:#D32F2F}
+.rt2-map .mk2.sm{width:18px;height:18px;border-width:2px;font-size:10px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.rt2-map .mk2.sm.stop{width:12px;height:12px;margin:3px}
+.rt-ld{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;border:2px solid #fff;box-shadow:0 0 0 1px #94a3b8}
+.rt-ld.ok{background:#1E8E4E}.rt-ld.bad{background:#D32F2F}

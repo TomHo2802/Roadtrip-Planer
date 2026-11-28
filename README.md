@@ -595,3 +595,6 @@ Durchlauf mit leerer Reise, alle gefundenen Punkte behoben:
 
 ## v131
 - Anreise: Der Schritt „Weiterfahrt zum Hotel“ (bzw. „Ankunft im Hotel“) übernimmt automatisch Name, Adresse und GPS des Hotels der 1. Etappe, Rückreise: „Abfahrt vom Hotel“ das Hotel der letzten Etappe mit Hotel. Änderungen am Hotel wirken sofort; wird der Schritt von Hand mit anderen Werten gespeichert, bleibt er unabhängig. Das gilt auch für Navigation, Karte und Tagesplan.
+
+## v132
+- Etappenkarte (Planen) entwickelt sich mit den Eingaben: Etappenpunkte sind grün, wenn Ziel, Hotel und Strecke vollständig sind, sonst rot (Hinweis im Tooltip, was fehlt). Mit eingetragenem Hotel liegt der Punkt an den Hotel-Koordinaten. Aktionen vor Ort (★) und Stopps unterwegs (kleiner Punkt) mit GPS werden eingezeichnet: grün mit Name und Uhrzeit, sonst rot. Anreise-/Rückreisepunkte sind grün mit Uhrzeit, sonst rot. Legende unter der Karte, Hinweis auf Einträge ohne Koordinaten.
